@@ -6,4 +6,5 @@
 | 2023/05/30 | 1      | 1       | 1    | 1      | 1       | 1      | Group presentation practice         |
 | 2023/05/31 | 1      | 1       | 1    | 1      | 1       | 1      | post presentation doc changes       |
 | 2023/05/31 | 1      | 1       | 1    | 1      | 1       | 1      | Presentation day                    |
-| 2023/06/01 | 2      | 2       | 2    | 2      | 2       | 2      | Final additions to proposal doc     |
+| 2023/06/01 | 2      | 2       | 2    | 2      | 2       | 2      | Proposal doc meeting                |
+| 2023/06/02 | 2      | 2       | 2    | 2      | 2       | 2      | Finishing proposal doc              |
