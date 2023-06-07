@@ -8,3 +8,4 @@
 | 2023/05/31 | 1      | 1       | 1    | 1      | 1       | 1      | Presentation day                    |
 | 2023/06/01 | 2      | 2       | 2    | 2      | 2       | 2      | Proposal doc meeting                |
 | 2023/06/02 | 1      | 1       | 1    | 1      | 1       | 1      | Finishing proposal doc              |
+| 2023/06/07 | 1      | 1       | 1    | 1      | 1       | 1      | Group meeting for buddy eval        |
