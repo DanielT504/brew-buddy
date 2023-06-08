@@ -10,3 +10,4 @@
 | 2023/06/02 | 1      | 1       | 1    | 1      | 1       | 1      | Finishing proposal doc              |
 | 2023/06/07 | 1      | 1       | 1    | 1      | 1       | 1      | Group meeting for buddy eval        |
 | 2023/06/07 |        |         |      |        |         | 1      | Buddy eval work                     |
+| 2023/06/07 |        |1        |      |        |         |        | Hello world project init            |
