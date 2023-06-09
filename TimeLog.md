@@ -11,3 +11,4 @@
 | 2023/06/07 | 1      | 1       | 1    | 1      | 1       | 1      | Group meeting for buddy eval        |
 | 2023/06/07 |        |         |      |        |         | 1      | Buddy eval work                     |
 | 2023/06/07 |        |1        |      |        |         |        | Hello world project init            |
+| 2023/06/07 |1       |         |      |        |         |        | Buddy eval work                     |
