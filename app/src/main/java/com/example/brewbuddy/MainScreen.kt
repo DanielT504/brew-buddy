@@ -21,7 +21,8 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         Text(
             text = "Greetings from $name!",
             modifier = modifier.padding(24.dp),
-            color=MaterialTheme.colorScheme.primary
+            color=MaterialTheme.colorScheme.primary,
+            style=MaterialTheme.typography.titleLarge
         )
     }
 }
