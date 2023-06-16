@@ -24,10 +24,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             BrewBuddyTheme {
-                // A surface container using the 'background' color from the theme
-//                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-//                    Greeting("BrewBuddy")
-//                }
                 MainScreen()
             }
 
@@ -37,22 +33,3 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Surface() {
-        Text(
-            text = "Greetings from $name!",
-            modifier = modifier.padding(24.dp),
-            color=MaterialTheme.colorScheme.primary
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    BrewBuddyTheme {
-        Greeting("BrewBuddy")
-    }
-}
