@@ -14,5 +14,9 @@
 | 2023/06/07 |1       |         |      |        |         |        | Buddy eval work                     |
 | 2023/06/09 |        |1        |      |        |         |        | Buddy eval work                     |
 | 2023/06/12 |        |         | 1    |        |         |        | Starting some component development |
+<<<<<<< HEAD
 | 2023/06/15 |        |         |      |        | 2       |        | Set up colours, theme, and icons    |
 | 2023/06/16 |        |         |      |        | 2       |        | Add navigation bar + basic screens  |
+=======
+| 2023/06/16 |        |2        |      |        |         |        | Custom Card Component               |
+>>>>>>> main
