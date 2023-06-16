@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Brew Buddy</string>
+    <string name="profile_route">Profile</string>
+    <string name="shop_locator_route">ShopLocator</string>
+    <string name="marketplace_route">Marketplace</string>
+    <string name="featured_route">Featured</string>
+    <string name="recipes_route">Recipes</string>
 </resources>
