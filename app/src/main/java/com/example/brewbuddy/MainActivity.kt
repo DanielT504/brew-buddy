@@ -10,6 +10,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             BrewBuddyTheme {
+                LoginScreen(loginUser = ::login)
+            }
+        }
+    }
+
+    fun login(username: String, password: String) {
+        setContent{
+            BrewBuddyTheme {
                 MainScreen()
             }
         }
