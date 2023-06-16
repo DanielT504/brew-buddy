@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="slate_a">#C9D2E3</color>
-    <color name="slate_b">#9D9CA2</color>
-    <color name="slate_c">#2F3847</color>
-    <color name="green_a">#AAA898</color>
-    <color name="green_b">#6D7E5E</color>
-    <color name="green_c">#17292A</color>
+    <color name="slateLight">#C9D2E3</color>
+    <color name="greyMedium">#9D9CA2</color>
+    <color name="slateDark">#2F3847</color>
+    <color name="greenLight">#AAA898</color>
+    <color name="greenMedium">#6D7E5E</color>
+    <color name="greenDark">#17292A</color>
     <color name="black">#FF000000</color>
-    <color name="white_a">#FFFFFFFF</color>
-    <color name="white_b">#F9F5F3</color>
-    <color name="white_c">#DCD1C3</color>
-    <color name="brown_a">#A55434</color>
-    <color name="brown_b">#772E1B</color>
-    <color name="brown_c">#66402F</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="cream">#F9F5F3</color>
+    <color name="orangeBrownLight">#A55434</color>
+    <color name="orangeBrownMedium">#772E1B</color>
+    <color name="brown">#66402F</color>
 </resources>

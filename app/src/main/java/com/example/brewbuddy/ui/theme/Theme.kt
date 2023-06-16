@@ -16,6 +16,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.compose.ui.graphics.Color
 
+
+// to change eventually
 private val DarkColorScheme = darkColorScheme(
     primary = OrangeBrownMedium,
     onPrimary = Color.White,
@@ -47,15 +49,16 @@ fun BrewBuddyTheme(
         dynamicColor: Boolean = true,
         content: @Composable () -> Unit
 ) {
-//    val colorScheme = when {
-//        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-//            val context = LocalContext.current
-//            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-//        }
-//
-//        darkTheme -> DarkColorScheme
-//        else -> LightColorScheme
-//    }
+    // temporarily commenting out, causes some problems with setting up the right colors
+    //    val colorScheme = when {
+    //        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+    //            val context = LocalContext.current
+    //            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+    //        }
+    //
+    //        darkTheme -> DarkColorScheme
+    //        else -> LightColorScheme
+    //    }
     val colorScheme = LightColorScheme
     val view = LocalView.current
     if (!view.isInEditMode) {

@@ -5,20 +5,19 @@
 
     <!-- In res/values/themes.xml -->
     <style name="Theme.BrewBuddy" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="colorPrimary">@color/brown_b</item>
-        <item name="colorPrimaryVariant">@color/brown_c</item>
-        <item name="colorOnPrimary">@color/white_a</item>
-        <item name="colorSecondary">@color/green_b</item>
-        <item name="colorSecondaryVariant">@color/green_a</item>
-        <item name="colorOnSecondary">@color/white_a</item>
-        <item name="colorTertiary">@color/slate_c</item>
-        <item name="colorOnTertiary">@color/white_a</item>
-        <item name="colorNavigation">@color/slate_a</item>
-        <item name="colorNavigationActive">@color/slate_b</item>
-        <item name="colorSurface">@color/white_b</item>
+        <item name="colorPrimary">@color/orangeBrownMedium</item>
+        <item name="colorPrimaryVariant">@color/orangeBrownLight</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/greenMedium</item>
+        <item name="colorSecondaryVariant">@color/greenLight</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorTertiary">@color/slateDark</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorNavigation">@color/slateLight</item>
+        <item name="colorSurface">@color/cream</item>
         <item name="colorOnSurface">@color/black</item>
-        <item name="android:colorBackground">@color/white_a</item>
-        <item name="background">@color/white_a</item>
+        <item name="android:colorBackground">@color/white</item>
+        <item name="background">@color/white</item>
         <item name="colorOnBackground">@color/black</item>
     </style>
 </resources>
