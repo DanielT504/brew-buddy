@@ -14,3 +14,4 @@
 | 2023/06/07 |1       |         |      |        |         |        | Buddy eval work                     |
 | 2023/06/09 |        |1        |      |        |         |        | Buddy eval work                     |
 | 2023/06/12 |        |         | 1    |        |         |        | Starting some component development |
+| 2023/06/16 |        |2        |      |        |         |        | Custom Card Component               |
