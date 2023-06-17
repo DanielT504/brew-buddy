@@ -11,6 +11,9 @@ import androidx.navigation.compose.*
 import com.example.brewbuddy.profile.User
 import kotlinx.coroutines.launch
 
+
+// global state view model to get currently logged in user.
+// if this is null, then we are looking at the login screen
 class CurrentUserViewModel : ViewModel() {
     val currentUser =  MutableLiveData<User?>()
 

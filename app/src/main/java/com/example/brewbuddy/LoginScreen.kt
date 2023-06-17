@@ -27,7 +27,9 @@ import com.example.brewbuddy.ui.theme.InterFont
 import com.example.brewbuddy.ui.theme.OrangeBrownMedium
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.example.brewbuddy.profile.User
@@ -38,6 +40,9 @@ import com.example.brewbuddy.ui.theme.GreenMedium
 fun LoginScreen() {
 
     val currentUserViewModel = viewModel { CurrentUserViewModel() }
+    val nonWhitespaceFilter = remember { Regex("^[^\n ]*\$")}
+    val alphanumericFilter = remember { Regex("[a-zA-Z0-9]*")}
+
     var username by remember { mutableStateOf(TextFieldValue("")) }
     var password by remember { mutableStateOf(TextFieldValue("")) }
 
@@ -55,13 +60,22 @@ fun LoginScreen() {
             Title()
             TextField(
                 value = username,
-                onValueChange = {username = it},
+                onValueChange = {
+                    if(it.text. matches(alphanumericFilter)){
+                        username = it
+                    }
+                },
                 placeholder = { Text(text = "Username")},
             )
             TextField(
                 value = password,
-                onValueChange = {password = it},
+                onValueChange = {
+                    if(it.text. matches(nonWhitespaceFilter)){
+                        password = it
+                    }
+                },
                 placeholder = { Text(text = "Password")},
+                visualTransformation = PasswordVisualTransformation()
             )
             Button(
                 onClick = {

@@ -12,7 +12,6 @@ import com.example.brewbuddy.profile.CurrentUserViewModel
 @Composable
 fun ProfileScreen(
 ) {
-//    val currentUserViewModel:  CurrentUserViewModel = viewModel()
     val currentUserViewModel: CurrentUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     val user = currentUserViewModel.getUser()
     val firstName = user!!.firstName
