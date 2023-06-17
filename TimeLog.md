@@ -10,13 +10,11 @@
 | 2023/06/02 | 1      | 1       | 1    | 1      | 1       | 1      | Finishing proposal doc              |
 | 2023/06/07 | 1      | 1       | 1    | 1      | 1       | 1      | Group meeting for buddy eval        |
 | 2023/06/07 |        |         |      |        | 1       | 1      | Buddy eval work                     |
-| 2023/06/07 |        |1        |      |        |         |        | Hello world project init            |
+| 2023/06/07 |        | 1       |      |        |         |        | Hello world project init            |
 | 2023/06/07 |1       |         |      |        |         |        | Buddy eval work                     |
-| 2023/06/09 |        |1        |      |        |         |        | Buddy eval work                     |
+| 2023/06/09 |        | 1       |      |        |         |        | Buddy eval work                     |
 | 2023/06/12 |        |         | 1    |        |         |        | Starting some component development |
-<<<<<<< HEAD
 | 2023/06/15 |        |         |      |        | 2       |        | Set up colours, theme, and icons    |
 | 2023/06/16 |        |         |      |        | 2       |        | Add navigation bar + basic screens  |
-=======
-| 2023/06/16 |        |2        |      |        |         |        | Custom Card Component               |
->>>>>>> main
+| 2023/06/16 |        | 2       |      |        |         |        | Custom Card Component               |
+| 2023/06/16 |        |         |      |        | 2       |        | Add login and set up viewmodels     |

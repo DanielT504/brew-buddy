@@ -76,8 +76,10 @@ private fun MainScreenNavigationConfigurations(
     navController: NavHostController,
     padding: PaddingValues
 ) {
+    // make sure that when you try to access the view model in the navhost children (the screens)
+    // it is accessing the right scope, e.g. the scope of the main activity instead
+    // of making its own scope within the navhost
     val vmStoreOwner = rememberViewModelStoreOwner()
-
     CompositionLocalProvider(
         LocalNavGraphViewModelStoreOwner provides vmStoreOwner
     ) {

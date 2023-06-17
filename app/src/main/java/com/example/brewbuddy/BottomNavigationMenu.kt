@@ -36,7 +36,7 @@ sealed class BottomNavigationScreens(val route: String, @StringRes val resourceI
 }
 
 @Composable
-public fun BottomNavigation(
+fun BottomNavigation(
     navController: NavHostController,
     items: List<BottomNavigationScreens>
 ) {
