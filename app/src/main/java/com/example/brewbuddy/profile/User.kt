@@ -6,14 +6,8 @@ class User {
 
     var firstName: String = "";
     var lastName: String = "";
-
+    var username: String = "";
     constructor(username: String) {
-        if(username == "test") {
-            firstName = "John"
-            lastName = "Doe"
-        } else {
-            firstName = "Bob"
-            lastName = "Roe"
-        }
+        this.username = username
     }
 }

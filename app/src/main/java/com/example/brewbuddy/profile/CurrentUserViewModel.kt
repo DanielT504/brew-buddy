@@ -24,4 +24,26 @@ class CurrentUserViewModel : ViewModel() {
     fun getUser(): User? {
         return currentUser.value
     }
+
+    private fun validateUser(username: String, password: String): Boolean {
+        return username == "test" && password == "test"
+    }
+
+    fun loginUser(username: String, password: String): Boolean {
+        if(validateUser(username, password)) {
+            val user = User(username)
+            setUser(user)
+            return true;
+        }
+        return false;
+    }
+
+    fun registerUser(username: String, password: String): Boolean {
+        if(username != "test") {
+            val user = User(username);
+            setUser(user);
+            return true;
+        }
+        return false;
+    }
 }

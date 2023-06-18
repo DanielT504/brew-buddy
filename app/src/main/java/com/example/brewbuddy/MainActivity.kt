@@ -1,6 +1,7 @@
 package com.example.brewbuddy
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -17,7 +18,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             BrewBuddyTheme {
-                LoginScreen()
+                AccessScreen()
             }
         }
         currentUserViewModel.setUser(null)
@@ -25,6 +26,7 @@ class MainActivity : ComponentActivity() {
         // observe changes in the current user. if the current user is null (logged out)
         // change screen to login
         currentUserViewModel.currentUser.observe(this, Observer {
+            Log.d("ACTIVITY", it.toString())
             if(it != null) {
                 setContent {
                     BrewBuddyTheme {
@@ -34,7 +36,7 @@ class MainActivity : ComponentActivity() {
             } else {
                 setContent {
                     BrewBuddyTheme {
-                        LoginScreen()
+                        AccessScreen()
                     }
                 }
             }
