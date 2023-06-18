@@ -5,4 +5,6 @@
     <string name="marketplace_route">Marketplace</string>
     <string name="featured_route">Featured</string>
     <string name="recipes_route">Recipes</string>
+    <string name="login_route">Login</string>
+    <string name="register_route">Register</string>
 </resources>
