@@ -19,3 +19,4 @@
 | 2023/06/16 |        | 2       |      |        |         |        | Custom Card Component               |
 | 2023/06/16 |        |         |      |        | 2       |        | Add login and set up viewmodels     |
 | 2023/06/17 |        |         |      |        | 1       |        | Add create account pages            |
+| 2023/06/17 |        |         | 2    |        |         |        | UI updates to profile screen        |
