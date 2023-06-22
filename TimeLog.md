@@ -20,3 +20,4 @@
 | 2023/06/16 |        |         |      |        | 2       |        | Add login and set up viewmodels         |
 | 2023/06/17 |        |         |      |        | 1       |        | Add create account pages                |
 | 2023/06/21 |        |         |      |        | 4       |        | Styling for profile page, add side menu |
+| 2023/06/22 |        |         |      |        | 1       |        | Add carousel                            |

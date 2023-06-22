@@ -1,7 +1,5 @@
 package com.example.brewbuddy.profile
 
-import android.util.Log
-import androidx.annotation.DrawableRes
 import com.example.brewbuddy.R
 
 class User {
