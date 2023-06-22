@@ -38,6 +38,12 @@ val Typography = Typography(
                 fontSize = 22.sp,
                 letterSpacing = 0.sp
         ),
+        titleSmall = TextStyle(
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                letterSpacing = 0.sp
+        ),
         labelSmall = TextStyle(
                 fontFamily = InterFont,
                 fontSize = 12.sp,
