@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 fun TitleLarge(text: String) {
     Text(
         text=text,
-        modifier = Modifier.padding(start=24.dp, bottom=24.dp),
+        modifier = Modifier.padding(start=24.dp, bottom=12.dp),
         style = MaterialTheme.typography.titleLarge,
     )
 }
