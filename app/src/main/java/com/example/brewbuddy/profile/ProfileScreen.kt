@@ -159,7 +159,7 @@ fun ProfileScreen() {
                     }
 
                     composable(ProfileScreens.Settings.route) {
-                        SettingScreen(menuDrawerState, coroutineScope)
+                        SettingScreen(menuButton = {MenuButton(coroutineScope, menuDrawerState)})
                     }
 
                 }
@@ -196,10 +196,10 @@ private fun MenuButton(coroutineScope: CoroutineScope, menuDrawerState: DrawerSt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingScreen(menuDrawerState: DrawerState, coroutineScope: CoroutineScope) {
+fun SettingScreen(menuButton: @Composable () -> Unit) {
     Surface(modifier=Modifier.fillMaxSize()) {
         Column() {
-            MenuButton(coroutineScope, menuDrawerState)
+            menuButton()
             TitleLarge(text = "Settings")
         }
     }

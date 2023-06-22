@@ -36,6 +36,7 @@ import com.example.brewbuddy.ui.theme.InterFont
 import com.example.brewbuddy.ui.theme.OrangeBrownMedium
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -224,12 +225,24 @@ fun ErrorMessage(text: String) {
 @Composable
 fun Title(color: Color = OrangeBrownMedium) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-        Text(text="brew", style=MaterialTheme.typography.titleLarge, color= color)
-        Text(text="buddy", style=TextStyle(
-            fontFamily = InterFont,
-            fontSize = 32.sp,
-            letterSpacing = 0.sp
-        ), color= color)
+        Text(
+            text="brew",
+            style=TextStyle(
+                fontFamily = InterFont,
+                fontWeight = FontWeight.Bold,
+                fontSize = 32.sp,
+                letterSpacing = 0.sp
+            ),
+            color= color)
+        Text(
+            text="buddy",
+            style=TextStyle(
+                fontFamily = InterFont,
+                fontSize = 32.sp,
+                letterSpacing = 0.sp
+            ),
+            color= color
+        )
     }
 }
 @Composable
