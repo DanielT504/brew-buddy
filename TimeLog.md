@@ -14,9 +14,11 @@
 | 2023/06/07 |1       |         |      |        |         |        | Buddy eval work                     |
 | 2023/06/09 |        | 1       |      |        |         |        | Buddy eval work                     |
 | 2023/06/12 |        |         | 1    |        |         |        | Starting some component development |
+| 2023/06/14 |        |         |      |        |         | 1      | Android dev tutorials               |
 | 2023/06/15 |        |         |      |        | 2       |        | Set up colours, theme, and icons    |
 | 2023/06/16 |        |         |      |        | 2       |        | Add navigation bar + basic screens  |
 | 2023/06/16 |        | 2       |      |        |         |        | Custom Card Component               |
 | 2023/06/16 |        |         |      |        | 2       |        | Add login and set up viewmodels     |
 | 2023/06/17 |        |         |      |        | 1       |        | Add create account pages            |
 | 2023/06/17 |        |         | 2    |        |         |        | UI updates to profile screen        |
+| 2023/06/21 |        |         |      |        |         | 3      | login screen UX work                |

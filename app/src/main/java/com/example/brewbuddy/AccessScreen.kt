@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
@@ -23,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +49,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.example.brewbuddy.ui.theme.GreenMedium
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 
 sealed class AccessScreens(val route: String, @StringRes val resourceId: Int) {
     object Login : AccessScreens("Profile", R.string.login_route)
@@ -73,6 +80,11 @@ fun LoginScreen(navController: NavController) {
     var password by remember { mutableStateOf(TextFieldValue("")) }
 
     val errorMsg = remember {mutableStateOf("")}
+
+    val focusRequester = remember {FocusRequester()}
+    val passwordFocusRequester = remember {FocusRequester()}
+    var isLoginEnabled by remember {mutableStateOf(false)}
+
     Surface(
         modifier = Modifier
             .fillMaxSize(),
@@ -87,6 +99,13 @@ fun LoginScreen(navController: NavController) {
                     }
                 },
                 placeholder = { Text(text = "Username")},
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        passwordFocusRequester.requestFocus()
+                    }
+                ),
+                modifier = Modifier.focusRequester(focusRequester)
             )
             TextField(
                 value = password,
@@ -94,18 +113,23 @@ fun LoginScreen(navController: NavController) {
                     if(it.text. matches(nonWhitespaceFilter)){
                         password = it
                     }
+
+                    isLoginEnabled = username.text.isNotBlank() && password.text.isNotBlank()
                 },
                 placeholder = { Text(text = "Password")},
-                visualTransformation = PasswordVisualTransformation()
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        if (isLoginEnabled) {
+                            loginUser(username.text, password.text, isLoginEnabled, errorMsg, currentUserViewModel)
+                        }
+                    }
+                ),
+                modifier = Modifier.focusRequester(passwordFocusRequester)
             )
             Button(
-                onClick = {
-                    errorMsg.value = if (!currentUserViewModel.loginUser(username.text, password.text)) {
-                        "Incorrect password or username."
-                    } else {
-                        ""
-                    }
-                },
+                onClick = { loginUser(username.text, password.text, isLoginEnabled, errorMsg, currentUserViewModel) },
                 colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
                 modifier= Modifier.size(width=280.dp, height=40.dp),
                 shape = RoundedCornerShape(10.dp)
@@ -251,6 +275,16 @@ fun AccessScreen() {
 
             }
 
+        }
+    }
+}
+
+private fun loginUser(username: String, password: String, isLoginEnabled: Boolean, errorMsg: MutableState<String>, currentUserViewModel: CurrentUserViewModel) {
+    if (isLoginEnabled) {
+        errorMsg.value = if (!currentUserViewModel.loginUser(username, password)) {
+            "Incorrect password or username."
+        } else {
+            ""
         }
     }
 }
