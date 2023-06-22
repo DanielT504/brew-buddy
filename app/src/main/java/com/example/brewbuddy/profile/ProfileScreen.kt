@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -78,6 +79,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.brewbuddy.profile.SettingScreen
 import com.example.brewbuddy.profile.User
 import com.example.brewbuddy.profile.UserScreen
 import com.example.brewbuddy.ui.theme.OrangeBrownMedium
@@ -196,16 +198,6 @@ private fun MenuButton(coroutineScope: CoroutineScope, menuDrawerState: DrawerSt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingScreen(menuButton: @Composable () -> Unit) {
-    Surface(modifier=Modifier.fillMaxSize()) {
-        Column() {
-            menuButton()
-            TitleLarge(text = "Settings")
-        }
-    }
-}
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 private fun ProfileMenu(
     navController: NavHostController,
     items: List<ProfileScreens>,
@@ -213,7 +205,7 @@ private fun ProfileMenu(
     menuDrawerState: DrawerState
 ){
     val user = getUser()
-    val username = user!!.getUsername()
+    val username = user.getUsername()
 
     ModalDrawerSheet(modifier= Modifier
         .width(280.dp)
@@ -223,16 +215,36 @@ private fun ProfileMenu(
         drawerContainerColor = Color.White
     ) {
         val selectedItem = remember { mutableStateOf(items[0].route) }
-        Row(modifier = Modifier.padding(start=10.dp, top=24.dp, bottom=24.dp, end=10.dp)) {
-            ProfilePicture(user!!.getAvatar(), 64.dp)
-            Text(
-                text=username,
-                style=MaterialTheme.typography.titleSmall,
-                modifier = Modifier.align(Alignment.CenterVertically).padding(start=10.dp))
+        var selectedColor = MaterialTheme.colorScheme.primary
+        val borderWidth = LocalDensity.current.run { 6.dp.toPx() }
+
+        Button(
+            onClick = {
+                coroutineScope.launch { menuDrawerState.close() }
+                navController.navigate(items[0].route)
+                selectedItem.value = items[0].route
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors=ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent, contentColor = Color.Black
+            ),
+            shape = RectangleShape
+        ) {
+            Row(
+                modifier = Modifier.padding(top=20.dp, bottom=20.dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                ProfilePicture(user!!.getAvatar(), 64.dp)
+                Text(
+                    text=username,
+                    style=MaterialTheme.typography.titleSmall,
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .padding(start = 10.dp))
+            }
+
         }
         items.forEach { item ->
-            var primaryColor = MaterialTheme.colorScheme.primary
-            val borderWidth = LocalDensity.current.run { 6.dp.toPx() }
             NavigationDrawerItem(
                 label = { Text(item.label) },
                 selected = item.route == selectedItem.value,
@@ -241,24 +253,24 @@ private fun ProfileMenu(
                     navController.navigate(item.route)
                     selectedItem.value = item.route
                 },
-                shape= RectangleShape,
                 modifier = Modifier
                     .padding(NavigationDrawerItemDefaults.ItemPadding)
                     .width(280.dp)
                     .drawBehind {
-                    if(item.route == selectedItem.value) {
-                        drawLine(
-                            color = primaryColor,
-                            start = Offset(-24f, 0f),
-                            end = Offset(-24f, size.height),
-                            strokeWidth = borderWidth
-                        )
-                    }}
+                        if (item.route == selectedItem.value) {
+                            drawLine(
+                                color = selectedColor,
+                                start = Offset(-24f, 0f),
+                                end = Offset(-24f, size.height),
+                                strokeWidth = borderWidth
+                            )
+                        }
+                    }
                 ,
                 colors = NavigationDrawerItemDefaults.colors(
                     selectedContainerColor = Color.White,
                     unselectedContainerColor = Color.White,
-                    selectedTextColor = primaryColor
+                    selectedTextColor = selectedColor
                 )
             )
 
