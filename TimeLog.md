@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 | Date       | Tanzim | Sterlyn | Mehr | Wardah | Claudia | Daniel | Task                                    |
 |------------|--------|---------|------|--------|---------|--------|-----------------------------------------|
 | 2023/05/18 | 1      | 1       | 1    | 1      | 1       | 1      | Brainstorming meeting                   |
@@ -19,5 +20,7 @@
 | 2023/06/16 |        | 2       |      |        |         |        | Custom Card Component                   |
 | 2023/06/16 |        |         |      |        | 2       |        | Add login and set up viewmodels         |
 | 2023/06/17 |        |         |      |        | 1       |        | Add create account pages                |
+| 2023/06/17 |        |         | 2    |        |         |        | UI updates to profile screen            |
+| 2023/06/21 |        |         |      |        |         | 3      | login screen UX work                    |
 | 2023/06/21 |        |         |      |        | 4       |        | Styling for profile page, add side menu |
 | 2023/06/22 |        |         |      |        | 1       |        | Add carousel                            |
