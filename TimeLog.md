@@ -23,3 +23,4 @@
 | 2023/06/17 |        |         | 2    |        |         |        | UI updates to profile screen        |
 | 2023/06/21 |        |         |      |        |         | 3      | login screen UX work                |
 | 2023/06/21 |        |         |      |        |         | 2      | more login UX and UI                |
+| 2023/06/21 |        |4        |      |        |         |        | Recipes screen layout - carousel etc|
