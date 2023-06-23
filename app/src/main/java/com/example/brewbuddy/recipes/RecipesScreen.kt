@@ -25,7 +25,9 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.material3.MaterialTheme
+import com.example.brewbuddy.util.randomSampleImageUrl
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -60,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.brewbuddy.randomSizedPhotos as randomSizedPhotos
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RecipesScreen(
     name: String
@@ -78,7 +81,6 @@ fun RecipesScreen(
             RecipeGridLayout(openRecipeModal = openRecipeModal)
         }
     }
-
 }
 @Composable
 private fun Heading(text: String) {
