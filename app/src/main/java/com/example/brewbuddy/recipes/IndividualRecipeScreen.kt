@@ -1,10 +1,10 @@
 package com.example.brewbuddy.recipes
 
+import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +20,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,9 +35,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.rememberNavController
+import com.example.brewbuddy.BottomNavigationScreens
 import com.example.brewbuddy.R
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
@@ -45,7 +54,9 @@ import com.example.brewbuddy.ui.theme.GreenLight
 
 @Composable
 fun IndividualRecipeScreen() {
-    Column (modifier = Modifier.fillMaxSize()){
+    Column (modifier = Modifier
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState())){
         Box() {
             RecipeBanner(R.drawable.individual_recipe_banner)
         }
@@ -59,6 +70,8 @@ fun IndividualRecipeScreen() {
 
 @Composable
 private fun RecipeBanner(@DrawableRes img: Int) {
+    val navController = rememberNavController()
+    val contextForToast = LocalContext.current.applicationContext
     Box(modifier = Modifier
         .height(230.dp)
         .fillMaxWidth(),
@@ -71,7 +84,7 @@ private fun RecipeBanner(@DrawableRes img: Int) {
 
         )
         Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp)) {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { if (navController.previousBackStackEntry != null) navController.popBackStack() else null}) {
                 Icon(
                     tint = Cream,
                     painter = painterResource(id = R.drawable.icon_expand_circle_down),
@@ -107,7 +120,7 @@ private fun RecipeBanner(@DrawableRes img: Int) {
                     horizontalArrangement = Arrangement.End
                 ) {
                     Box( modifier = Modifier.align(Alignment.CenterVertically)) {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = { Toast.makeText(contextForToast, "Added to Favourites", Toast.LENGTH_SHORT).show()}) {
                             Canvas(modifier = Modifier.size(38.dp)) {
                                 drawCircle(color = Cream)
                             }
@@ -145,7 +158,8 @@ private fun RecipeSection() {
             .background(color = Color.Transparent)
     )
     {
-        Column(horizontalAlignment = Alignment.Start) {
+        Column(horizontalAlignment = Alignment.Start,
+        ) {
             Row(modifier = Modifier
                 .padding(vertical = 14.dp, horizontal = 4.dp)
                 .fillMaxWidth(),
@@ -165,7 +179,7 @@ private fun RecipeSection() {
                     LabelledIcon(img = R.drawable.icon_star_outline, label = "4.5")
                 }
             }
-            Row(modifier = Modifier.padding(top = 16.dp)) {
+            Row(modifier = Modifier.padding(top = 8.dp)) {
                 testList.add(TagType(iconTint = Color.White, tagColor = GreenLight, tagText = "Tree Nuts", img = R.drawable.icon_info))
                 testList.add(TagType(iconTint = Color.White, tagColor = GreenLight, tagText = "Dairy", img = R.drawable.icon_info))
                 testList.add(TagType(iconTint = Color.White, tagColor = Brown, tagText = "Espresso Machine", img = R.drawable.icon_countertops))
@@ -173,9 +187,23 @@ private fun RecipeSection() {
                 TagsSection(tags = testList)
             }
             Row(modifier = Modifier.padding(top = 16.dp)) {
-                IngredientsSection()
+                testIngredients.add(
+                        Ingredient(ingredientName = "Espresso",
+                        IngredientComposite(quantities = listOf("4.5 tbsp", "4oz"), subIngredientDetails = listOf("Finely-ground dark roast coffee", "Water")))
+                )
+                testIngredients.add(
+                    Ingredient(ingredientName = "Foam Milk",
+                        IngredientComposite(quantities = listOf("4oz"), subIngredientDetails = listOf("Milk")))
+                )
+                IngredientsSection(ingredients = testIngredients)
             }
             Row(modifier = Modifier.padding(top = 24.dp)) {
+                testPreparationSteps.add(
+                    PreparationStep(
+                        mappedIngredient = "espresso",
+                        steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")
+                    )
+                )
                 PreparationSection()
             }
         }
@@ -191,7 +219,7 @@ private fun LabelledIcon(@DrawableRes img: Int, label: String) {
             contentDescription = "Display icon",
             modifier = Modifier.size(28.dp)
         )
-        Text(text = label)
+        Text(text = label, fontSize = 12.sp)
     }
 }
 
@@ -212,34 +240,92 @@ private fun TagsSection(tags: List<TagType>) {
 }
 
 @Composable
-private fun IngredientsSection() {
+private fun IngredientsSection(ingredients: List<Ingredient>) {
     Column(modifier = Modifier.padding(start = 24.dp)) {
-        Row() {
-            Text("Ingredients", style = MaterialTheme.typography.titleLarge,)
+        Row(modifier = Modifier.padding(bottom = 4.dp)) {
+            Text("Ingredients", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         Column() {
-            Row() {
-                Text("Main ingredient heading")
-            }
-            Row() {
-                Text("Sub ingredient #1")
+            ingredients.forEach {
+                Row() {
+                    SectionHeading(it.ingredientName, preparationHeading = false)
+                }
+                for (i in 0 until it.ingredientComposite.quantities.size){
+                    Row(){
+                        IngredientBullet(
+                            quantity = it.ingredientComposite.quantities[i],
+                            subIngredientDetail = it.ingredientComposite.subIngredientDetails[i]
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
+private fun SectionHeading(heading: String, preparationHeading: Boolean) {
+    val headingString = if (preparationHeading) "For the $heading" else heading
+    Text(
+        modifier = Modifier
+            .padding(top = 4.dp, bottom = 4.dp),
+        fontStyle = FontStyle.Italic,
+        text = headingString,
+        style = MaterialTheme.typography.bodyMedium
+        )
+}
+
+@Composable
+private fun IngredientBullet(quantity: String, subIngredientDetail: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(start = 10.dp)
+            .fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .width(70.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Canvas(modifier = Modifier.size(6.dp),) {
+                    drawCircle(SolidColor(Color.Black))
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = quantity, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+            }
+        }
+        Column(modifier = Modifier
+            .align(Alignment.CenterVertically)
+            .padding(start = 4.dp)
+        ) {
+            Text(text = subIngredientDetail, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+@Composable
 private fun PreparationSection() {
-    Column(modifier = Modifier.padding(start = 24.dp)) {
-        Row() {
-            Text("Preparation", style = MaterialTheme.typography.titleLarge,)
+    Column(modifier = Modifier.padding(start = 24.dp, bottom = 16.dp)) {
+        Row(modifier = Modifier.padding(bottom = 4.dp)) {
+            Text("Preparation", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         Column() {
-            Row() {
-                Text("For the Main ingredient heading")
-            }
-            Row() {
-                Text("Sub ingredient #1")
+            testPreparationSteps.forEach {
+                Row() {
+                    SectionHeading(it.mappedIngredient, preparationHeading = true)
+                }
+                for (i in 0 until it.steps.size) {
+                    val stepNumber = (i + 1).toString()
+                    Row(modifier = Modifier.padding(end = 4.dp)) {
+                        Text(
+                            modifier = Modifier.padding(start = 10.dp),
+                            text = stepNumber + ". " + it.steps[i],
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
             }
         }
     }
@@ -286,9 +372,25 @@ data class TagType (
     val tagColor: Color,
     @DrawableRes val  img: Int,
 )
-
 private var testList = mutableListOf<TagType>()
 
+
+data class IngredientComposite (
+    val quantities: List<String>,
+    val subIngredientDetails: List<String>,
+)
+data class Ingredient (
+    val ingredientName: String,
+    val ingredientComposite: IngredientComposite
+)
+
+private var testIngredients = mutableListOf<Ingredient>()
+
+data class PreparationStep (
+    val mappedIngredient: String,
+    val steps: List<String>,
+)
+private var testPreparationSteps = mutableListOf<PreparationStep>()
 
 
 
