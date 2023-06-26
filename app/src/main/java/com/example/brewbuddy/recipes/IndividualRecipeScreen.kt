@@ -4,10 +4,14 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -34,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import com.example.brewbuddy.R
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
+import com.example.brewbuddy.ui.theme.GreenDark
+import com.example.brewbuddy.ui.theme.GreenLight
 
 
 @Composable
@@ -51,7 +58,7 @@ fun IndividualRecipeScreen() {
 }
 
 @Composable
-fun RecipeBanner(@DrawableRes img: Int) {
+private fun RecipeBanner(@DrawableRes img: Int) {
     Box(modifier = Modifier
         .height(230.dp)
         .fillMaxWidth(),
@@ -129,7 +136,7 @@ fun RecipeBanner(@DrawableRes img: Int) {
 }
 
 @Composable
-fun RecipeSection() {
+private fun RecipeSection() {
     Surface(
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         modifier = Modifier
@@ -159,6 +166,13 @@ fun RecipeSection() {
                 }
             }
             Row(modifier = Modifier.padding(top = 16.dp)) {
+                testList.add(TagType(iconTint = Color.White, tagColor = GreenLight, tagText = "Tree Nuts", img = R.drawable.icon_info))
+                testList.add(TagType(iconTint = Color.White, tagColor = GreenLight, tagText = "Dairy", img = R.drawable.icon_info))
+                testList.add(TagType(iconTint = Color.White, tagColor = Brown, tagText = "Espresso Machine", img = R.drawable.icon_countertops))
+                testList.add(TagType(iconTint = Color.White, tagColor = GreenDark, tagText = "Cappuccino", img = R.drawable.icon_store))
+                TagsSection(tags = testList)
+            }
+            Row(modifier = Modifier.padding(top = 16.dp)) {
                 IngredientsSection()
             }
             Row(modifier = Modifier.padding(top = 24.dp)) {
@@ -169,7 +183,7 @@ fun RecipeSection() {
 }
 
 @Composable
-fun LabelledIcon(@DrawableRes img: Int, label: String) {
+private fun LabelledIcon(@DrawableRes img: Int, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(
             tint = Brown,
@@ -181,8 +195,24 @@ fun LabelledIcon(@DrawableRes img: Int, label: String) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun IngredientsSection() {
+private fun TagsSection(tags: List<TagType>) {
+    FlowRow(
+        modifier = Modifier
+            .padding(start = 22.dp)
+            .background(color = Color.Transparent),
+        maxItemsInEachRow = 4,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        tags.forEach {
+            Tag(it.iconTint, it.tagColor, it.tagText, it.img)
+        }
+    }
+}
+
+@Composable
+private fun IngredientsSection() {
     Column(modifier = Modifier.padding(start = 24.dp)) {
         Row() {
             Text("Ingredients", style = MaterialTheme.typography.titleLarge,)
@@ -199,7 +229,7 @@ fun IngredientsSection() {
 }
 
 @Composable
-fun PreparationSection() {
+private fun PreparationSection() {
     Column(modifier = Modifier.padding(start = 24.dp)) {
         Row() {
             Text("Preparation", style = MaterialTheme.typography.titleLarge,)
@@ -214,4 +244,51 @@ fun PreparationSection() {
         }
     }
 }
+
+@Composable
+private fun Tag(iconTint: Color,
+                tagColor: Color,
+                tagText: String,
+                @DrawableRes img: Int
+) {
+    Box(modifier = Modifier.padding(top = 6.dp)) {
+        Box(
+            modifier =
+            Modifier
+                .clip(RoundedCornerShape(14.dp))
+                .background(color = tagColor),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+            ) {
+                Icon(
+                    tint = iconTint,
+                    painter = painterResource(id = img),
+                    contentDescription = "Display icon",
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = tagText,
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
+}
+
+data class TagType (
+    val iconTint: Color,
+    val tagText: String,
+    val tagColor: Color,
+    @DrawableRes val  img: Int,
+)
+
+private var testList = mutableListOf<TagType>()
+
+
+
 
