@@ -5,13 +5,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.example.brewbuddy.recipes.IndividualRecipeScreen
 
 @Composable
 fun RecipesScreen(
     name: String
 ) {
-    Surface(modifier = Modifier.fillMaxSize(), color= MaterialTheme.colorScheme.background) {
-        Greeting(name)
-    }
+       IndividualRecipeScreen()
+
 
 }
