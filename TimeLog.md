@@ -28,3 +28,4 @@
 | 2023/06/23 |        |         |3     |        |         |        | Adding recipe+ingredient class, styling |
 | 2023/06/26 |        |4        |      |        |         |        | Individual Recipe view screen scaffold  |
 | 2023/06/26 |        |1        |      |        |         |        | Individual Recipe tags componenent      |
+| 2023/06/26 |        |1        |      |        |         |        | Recipe bullet and numbered lists        |
