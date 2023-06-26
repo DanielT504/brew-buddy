@@ -26,3 +26,4 @@
 | 2023/06/22 |        |         |      |        | 1       |        | Add carousel                            |
 | 2023/06/23 |        |4        |      |        |         |        | Recipes screen layout - carousel etc    |
 | 2023/06/23 |        |         |3     |        |         |        | Adding recipe+ingredient class, styling |
+| 2023/06/23 |        |4        |      |        |         |        | Individual Recipe view screen scaffold  |
