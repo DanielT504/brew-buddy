@@ -1,5 +1,7 @@
 package com.example.brewbuddy
 
+import GoogleRegisterButton
+import GoogleSignInButton
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -52,7 +54,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.example.brewbuddy.ui.theme.GreenMedium
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.VisualTransformation
@@ -182,7 +183,8 @@ fun LoginScreen(navController: NavController) {
                     Text(text = "Sign up")
                 }
                 GoogleSignInButton(onGoogleSignInSuccess = { account ->
-                    loginUser(username.text, password.text, isLoginEnabled, errorMsg, currentUserViewModel)
+                    //temporary for demo
+                    Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
                 })
             }
         }
@@ -271,6 +273,10 @@ fun RegisterScreen(navController: NavController) {
                 Text("REGISTER")
             }
             ErrorMessage(errorMsg.value)
+            GoogleRegisterButton(onGoogleSignInSuccess = { account ->
+                //temporary for demo
+                Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
+            })
         }
     }
 }
