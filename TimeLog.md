@@ -34,3 +34,5 @@
 | 2023/06/26 |        |         |      |        |         | 1      | Firebase project creation               |
 | 2023/06/27 |        | 1       |      |        |         |        | Refactoring classes + passing nav params|
 | 2023/06/27 | 1      | 1       | 1    | 1      | 1       | 1      | demo practice                           |
+| 2023/06/27 |        |         |      |        |         | 1      | Google register                         |
+
