@@ -44,7 +44,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.brewbuddy.BottomNavigationScreens
 import com.example.brewbuddy.R
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
@@ -183,30 +182,12 @@ private fun RecipeSection() {
                 }
             }
             Row(modifier = Modifier.padding(top = 8.dp)) {
-                testList.add(TagType(iconTint = Color.White, tagColor = GreenLight, tagText = "Tree Nuts", img = R.drawable.icon_info))
-                testList.add(TagType(iconTint = Color.White, tagColor = GreenLight, tagText = "Dairy", img = R.drawable.icon_info))
-                testList.add(TagType(iconTint = Color.White, tagColor = Brown, tagText = "Espresso Machine", img = R.drawable.icon_countertops))
-                testList.add(TagType(iconTint = Color.White, tagColor = GreenDark, tagText = "Cappuccino", img = R.drawable.icon_store))
-                TagsSection(tags = testList)
+                TagsSection(tags = testTags)
             }
             Row(modifier = Modifier.padding(top = 16.dp)) {
-                testIngredients.add(
-                        Ingredient(ingredientName = "Espresso",
-                        IngredientComposite(quantities = listOf("4.5 tbsp", "4oz"), subIngredientDetails = listOf("Finely-ground dark roast coffee", "Water")))
-                )
-                testIngredients.add(
-                    Ingredient(ingredientName = "Foam Milk",
-                        IngredientComposite(quantities = listOf("4oz"), subIngredientDetails = listOf("Milk")))
-                )
                 IngredientsSection(ingredients = testIngredients)
             }
             Row(modifier = Modifier.padding(top = 24.dp)) {
-                testPreparationSteps.add(
-                    PreparationStep(
-                        mappedIngredient = "espresso",
-                        steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")
-                    )
-                )
                 PreparationSection()
             }
         }
@@ -243,7 +224,7 @@ private fun TagsSection(tags: List<TagType>) {
 }
 
 @Composable
-private fun IngredientsSection(ingredients: List<Ingredient>) {
+private fun IngredientsSection(ingredients: List<LocalIngredient>) {
     Column(modifier = Modifier.padding(start = 24.dp)) {
         Row(modifier = Modifier.padding(bottom = 4.dp)) {
             Text("Ingredients", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -375,25 +356,39 @@ data class TagType (
     val tagColor: Color,
     @DrawableRes val  img: Int,
 )
-private var testList = mutableListOf<TagType>()
+private var testTags= listOf(
+    TagType(iconTint = Color.White, tagColor = GreenLight, tagText = "Tree Nuts", img = R.drawable.icon_info),
+    TagType(iconTint = Color.White, tagColor = GreenLight, tagText = "Dairy", img = R.drawable.icon_info),
+    TagType(iconTint = Color.White, tagColor = Brown, tagText = "Espresso Machine", img = R.drawable.icon_countertops),
+    TagType(iconTint = Color.White, tagColor = GreenDark, tagText = "Cappuccino", img = R.drawable.icon_store)
+)
 
 
 data class IngredientComposite (
     val quantities: List<String>,
     val subIngredientDetails: List<String>,
 )
-data class Ingredient (
+data class LocalIngredient (
     val ingredientName: String,
     val ingredientComposite: IngredientComposite
 )
 
-private var testIngredients = mutableListOf<Ingredient>()
-
+private var testIngredients = listOf(
+        LocalIngredient(ingredientName = "Espresso",
+        IngredientComposite(quantities = listOf("4.5 tbsp", "4oz"), subIngredientDetails = listOf("Finely-ground dark roast coffee", "Water"))),
+        LocalIngredient(ingredientName = "Foam Milk",
+        IngredientComposite(quantities = listOf("4oz"), subIngredientDetails = listOf("Milk")))
+)
 data class PreparationStep (
     val mappedIngredient: String,
     val steps: List<String>,
 )
-private var testPreparationSteps = mutableListOf<PreparationStep>()
+private var testPreparationSteps = listOf(
+    PreparationStep(
+    mappedIngredient = "espresso",
+    steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")
+))
+
 
 
 
