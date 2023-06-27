@@ -60,15 +60,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.randomSizedPhotos as randomSizedPhotos
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RecipesScreen(
     name: String
 ) {
     val openRecipeModal = remember { mutableStateOf(false)}
-    Surface(modifier = Modifier.fillMaxSize(), color= MaterialTheme.colorScheme.background) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
             modifier = Modifier
                 .padding(
@@ -78,7 +78,7 @@ fun RecipesScreen(
                     end = 0.dp
                 )
         ) {
-            RecipeGridLayout(openRecipeModal = openRecipeModal)
+            RecipeGridLayout()
         }
     }
 }
@@ -113,7 +113,7 @@ private fun CardTitle(text: String, fontSize: TextUnit) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun RecipeGridLayout(openRecipeModal: MutableState<Boolean>) {
+private fun RecipeGridLayout() {
      LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
             verticalItemSpacing = 14.dp,
@@ -143,7 +143,7 @@ private fun RecipeGridLayout(openRecipeModal: MutableState<Boolean>) {
              Heading(text = "Picked for you")
          }
             items(randomSizedPhotos) { photo ->
-                RecipeCard(photo = photo, openRecipeModal = openRecipeModal)
+                RecipeCard(photo = photo)
             }
      }
  }
@@ -196,7 +196,7 @@ private fun PopularCard(photo: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RecipeCard(photo: String, openRecipeModal: MutableState<Boolean>) {
+private fun RecipeCard(photo: String) {
     Card(
         onClick = {},
         shape = RoundedCornerShape(12.dp),
@@ -256,7 +256,10 @@ private fun RecipeCard(photo: String, openRecipeModal: MutableState<Boolean>) {
                             .align(Alignment.CenterEnd)
                     ) {
                         Text("John Doe", color = Color.White, fontSize = 18.sp)
-                        Box( Modifier.padding(horizontal = 6.dp, vertical = 0.dp).size(30.dp), contentAlignment = Alignment.Center) {
+                        Box(
+                            Modifier
+                                .padding(horizontal = 6.dp, vertical = 0.dp)
+                                .size(30.dp), contentAlignment = Alignment.Center) {
                             Canvas(modifier = Modifier.fillMaxSize()) {
                                 drawCircle(SolidColor(Color.White))
                             }
@@ -277,7 +280,7 @@ private fun RecipeCard(photo: String, openRecipeModal: MutableState<Boolean>) {
 @Composable
 private fun Carousel(
     modifier: Modifier = Modifier,
-    pagerState: PagerState = remember { PagerState() },
+    pagerState: PagerState = remember{ PagerState() },
     itemsCount: Int,
     itemContent: @Composable (index: Int) -> Unit,
 ) {
