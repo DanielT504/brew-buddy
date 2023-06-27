@@ -1,14 +1,17 @@
 package com.example.brewbuddy.profile
 
+import android.provider.CalendarContract
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,6 +19,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
@@ -105,6 +110,48 @@ fun Carousel() {
     }
 }
 @Composable
+fun ImageGrid() {
+    val images = listOf(
+        R.drawable.default_recipe,
+        R.drawable.default_recipe,
+        R.drawable.default_recipe,
+        R.drawable.default_recipe,
+        R.drawable.default_recipe,
+        R.drawable.default_recipe,
+        R.drawable.default_recipe,
+        R.drawable.default_recipe,
+        R.drawable.default_recipe
+    )
+
+    Surface(color = Color.White) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+        ) {
+            items(images.size) { image ->
+//                BoxWithConstraints(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .aspectRatio(1f)
+//                        .padding(4.dp)
+//                ) {
+
+                    Image(
+                        painter = painterResource(image),
+                        contentDescription = "Recipe Image",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(4.dp),
+//                            .aspectRatio(1F),
+                        contentScale = ContentScale.Crop
+                    )
+//                }
+            }
+        }
+    }
+}
+
+@Composable
 fun UserScreen(menuButton: @Composable () -> Unit) {
     val user = getUser()
 
@@ -113,6 +160,9 @@ fun UserScreen(menuButton: @Composable () -> Unit) {
         Column() {
             TitleLarge(text="Pinned Recipes")
             Carousel()
+
+            TitleLarge(text="Your Recipes")
+            ImageGrid()
         }
     }
 }
