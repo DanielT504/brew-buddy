@@ -32,4 +32,5 @@
 | 2023/06/26 |        |         | 3    |        |         |        | Add image grid, user screen UI updates  |
 | 2023/06/26 |        |         |      |        |         | 4      | Google sign in with Firebase auth. work |
 | 2023/06/26 |        |         |      |        |         | 1      | Firebase project creation               |
-| 2023/06/27 |        |1        |      |        |         |        | Refactoring classes + passing nav params|
+| 2023/06/27 |        | 1       |      |        |         |        | Refactoring classes + passing nav params|
+| 2023/06/27 | 1      | 1       | 1    | 1      | 1       | 1      | demo practice                           |
