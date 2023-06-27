@@ -11,7 +11,7 @@
 | 2023/06/07 | 1      | 1       | 1    | 1      | 1       | 1      | Group meeting for buddy eval            |
 | 2023/06/07 |        |         |      |        | 1       | 1      | Buddy eval work                         |
 | 2023/06/07 |        | 1       |      |        |         |        | Hello world project init                |
-| 2023/06/07 |1       |         |      |        |         |        | Buddy eval work                         |
+| 2023/06/07 | 1      |         |      |        |         |        | Buddy eval work                         |
 | 2023/06/09 |        | 1       |      |        |         |        | Buddy eval work                         |
 | 2023/06/12 |        |         | 1    |        |         |        | Starting some component development     |
 | 2023/06/15 |        |         |      |        | 2       |        | Set up colours, theme, and icons        |
@@ -24,8 +24,12 @@
 | 2023/06/21 |        |         |      |        |         | 2      | more login UX and UI                    |
 | 2023/06/21 |        |         |      |        | 4       |        | Styling for profile page, add side menu |
 | 2023/06/22 |        |         |      |        | 1       |        | Add carousel                            |
-| 2023/06/23 |        |4        |      |        |         |        | Recipes screen layout - carousel etc    |
-| 2023/06/23 |        |         |3     |        |         |        | Adding recipe+ingredient class, styling |
-| 2023/06/26 |        |4        |      |        |         |        | Individual Recipe view screen scaffold  |
-| 2023/06/26 |        |1        |      |        |         |        | Individual Recipe tags componenent      |
-| 2023/06/26 |        |1        |      |        |         |        | Recipe bullet and numbered lists        |
+| 2023/06/23 |        | 4       |      |        |         |        | Recipes screen layout - carousel etc    |
+| 2023/06/25 |        |         | 3    |        |         |        | Adding recipe+ingredient class, styling |
+| 2023/06/26 |        | 4       |      |        |         |        | Individual Recipe view screen scaffold  |
+| 2023/06/26 |        | 1       |      |        |         |        | Individual Recipe tags componenent      |
+| 2023/06/26 |        | 1       |      |        |         |        | Recipe bullet and numbered lists        |
+| 2023/06/26 |        |         | 3    |        |         |        | Add image grid, user screen UI updates  |
+| 2023/06/26 |        |         |      |        |         | 4      | Google sign in with Firebase auth. work |
+| 2023/06/26 |        |         |      |        |         | 1      | Firebase project creation               |
+| 2023/06/27 |        |1        |      |        |         |        | Refactoring classes + passing nav params|
