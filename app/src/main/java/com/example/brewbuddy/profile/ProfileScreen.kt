@@ -70,6 +70,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.unit.Dp
@@ -103,34 +104,40 @@ fun getUser(): User {
 @Composable
 fun PinnedCard(modifier: Modifier, recipe: Recipe) {
     Card(modifier) {
-        Row(modifier = Modifier.padding(16.dp).background(Color.Transparent), verticalAlignment = Alignment.Bottom) {
-            Column(modifier = Modifier.weight(1f).background(Color.Transparent)){
-                Text(
-                    text = recipe.getName(),
-                    color= Color.White,
-                    modifier = Modifier.align(alignment = Alignment.Start)
+        Box(modifier = Modifier.fillMaxSize().zIndex(2f).background(
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    Color.Black,
+                    Color.Transparent
                 )
-            }
-
-            Column(modifier = Modifier.weight(1f).background(Color.Transparent)){
-                Icon(
-                    Icons.Filled.LocationOn,
-                    contentDescription = "Localized description",
-                    tint = Color.White,
-                    modifier = Modifier.align(alignment = Alignment.End)
-                )
-            }
-
-        }
-        Box(modifier = Modifier.fillMaxSize().zIndex(2f)) {
+            )
+        )) {
             Image(
                 painter = painterResource(id = recipe.getThumbNail()),
                 contentDescription = "Recipe Thumbnail",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
-                alpha = 0.7F
+                alpha = 0.6F
 
             )
+            Row(modifier = Modifier.padding(16.dp).background(Color.Transparent), verticalAlignment = Alignment.Bottom) {
+                Column(modifier = Modifier.weight(1f).background(Color.Transparent)){
+                    Text(
+                        text = recipe.getName(),
+                        color= Color.White,
+                        modifier = Modifier.align(alignment = Alignment.Start)
+                    )
+                }
+
+                Column(modifier = Modifier.weight(1f).background(Color.Transparent)){
+                    Icon(
+                        Icons.Filled.LocationOn,
+                        contentDescription = "Localized description",
+                        tint = Color.White,
+                        modifier = Modifier.align(alignment = Alignment.End)
+                    )
+                }
+            }
         }
 
     }
