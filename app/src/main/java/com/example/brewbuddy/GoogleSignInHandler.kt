@@ -1,19 +1,18 @@
-package com.example.brewbuddy
 import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -26,10 +25,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 
-// Request code used for the sign-in intent
-private const val RC_SIGN_IN = 9001
+//private const val RC_SIGN_IN = 9001
 
-// Configure Google Sign-In options
 private val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
     .requestEmail()
     .build()
@@ -38,10 +35,11 @@ private val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_I
 fun GoogleSignInButton(onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit) {
     val context = LocalContext.current
     val googleSignInClient = remember { GoogleSignIn.getClient(context, gso) }
+    val signInResult = remember { mutableStateOf<GoogleSignInAccount?>(null) }
 
     val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        handleSignInResult(task, onGoogleSignInSuccess)
+        handleSignInResult(task, onGoogleSignInSuccess, signInResult)
     }
 
     Row(
@@ -50,13 +48,50 @@ fun GoogleSignInButton(onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit) {
     ) {
         Button(
             onClick = { startGoogleSignInActivity(googleSignInClient, launcher) },
-            colors = ButtonDefaults.buttonColors(),
             modifier = Modifier
                 .width(280.dp)
                 .padding(vertical = 8.dp)
         ) {
             Text(text = "Sign in with Google")
         }
+    }
+
+    signInResult.value?.let { account ->
+        signInResult.value = null
+
+        onGoogleSignInSuccess(account)
+    }
+}
+
+@Composable
+fun GoogleRegisterButton(onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit) {
+    val context = LocalContext.current
+    val googleRegisterClient = remember { GoogleSignIn.getClient(context, gso) }
+    val signInResult = remember { mutableStateOf<GoogleSignInAccount?>(null) }
+
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        handleSignInResult(task, onGoogleSignInSuccess, signInResult)
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Button(
+            onClick = { startGoogleSignInActivity(googleRegisterClient, launcher) },
+            modifier = Modifier
+                .width(280.dp)
+                .padding(vertical = 8.dp)
+        ) {
+            Text(text = "Register with Google")
+        }
+    }
+
+    signInResult.value?.let { account ->
+        signInResult.value = null
+
+        onGoogleSignInSuccess(account)
     }
 }
 
@@ -65,12 +100,11 @@ private fun startGoogleSignInActivity(googleSignInClient: GoogleSignInClient, la
     launcher.launch(signInIntent)
 }
 
-private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>, onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit) {
+private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>, onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit, signInResult: MutableState<GoogleSignInAccount?>) {
     try {
         val account = completedTask.getResult(ApiException::class.java)
         if (account != null) {
-            // Google sign-in successful, pass the account to the callback function
-            onGoogleSignInSuccess(account)
+            signInResult.value = account
         }
     } catch (e: ApiException) {
         Log.e("GoogleSignIn", "Sign-in failed with exception: $e")
