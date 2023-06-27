@@ -69,9 +69,9 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
         HorizontalPager(
             modifier = Modifier,
             state = pagerState,
-            pageSpacing = 16.dp,
-            contentPadding = PaddingValues(horizontal = 35.dp),
-            pageSize = PageSize.Fixed(200.dp),
+            pageSpacing = 8.dp,
+            contentPadding = PaddingValues(horizontal = 30.dp),
+            pageSize = PageSize.Fixed(220.dp),
             key = null,
             beyondBoundsPageCount = 1,
             pageCount = pageCount,
@@ -80,7 +80,7 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
 
                 Box(contentAlignment = Alignment.Center) {
                     PinnedCard(modifier = Modifier
-                        .width(200.dp)
+                        .width(210.dp)
                         .height(150.dp), tempRecipe)
 
                 }
