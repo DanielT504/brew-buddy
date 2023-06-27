@@ -33,7 +33,7 @@ sealed class BottomNavigationScreens(val route: String, @StringRes val resourceI
     object ShopLocator : BottomNavigationScreens("ShopLocator", R.string.shop_locator_route, R.drawable.icon_locator)
     object Marketplace : BottomNavigationScreens("Marketplace", R.string.marketplace_route, R.drawable.icon_store)
     object Featured : BottomNavigationScreens("Featured", R.string.featured_route, R.drawable.icon_explore)
-    object Recipes : BottomNavigationScreens("Recipes", R.string.recipes_route, R.drawable.icon_page)
+    object Recipes : BottomNavigationScreens("Recipes/", R.string.recipes_route, R.drawable.icon_page)
 }
 
 @Composable
