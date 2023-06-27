@@ -181,6 +181,9 @@ fun LoginScreen(navController: NavController) {
                 ) {
                     Text(text = "Sign up")
                 }
+                GoogleSignInButton(onGoogleSignInSuccess = { account ->
+                    loginUser(username.text, password.text, isLoginEnabled, errorMsg, currentUserViewModel)
+                })
             }
         }
     }
