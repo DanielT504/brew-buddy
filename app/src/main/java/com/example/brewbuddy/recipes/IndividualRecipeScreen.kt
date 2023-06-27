@@ -43,7 +43,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavHostController
 import com.example.brewbuddy.BottomNavigationScreens
 import com.example.brewbuddy.R
 import com.example.brewbuddy.ui.theme.Brown
@@ -52,13 +52,17 @@ import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
 
 
+sealed class RecipeNavigationScreens(val route: String) {
+    object IndividualRecipe : RecipeNavigationScreens("Recipe")
+}
+
 @Composable
-fun IndividualRecipeScreen() {
+fun IndividualRecipeScreen(navController: NavHostController) {
     Column (modifier = Modifier
         .fillMaxSize()
         .verticalScroll(rememberScrollState())){
         Box() {
-            RecipeBanner(R.drawable.individual_recipe_banner)
+            RecipeBanner(R.drawable.individual_recipe_banner, navController)
         }
         Box(modifier = Modifier
             .offset(y = -(20.dp))
@@ -69,8 +73,7 @@ fun IndividualRecipeScreen() {
 }
 
 @Composable
-private fun RecipeBanner(@DrawableRes img: Int) {
-    val navController = rememberNavController()
+private fun RecipeBanner(@DrawableRes img: Int, navController: NavHostController) {
     val contextForToast = LocalContext.current.applicationContext
     Box(modifier = Modifier
         .height(230.dp)

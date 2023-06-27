@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
+import com.example.brewbuddy.recipes.IndividualRecipeScreen
+import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
 
 @Composable
@@ -97,7 +99,10 @@ private fun MainScreenNavigationConfigurations(
                 FeaturedScreen("featured")
             }
             composable(BottomNavigationScreens.Recipes.route) {
-                RecipesScreen("recipes")
+                RecipesScreen(navController)
+            }
+            composable(RecipeNavigationScreens.IndividualRecipe.route) {
+                IndividualRecipeScreen(navController)
             }
 
         }
