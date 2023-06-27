@@ -18,7 +18,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.example.brewbuddy.recipes.IndividualRecipeScreen
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
@@ -101,8 +103,16 @@ private fun MainScreenNavigationConfigurations(
             composable(BottomNavigationScreens.Recipes.route) {
                 RecipesScreen(navController)
             }
-            composable(RecipeNavigationScreens.IndividualRecipe.route) {
-                IndividualRecipeScreen(navController)
+            composable(
+                RecipeNavigationScreens.IndividualRecipe.route,
+                arguments = listOf(
+                    navArgument("recipe_name") {
+                        type = NavType.StringType
+                    }
+                )
+            ) {
+                val param = it.arguments?.getString("recipe_name") ?: ""
+                IndividualRecipeScreen(navController, param = param)
             }
 
         }

@@ -43,8 +43,11 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.brewbuddy.R
+import com.example.brewbuddy.randomSizedPhotos
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
@@ -52,38 +55,46 @@ import com.example.brewbuddy.ui.theme.GreenLight
 
 
 sealed class RecipeNavigationScreens(val route: String) {
-    object IndividualRecipe : RecipeNavigationScreens("Recipe")
+    object IndividualRecipe : RecipeNavigationScreens("Recipes/{recipe_name}")
 }
 
 @Composable
-fun IndividualRecipeScreen(navController: NavHostController) {
+fun IndividualRecipeScreen(navController: NavHostController, param: String) {
+    val title = param.substringAfter("}")
+    var recipe = recipes.last { it.recipeName == title }
     Column (modifier = Modifier
         .fillMaxSize()
         .verticalScroll(rememberScrollState())){
         Box() {
-            RecipeBanner(R.drawable.individual_recipe_banner, navController)
+            RecipeBanner(recipe.backgroundImage, recipe.recipeName, navController)
         }
         Box(modifier = Modifier
             .offset(y = -(20.dp))
             .fillMaxWidth()) {
-            RecipeSection()
+            RecipeSection(recipe)
         }
     }
 }
 
 @Composable
-private fun RecipeBanner(@DrawableRes img: Int, navController: NavHostController) {
+private fun RecipeBanner(img: Any, title: String, navController: NavHostController) {
     val contextForToast = LocalContext.current.applicationContext
     Box(modifier = Modifier
         .height(230.dp)
         .fillMaxWidth(),
     ) {
-        Image(
+/*        Image(
             painter = painterResource(id = img),
             contentDescription = "Recipe Banner",
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
 
+        )*/
+        AsyncImage(
+            model = img,
+            contentDescription = "Recipe Banner",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
         )
         Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp)) {
             IconButton(onClick = { if (navController.previousBackStackEntry != null) navController.popBackStack() else null}) {
@@ -107,7 +118,7 @@ private fun RecipeBanner(@DrawableRes img: Int, navController: NavHostController
         {
             Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 24.dp)) {
                 Row() {
-                    Text(style = MaterialTheme.typography.titleLarge, text =  "Card Title goes here", color =  Cream)
+                    Text(style = MaterialTheme.typography.titleLarge, text =  title, color =  Cream)
                 }
                 Row() {
                     Text(modifier = Modifier.padding(horizontal = 2.dp), text = "by Jane Doe", color = Cream)
@@ -151,7 +162,7 @@ private fun RecipeBanner(@DrawableRes img: Int, navController: NavHostController
 }
 
 @Composable
-private fun RecipeSection() {
+private fun RecipeSection(recipe: Recipe) {
     Surface(
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         modifier = Modifier
@@ -182,13 +193,13 @@ private fun RecipeSection() {
                 }
             }
             Row(modifier = Modifier.padding(top = 8.dp)) {
-                TagsSection(tags = testTags)
+                TagsSection(tags = recipe.tags)
             }
             Row(modifier = Modifier.padding(top = 16.dp)) {
-                IngredientsSection(ingredients = testIngredients)
+                IngredientsSection(ingredients = recipe.ingredientList)
             }
             Row(modifier = Modifier.padding(top = 24.dp)) {
-                PreparationSection()
+                PreparationSection(recipe)
             }
         }
     }
@@ -224,7 +235,7 @@ private fun TagsSection(tags: List<TagType>) {
 }
 
 @Composable
-private fun IngredientsSection(ingredients: List<LocalIngredient>) {
+private fun IngredientsSection(ingredients: List<Ingredient>) {
     Column(modifier = Modifier.padding(start = 24.dp)) {
         Row(modifier = Modifier.padding(bottom = 4.dp)) {
             Text("Ingredients", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -290,13 +301,13 @@ private fun IngredientBullet(quantity: String, subIngredientDetail: String) {
 }
 
 @Composable
-private fun PreparationSection() {
+private fun PreparationSection(recipe: Recipe) {
     Column(modifier = Modifier.padding(start = 24.dp, bottom = 16.dp)) {
         Row(modifier = Modifier.padding(bottom = 4.dp)) {
             Text("Preparation", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         Column() {
-            testPreparationSteps.forEach {
+            recipe.preparationSteps.forEach {
                 Row() {
                     SectionHeading(it.mappedIngredient, preparationHeading = true)
                 }
@@ -350,45 +361,85 @@ private fun Tag(iconTint: Color,
     }
 }
 
-data class TagType (
-    val iconTint: Color,
-    val tagText: String,
-    val tagColor: Color,
-    @DrawableRes val  img: Int,
-)
-private var testTags= listOf(
-    TagType(iconTint = Color.White, tagColor = GreenLight, tagText = "Tree Nuts", img = R.drawable.icon_info),
-    TagType(iconTint = Color.White, tagColor = GreenLight, tagText = "Dairy", img = R.drawable.icon_info),
-    TagType(iconTint = Color.White, tagColor = Brown, tagText = "Espresso Machine", img = R.drawable.icon_countertops),
-    TagType(iconTint = Color.White, tagColor = GreenDark, tagText = "Cappuccino", img = R.drawable.icon_store)
-)
+private val recipes = listOf(
+    Recipe(
+        "Cappuccino Almond Pistachio",
+        "Espresso",
+        com.example.brewbuddy.testIngredients,
+        tags = com.example.brewbuddy.testTags,
+        backgroundImage = randomSizedPhotos[0],
+        preparationSteps =  listOf(
+            PreparationStep(
+            mappedIngredient = "cappuccino",
+            steps = listOf("Gather the ingredients.", "Add almond.", "Add to your espresso machine and leave for 10 minutes.")))
+        ),
+    Recipe(
+        "The Perfect Espresso",
+        "Espresso",
+        com.example.brewbuddy.testIngredients,
+        tags = com.example.brewbuddy.testTags,
+        backgroundImage = randomSizedPhotos[4],
+        preparationSteps =  listOf(
+            PreparationStep(
+                mappedIngredient = "espresso",
+                steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
+    ),
+    Recipe(
+        "Iced Chai Tea Latte",
+        "Espresso",
+        com.example.brewbuddy.testIngredients,
+        tags = com.example.brewbuddy.testTags,
+        backgroundImage =  randomSizedPhotos[1],
+        preparationSteps =  listOf(
+            PreparationStep(
+                mappedIngredient = "espresso",
+                steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
+    ),
+    Recipe(
+        "Murphy's Special Matcha Tea",
+        "Espresso",
+        com.example.brewbuddy.testIngredients,
+        tags = com.example.brewbuddy.testTags,
+        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 2],
+        preparationSteps =  listOf(
+            PreparationStep(
+                mappedIngredient = "espresso",
+                steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
+    ),
+    Recipe(
+        "Yerba Mate Brew",
+        "Espresso",
+        com.example.brewbuddy.testIngredients,
+        tags = com.example.brewbuddy.testTags,
+        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 1],
+        preparationSteps =  listOf(
+            PreparationStep(
+                mappedIngredient = "espresso",
+                steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
+    ),
+    Recipe(
+        "Espresso",
+        "Espresso",
+        com.example.brewbuddy.testIngredients,
+        tags = com.example.brewbuddy.testTags,
+        backgroundImage = randomSizedPhotos[11],
+    ),
+    Recipe(
+        "Espresso",
+        "Espresso",
+        com.example.brewbuddy.testIngredients,
+        tags = com.example.brewbuddy.testTags,
+        backgroundImage = randomSizedPhotos[2],
+    ),
+    Recipe(
+        "Espresso",
+        "Espresso",
+        com.example.brewbuddy.testIngredients,
+        tags = com.example.brewbuddy.testTags,
+        backgroundImage = randomSizedPhotos[8],
+    ),
 
-
-data class IngredientComposite (
-    val quantities: List<String>,
-    val subIngredientDetails: List<String>,
-)
-data class LocalIngredient (
-    val ingredientName: String,
-    val ingredientComposite: IngredientComposite
-)
-
-private var testIngredients = listOf(
-        LocalIngredient(ingredientName = "Espresso",
-        IngredientComposite(quantities = listOf("4.5 tbsp", "4oz"), subIngredientDetails = listOf("Finely-ground dark roast coffee", "Water"))),
-        LocalIngredient(ingredientName = "Foam Milk",
-        IngredientComposite(quantities = listOf("4oz"), subIngredientDetails = listOf("Milk")))
-)
-data class PreparationStep (
-    val mappedIngredient: String,
-    val steps: List<String>,
-)
-private var testPreparationSteps = listOf(
-    PreparationStep(
-    mappedIngredient = "espresso",
-    steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")
-))
-
+    )
 
 
 
