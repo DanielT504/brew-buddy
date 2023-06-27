@@ -31,4 +31,5 @@
 | 2023/06/26 |        | 1       |      |        |         |        | Recipe bullet and numbered lists        |
 | 2023/06/26 |        |         | 3    |        |         |        | Add image grid, user screen UI updates  |
 | 2023/06/26 |        |         |      |        |         | 4      | Google sign in with Firebase auth. work |
+| 2023/06/26 |        |         |      |        |         | 1      | Firebase project creation               |
 
