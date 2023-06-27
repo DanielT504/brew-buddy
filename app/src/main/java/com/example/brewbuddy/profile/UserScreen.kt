@@ -15,18 +15,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.BoxWithConstraints
 import android.provider.CalendarContract
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,6 +48,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.brewbuddy.AccessScreens
 import com.example.brewbuddy.PinnedCard
 import com.example.brewbuddy.ProfilePicture
 import com.example.brewbuddy.R
@@ -47,6 +57,7 @@ import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
+import androidx.navigation.NavController
 
 private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
     val diff = currentIndex - startIndex;
@@ -86,14 +97,18 @@ fun Carousel() {
                 val page = getIndex(index, startIndex, pageCount)
 
                 Box(contentAlignment = Alignment.Center) {
-                    PinnedCard(modifier = Modifier.width(200.dp).height(150.dp), tempRecipe)
+                    PinnedCard(modifier = Modifier
+                        .width(200.dp)
+                        .height(150.dp), tempRecipe)
 
                 }
             },
         )
 
         Row(
-            modifier=Modifier.align(Alignment.CenterHorizontally).padding(top=10.dp),
+            modifier= Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             repeat(pageCount) { index ->
@@ -110,43 +125,65 @@ fun Carousel() {
 
     }
 }
+
 @Composable
-fun ImageGrid() {
+fun ImageGrid(
+    columns: Int,
+    modifier: Modifier = Modifier,
+) {
     val images = listOf(
-        R.drawable.default_recipe,
-        R.drawable.default_recipe,
-        R.drawable.default_recipe,
-        R.drawable.default_recipe,
-        R.drawable.default_recipe,
-        R.drawable.default_recipe,
-        R.drawable.default_recipe,
-        R.drawable.default_recipe,
-        R.drawable.default_recipe
+        R.drawable.x_recipe1,
+        R.drawable.x_recipe2,
+        R.drawable.x_recipe3,
+        R.drawable.x_recipe4,
+        R.drawable.x_recipe5,
+        R.drawable.x_recipe6,
+        R.drawable.x_recipe7,
+        R.drawable.x_recipe8,
+        R.drawable.x_recipe9,
     )
+    var itemCount = images.size
+    Column(modifier = modifier) {
+        var rows = (itemCount / columns)
+        if (itemCount.mod(columns) > 0) {
+            rows += 1
+        }
 
-    Surface(color = Color.White) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
-        ) {
-            items(images) { image ->
-//                BoxWithConstraints(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .aspectRatio(1f)
-//                        .padding(4.dp)
-//                ) {
+        for (rowId in 0 until rows) {
+            val firstIndex = rowId * columns
 
-                    Image(
-                        painter = painterResource(image),
-                        contentDescription = "Recipe Image",
+            Row {
+                for (columnId in 0 until columns) {
+                    val index = firstIndex + columnId
+                    Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(4.dp),
-//                            .aspectRatio(1F),
-                        contentScale = ContentScale.Crop
-                    )
-//                }
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        if (index < itemCount) {
+//                            navController = NavController()
+
+                            // todo: make images clickable
+                            BoxWithConstraints(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                                    .padding(4.dp)
+//                                    .clickable( onClick = { navController.navigate(AccessScreens.Login.route)} )
+                            ) {
+                                Image(
+                                    painter = painterResource(images[index]),
+                                    contentDescription = "Recipe Image",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(4.dp)
+                                        .aspectRatio(1F),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -155,16 +192,20 @@ fun ImageGrid() {
 @Composable
 fun UserScreen(menuButton: @Composable () -> Unit) {
     val user = getUser()
-
-    Column(modifier = Modifier.fillMaxSize()) {
+    // todo: change to lazycolumn
+    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         ProfileHeader(user, menuButton)
-        Column() {
+
+        Column(modifier = Modifier.fillMaxSize()) {
             TitleLarge(text="Pinned Recipes")
             Carousel()
 
-            TitleLarge(text="Your Recipes")
-            ImageGrid()
+            Box(modifier = Modifier.padding(top = 35.dp)) {
+                TitleLarge(text = "Your Recipes")
+            }
+            ImageGrid(3, modifier = Modifier.padding(bottom = 80.dp))
         }
+
     }
 }
 
