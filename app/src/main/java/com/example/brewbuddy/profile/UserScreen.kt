@@ -1,6 +1,8 @@
 package com.example.brewbuddy.profile
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,17 +28,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.brewbuddy.CardWithIconAndTitle
+import com.example.brewbuddy.PinnedCard
 import com.example.brewbuddy.ProfilePicture
 import com.example.brewbuddy.R
 import com.example.brewbuddy.getUser
+import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
@@ -49,41 +55,42 @@ private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
 }
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Carousel() {
+fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
     val pageCount = 5
     val bounds = 100 // arbitrarily large # to give the illusion of infinite scroll
     val startIndex = bounds / 2
 
-    val pagerState = rememberPagerState(
-        initialPage = startIndex,
-        initialPageOffsetFraction = 0f,
-    ) {
-        bounds
-    }
     val focusColor = GreyMedium
     val unfocusedColor = GreyLight
+    val tempRecipe = Recipe("Latte")
+
     Column(modifier=Modifier.fillMaxWidth()) {
 
         HorizontalPager(
             modifier = Modifier,
             state = pagerState,
-            pageSpacing = 16.dp,
-            contentPadding = PaddingValues(horizontal = 100.dp),
-            pageSize = PageSize.Fixed(200.dp),
+            pageSpacing = 8.dp,
+            contentPadding = PaddingValues(horizontal = 30.dp),
+            pageSize = PageSize.Fixed(220.dp),
             key = null,
             beyondBoundsPageCount = 1,
+            pageCount = pageCount,
             pageContent = { index ->
                 val page = getIndex(index, startIndex, pageCount)
 
                 Box(contentAlignment = Alignment.Center) {
-                    CardWithIconAndTitle(modifier = Modifier.width(200.dp).height(150.dp))
+                    PinnedCard(modifier = Modifier
+                        .width(210.dp)
+                        .height(150.dp), tempRecipe)
 
                 }
             },
         )
 
         Row(
-            modifier=Modifier.align(Alignment.CenterHorizontally).padding(top=10.dp),
+            modifier= Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             repeat(pageCount) { index ->
@@ -100,6 +107,7 @@ fun Carousel() {
 
     }
 }
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserScreen(menuButton: @Composable () -> Unit) {
     val user = getUser()
