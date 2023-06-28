@@ -38,4 +38,3 @@
 | 2023/06/27 | 1      | 1      | 1    | 1      | 1      | 1      | demo practice                                                 |
 | 2023/06/27 |        |        |      |        |        | 1      | Google register                                               |
 | 2023/06/27 | 3      |        |      |        |        |        | Adding store locator to user profile, update store locator ui |
-
