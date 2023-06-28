@@ -17,7 +17,7 @@
 | 2023/06/15 |        |        |      |        | 2      |        | Set up colours, theme, and icons                              |
 | 2023/06/16 |        |        |      |        | 2      |        | Add navigation bar + basic screens                            |
 | 2023/06/16 |        | 2      |      |        |        |        | Custom Card Component                                         |
-| 2023/06/16 | 2      |        |      |        |        |        | local env setup, google register                                   |
+| 2023/06/16 | 2      |        |      |        |        |        | local env setup, google register                              |
 | 2023/06/16 |        |        |      |        | 2      |        | Add login and set up viewmodels                               |
 | 2023/06/17 |        |        |      |        | 1      |        | Add create account pages                                      |
 | 2023/06/17 |        |        | 2    |        |        |        | UI updates to profile screen                                  |
@@ -38,3 +38,4 @@
 | 2023/06/27 | 1      | 1      | 1    | 1      | 1      | 1      | demo practice                                                 |
 | 2023/06/27 |        |        |      |        |        | 1      | Google register                                               |
 | 2023/06/27 | 3      |        |      |        |        |        | Adding store locator to user profile, update store locator ui |
+| 2023/06/27 | 1      |        |      |        |        |        | Setting up the settings screen                                |
