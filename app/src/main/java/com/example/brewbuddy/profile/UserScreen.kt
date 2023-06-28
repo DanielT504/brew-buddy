@@ -62,6 +62,14 @@ import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavController
+import com.example.brewbuddy.shoplocator.Store
+import com.example.brewbuddy.store1
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 
 private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
     val diff = currentIndex - startIndex;
@@ -203,9 +211,50 @@ fun UserScreen(menuButton: @Composable () -> Unit) {
             Box(modifier = Modifier.padding(top = 35.dp)) {
                 TitleLarge(text = "Your Recipes")
             }
-            ImageGrid(3, modifier = Modifier.padding(bottom = 80.dp))
+            ImageGrid(3, modifier = Modifier.padding(16.dp))
+            Box() {
+                TitleLarge(text = "Saved Shops near you")
+            }
+            Box(modifier = Modifier.fillMaxWidth()
+                .background(Color.White, shape = RoundedCornerShape(32.dp))
+                .padding(16.dp, 0.dp, 16.dp, 100.dp)) {
+                if (store1.saved) {
+                    MapWrapper(stores = arrayOf(store1))
+                }
+                else {
+                    Text(
+                        text="You haven't saved any shops near you yet!",
+                        style=MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                }
+                }
+            }
+
         }
 
+    }
+
+
+@Composable
+fun MapWrapper(stores: Array<Store>) {
+    val savedStore = LatLng(stores[0].latitude, stores[0].longitude)
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(savedStore, 15f)
+    }
+
+
+    GoogleMap(
+        modifier = Modifier
+            .height(300.dp),
+        cameraPositionState = cameraPositionState
+    ) {
+        Marker(
+            state = MarkerState(position = savedStore),
+            title = stores[0].storeName,
+            snippet = "Marker in Waterloo"
+        )
     }
 }
 

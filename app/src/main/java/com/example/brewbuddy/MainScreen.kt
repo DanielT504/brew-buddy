@@ -92,7 +92,7 @@ private fun MainScreenNavigationConfigurations(
                 ProfileScreen()
             }
             composable(BottomNavigationScreens.ShopLocator.route) {
-                ShopLocatorScreen("shoplocator")
+                ShopLocatorScreen()
             }
             composable(BottomNavigationScreens.Marketplace.route) {
                 MarketplaceScreen("marketplace")
