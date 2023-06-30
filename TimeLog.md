@@ -40,4 +40,4 @@
 | 2023/06/28 | 1      | 1       | 1    |        | 1       | 1      | prototype demo day                                            |
 | 2023/06/29 |        |         |      |  3     |         |        | Work on edit profile button                                   |
 | 2023/06/29 |        |         |      |        |         | 5      | Google acc. can now be stored, switched, and logged out of    |
-| 2023/06/29 |        |         |      |  1     |         | 1      | D3 doc work                                                   |
+| 2023/06/29 |        |1        |      |  1     |         | 1      | D3 doc work                                                   |
