@@ -14,16 +14,31 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.BoxWithConstraints
+import android.provider.CalendarContract
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -37,6 +52,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.brewbuddy.AccessScreens
 import com.example.brewbuddy.PinnedCard
 import com.example.brewbuddy.ProfilePicture
 import com.example.brewbuddy.R
@@ -45,6 +61,15 @@ import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
+import androidx.navigation.NavController
+import com.example.brewbuddy.shoplocator.Store
+import com.example.brewbuddy.store1
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 
 private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
     val diff = currentIndex - startIndex;
@@ -107,17 +132,129 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
 
     }
 }
+
+@Composable
+fun ImageGrid(
+    columns: Int,
+    modifier: Modifier = Modifier,
+) {
+    val images = listOf(
+        R.drawable.x_recipe1,
+        R.drawable.x_recipe2,
+        R.drawable.x_recipe3,
+        R.drawable.x_recipe4,
+        R.drawable.x_recipe5,
+        R.drawable.x_recipe6,
+        R.drawable.x_recipe7,
+        R.drawable.x_recipe8,
+        R.drawable.x_recipe9,
+    )
+    var itemCount = images.size
+    Column(modifier = modifier) {
+        var rows = (itemCount / columns)
+        if (itemCount.mod(columns) > 0) {
+            rows += 1
+        }
+
+        for (rowId in 0 until rows) {
+            val firstIndex = rowId * columns
+
+            Row {
+                for (columnId in 0 until columns) {
+                    val index = firstIndex + columnId
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        if (index < itemCount) {
+//                            navController = NavController()
+
+                            // todo: make images clickable
+                            BoxWithConstraints(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                                    .padding(4.dp)
+//                                    .clickable( onClick = { navController.navigate(AccessScreens.Login.route)} )
+                            ) {
+                                Image(
+                                    painter = painterResource(images[index]),
+                                    contentDescription = "Recipe Image",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(4.dp)
+                                        .aspectRatio(1F),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserScreen(menuButton: @Composable () -> Unit) {
     val user = getUser()
-
-    Column(modifier = Modifier.fillMaxSize()) {
+    // todo: change to lazycolumn
+    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         ProfileHeader(user, menuButton)
-        Column() {
+
+        Column(modifier = Modifier.fillMaxSize()) {
             TitleLarge(text="Pinned Recipes")
             Carousel()
+
+            Box(modifier = Modifier.padding(top = 35.dp)) {
+                TitleLarge(text = "Your Recipes")
+            }
+            ImageGrid(3, modifier = Modifier.padding(16.dp))
+            Box() {
+                TitleLarge(text = "Saved Shops near you")
+            }
+            Box(modifier = Modifier.fillMaxWidth()
+                .background(Color.White, shape = RoundedCornerShape(32.dp))
+                .padding(16.dp, 0.dp, 16.dp, 100.dp)) {
+                if (store1.saved) {
+                    MapWrapper(stores = arrayOf(store1))
+                }
+                else {
+                    Text(
+                        text="You haven't saved any shops near you yet!",
+                        style=MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                }
+                }
+            }
+
         }
+
+    }
+
+
+@Composable
+fun MapWrapper(stores: Array<Store>) {
+    val savedStore = LatLng(stores[0].latitude, stores[0].longitude)
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(savedStore, 15f)
+    }
+
+
+    GoogleMap(
+        modifier = Modifier
+            .height(300.dp),
+        cameraPositionState = cameraPositionState
+    ) {
+        Marker(
+            state = MarkerState(position = savedStore),
+            title = stores[0].storeName,
+            snippet = "Marker in Waterloo"
+        )
     }
 }
 
