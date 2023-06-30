@@ -7,4 +7,9 @@
     <string name="recipes_route">Recipes</string>
     <string name="login_route">Login</string>
     <string name="register_route">Register</string>
+    <string name="create_an_account">Create an account</string>
+    <string name="email_address">Email Address</string>
+    <string name="password">Password</string>
+    <string name="continue_google">Continue with Google</string>
+    <string name="already_have_an_account">Already have an account</string>
 </resources>

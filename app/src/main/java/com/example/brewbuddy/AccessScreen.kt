@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -76,6 +77,8 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
         content()
     }
 }
+
+//TODO: logout button from profile screen, save passwords and usernames to firebase
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController) {
@@ -95,15 +98,15 @@ fun LoginScreen(navController: NavController) {
     var isLoginEnabled by remember {mutableStateOf(false)}
 
     Surface(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
             FormWrapper() {
+                Box(modifier = Modifier.padding(bottom = 20.dp))
                 Title()
                 TextField(
                     value = username,
@@ -177,14 +180,14 @@ fun LoginScreen(navController: NavController) {
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surface,
                         contentColor = MaterialTheme.colorScheme.primary
-                    )
-                    //modifier = Modifier.padding(top = 16.dp)
+                    ),
+                    modifier = Modifier.padding(top = 16.dp)
                 ) {
                     Text(text = "Sign up")
                 }
                 GoogleSignInButton(onGoogleSignInSuccess = { account ->
-                    //temporary for demo
                     Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
+                    currentUserViewModel.registerUserWithGoogle(account.displayName!!)
                 })
             }
         }
@@ -274,8 +277,8 @@ fun RegisterScreen(navController: NavController) {
             }
             ErrorMessage(errorMsg.value)
             GoogleRegisterButton(onGoogleSignInSuccess = { account ->
-                //temporary for demo
-                Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
+                Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: ${account.id}")
+                currentUserViewModel.registerUserWithGoogle(account.displayName!!)
             })
         }
     }

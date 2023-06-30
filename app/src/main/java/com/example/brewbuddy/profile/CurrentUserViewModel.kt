@@ -46,4 +46,10 @@ class CurrentUserViewModel : ViewModel() {
         }
         return false;
     }
+
+    fun registerUserWithGoogle(username: String): Boolean {
+        val user = User(username);
+        setUser(user);
+        return true;
+    }
 }
