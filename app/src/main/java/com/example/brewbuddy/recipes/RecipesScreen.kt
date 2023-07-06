@@ -203,10 +203,6 @@ private fun PopularCard(photo: Any) {
     }
 }
 
-private fun NavigateToIndividualRecipe() {
-
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RecipeCard(title: String, photo: Any, navController: NavHostController) {
