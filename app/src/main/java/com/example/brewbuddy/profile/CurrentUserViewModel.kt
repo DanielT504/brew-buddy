@@ -38,13 +38,10 @@ class CurrentUserViewModel : ViewModel() {
         return false;
     }
 
-    fun registerUser(username: String, password: String): Boolean {
-        if(username != "test") {
-            val user = User(username);
-            setUser(user);
-            return true;
-        }
-        return false;
+    fun registerUser(username: String): Boolean {
+        val user = User(username);
+        setUser(user);
+        return true;
     }
 
     fun registerUserWithGoogle(username: String): Boolean {

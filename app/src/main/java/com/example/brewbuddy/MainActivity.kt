@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             BrewBuddyTheme {
-                AccessScreen()
+                AccessScreen(this)
             }
         }
         currentUserViewModel.setUser(null)
@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
             } else {
                 setContent {
                     BrewBuddyTheme {
-                        AccessScreen()
+                        AccessScreen(this)
                     }
                 }
             }

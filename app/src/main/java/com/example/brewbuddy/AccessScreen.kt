@@ -1,7 +1,10 @@
 package com.example.brewbuddy
 
+import createAccount
+import signIn
 import GoogleRegisterButton
 import GoogleSignInButton
+import android.app.Activity
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -81,7 +84,7 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
 //TODO: logout button from profile screen, save passwords and usernames to firebase
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, activity: Activity) {
 
     val currentUserViewModel: CurrentUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     val nonWhitespaceFilter = remember { Regex("^[^\n ]*\$")}
@@ -196,7 +199,7 @@ fun LoginScreen(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(navController: NavController) {
+fun RegisterScreen(navController: NavController, activity: Activity) {
     val currentUserViewModel: CurrentUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     val nonWhitespaceFilter = remember { Regex("^[^\n]*\$")}
     val alphanumericFilter = remember { Regex("[a-zA-Z0-9]*")}
@@ -259,9 +262,8 @@ fun RegisterScreen(navController: NavController) {
                     errorMsg.value = if (password.text != confirmPassword.text) {
                         "Passwords do not match."
                     } else if(
-                        !currentUserViewModel.registerUser(
-                            username.text,
-                            password.text)
+                        createAccount(username.text, password.text, activity)
+                        && !currentUserViewModel.registerUser(username.text)
                     ) {
                         "Username is already taken"
                     } else {
@@ -312,7 +314,7 @@ fun Title(color: Color = OrangeBrownMedium) {
     }
 }
 @Composable
-fun AccessScreen() {
+fun AccessScreen(activity: Activity) {
     val navController = rememberNavController()
     val vmStoreOwner = rememberViewModelStoreOwner()
 
@@ -322,10 +324,10 @@ fun AccessScreen() {
         ) {
             NavHost(navController, startDestination = AccessScreens.Login.route) {
                 composable(AccessScreens.Login.route) {
-                    LoginScreen(navController)
+                    LoginScreen(navController, activity)
                 }
                 composable(AccessScreens.Register.route) {
-                    RegisterScreen(navController)
+                    RegisterScreen(navController, activity)
                 }
 
             }
