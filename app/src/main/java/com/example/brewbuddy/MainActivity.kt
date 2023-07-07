@@ -12,6 +12,7 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
+import com.google.firebase.FirebaseApp
 
 
 class MainActivity : ComponentActivity() {
@@ -21,6 +22,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
         setContent {
             BrewBuddyTheme {
                 AccessScreen(this)

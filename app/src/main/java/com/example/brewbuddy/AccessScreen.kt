@@ -190,7 +190,7 @@ fun LoginScreen(navController: NavController, activity: Activity) {
                 }
                 GoogleSignInButton(onGoogleSignInSuccess = { account ->
                     Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
-                    currentUserViewModel.registerUserWithGoogle(account.displayName!!)
+                    currentUserViewModel.registerUserWithGoogle(account.displayName!!, account.email!!)
                 })
             }
         }
@@ -206,7 +206,7 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
 
     var username by remember { mutableStateOf(TextFieldValue("")) }
     var password by remember { mutableStateOf(TextFieldValue("")) }
-    var confirmPassword by remember { mutableStateOf(TextFieldValue("")) }
+    var email by remember { mutableStateOf(TextFieldValue("")) }
 
     val errorMsg = remember {mutableStateOf("")}
     Surface(
@@ -243,27 +243,26 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
                 visualTransformation = PasswordVisualTransformation()
             )
             TextField(
-                value = confirmPassword,
+                value = email,
                 onValueChange = {
                     if(it.text. matches(nonWhitespaceFilter)){
-                        confirmPassword = it
+                        email = it
                     }
                 },
-                placeholder = { Text(text = "Confirm Password")},
-                visualTransformation = PasswordVisualTransformation()
+                placeholder = { Text(text = "Email")},
             )
             Button(
                 onClick = {
                     Log.d("REGISTER_USER", username.text)
 
                     Log.d("REGISTER_PWD", password.text)
-                    Log.d("REGISTER_CONF_PWD", confirmPassword.text)
+                    Log.d("REGISTER_CONF_PWD", email.text)
 
-                    errorMsg.value = if (password.text != confirmPassword.text) {
-                        "Passwords do not match."
+                    errorMsg.value = if (password.text.length < 6) {
+                        "Password must be at least 6 characters"
                     } else if(
-                        createAccount(username.text, password.text, activity)
-                        && !currentUserViewModel.registerUser(username.text)
+                        createAccount(username.text, password.text, email.text, activity)
+                        && !currentUserViewModel.registerUser(username.text, email.text)
                     ) {
                         "Username is already taken"
                     } else {
@@ -280,7 +279,7 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
             ErrorMessage(errorMsg.value)
             GoogleRegisterButton(onGoogleSignInSuccess = { account ->
                 Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: ${account.id}")
-                currentUserViewModel.registerUserWithGoogle(account.displayName!!)
+                currentUserViewModel.registerUserWithGoogle(account.displayName!!, account.email!!)
             })
         }
     }

@@ -26,26 +26,26 @@ class CurrentUserViewModel : ViewModel() {
     }
 
     private fun validateUser(username: String, password: String): Boolean {
-        return username == "test" && password == "test"
+        return true //TODO
     }
 
     fun loginUser(username: String, password: String): Boolean {
         if(validateUser(username, password)) {
-            val user = User(username)
+            val user = User(username, "") //TODO
             setUser(user)
             return true;
         }
         return false;
     }
 
-    fun registerUser(username: String): Boolean {
-        val user = User(username);
+    fun registerUser(username: String, email: String): Boolean {
+        val user = User(username, email);
         setUser(user);
         return true;
     }
 
-    fun registerUserWithGoogle(username: String): Boolean {
-        val user = User(username);
+    fun registerUserWithGoogle(username: String, email: String): Boolean {
+        val user = User(username, email);
         setUser(user);
         return true;
     }
