@@ -30,6 +30,8 @@ fun addUserToFirestore(email: String, username: String, password: String, uid: S
 }
 
 fun createAccount(username: String, password: String, email: String, activity: Activity): Boolean {
+    var isSuccess = false
+
     auth.createUserWithEmailAndPassword(email, password)
         .addOnCompleteListener(activity) { task ->
             if (task.isSuccessful) {
@@ -39,6 +41,7 @@ fun createAccount(username: String, password: String, email: String, activity: A
                 Log.d("CREATE_ACCOUNT", "User UID: $uid")
                 updateUI(user)
                 addUserToFirestore(email, username, password, uid!!)
+                isSuccess = true // Set isSuccess as true in case of success
             } else {
                 Log.d("CREATE_ACCOUNT", "Account creation failed: ${task.exception}")
                 Toast.makeText(
@@ -49,26 +52,78 @@ fun createAccount(username: String, password: String, email: String, activity: A
                 updateUI(null)
             }
         }
-    return true;
+
+    return isSuccess
 }
 
-fun signIn(email: String, password: String, activity: Activity): Boolean {
-    auth.signInWithEmailAndPassword(email, password)
-        .addOnCompleteListener(activity) { task ->
-            if (task.isSuccessful) {
-                val user = auth.currentUser
-                updateUI(user)
+data class SignInResult(var success: Boolean, var email: String?)
+
+fun signIn(username: String, password: String, activity: Activity): SignInResult {
+    val usersCollection = db.collection("users")
+
+    val result = SignInResult(false, null)
+
+    usersCollection.whereEqualTo("username", username)
+        .get()
+        .addOnSuccessListener { querySnapshot ->
+            if (!querySnapshot.isEmpty) {
+                val document = querySnapshot.documents[0]
+                val email = document.getString("email")
+                if (email != null) {
+                    auth.signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(activity) { task ->
+                            if (task.isSuccessful) {
+                                val user = auth.currentUser
+                                updateUI(user)
+                                result.success = true
+                                result.email = email
+                            } else {
+                                Toast.makeText(
+                                    activity.baseContext,
+                                    "Authentication failed.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                updateUI(null)
+                            }
+                        }
+                } else {
+                    Log.d("SIGN_IN", "Email not found for username: $username")
+                    Toast.makeText(
+                        activity.baseContext,
+                        "Authentication failed. User not found.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    updateUI(null)
+                }
             } else {
+                Log.d("SIGN_IN", "User not found for username: $username")
                 Toast.makeText(
                     activity.baseContext,
-                    "Authentication failed.",
-                    Toast.LENGTH_SHORT,
+                    "Authentication failed. User not found.",
+                    Toast.LENGTH_SHORT
                 ).show()
                 updateUI(null)
             }
         }
-    return true;
+        .addOnFailureListener { e ->
+            Log.d("SIGN_IN", "Error getting user document: $e")
+            Toast.makeText(
+                activity.baseContext,
+                "Authentication failed.",
+                Toast.LENGTH_SHORT
+            ).show()
+            updateUI(null)
+        }
+
+    return result
 }
 
+
 private fun updateUI(user: FirebaseUser?) {
+    if (user != null) {
+        Log.d("UPDATE_UI", "User is signed in: ${user.uid}")
+        Log.d("UPDATE_UI", "User is signed in: ${user.email}")
+    } else {
+        Log.d("UPDATE_UI", "User is signed out.")
+    }
 }

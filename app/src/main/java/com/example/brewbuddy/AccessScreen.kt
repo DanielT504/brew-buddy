@@ -62,6 +62,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.res.painterResource
+import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.AuthResult
 
 sealed class AccessScreens(val route: String, @StringRes val resourceId: Int) {
     object Login : AccessScreens("Profile", R.string.login_route)
@@ -81,7 +83,7 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
-//TODO: logout button from profile screen, save passwords and usernames to firebase
+//TODO: logout button from profile screen, register screen UX, email confirmation, suspend database response
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController, activity: Activity) {
@@ -153,10 +155,13 @@ fun LoginScreen(navController: NavController, activity: Activity) {
                     keyboardActions = KeyboardActions(
                         onDone = {
                             if (isLoginEnabled) {
-                                val loginSuccessful = currentUserViewModel.loginUser(username.text, password.text)
-                                if (!loginSuccessful) {
+                                val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                                Log.d("UPDATE_UI", "User is signed in: 1")
+                                if (!loginResult.first) {
                                     password = TextFieldValue("") // Clear the password field
                                     errorMsg.value = "Incorrect password or username."
+                                } else {
+                                    currentUserViewModel.loginUser(username.text, loginResult.second!!)
                                 }
                             }
                         }
@@ -165,10 +170,13 @@ fun LoginScreen(navController: NavController, activity: Activity) {
                 )
                 Button(
                     onClick = {
-                        val loginSuccessful = loginUser(username.text, password.text, isLoginEnabled, errorMsg, currentUserViewModel)
-                        if (!loginSuccessful) {
+                        val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                        if (!loginResult.first) {
                             password = TextFieldValue("") // Clear the password field
                             errorMsg.value = "Incorrect password or username."
+                        } else {
+                            Log.d("UPDATE_UI", "User is signed in: 2")
+                            currentUserViewModel.loginUser(username.text, loginResult.second!!)
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
@@ -335,15 +343,20 @@ fun AccessScreen(activity: Activity) {
     }
 }
 
-private fun loginUser(username: String, password: String, isLoginEnabled: Boolean, errorMsg: MutableState<String>, currentUserViewModel: CurrentUserViewModel): Boolean {
-    if (isLoginEnabled) {
-        val loginSuccessful = currentUserViewModel.loginUser(username, password)
-        errorMsg.value = if (!loginSuccessful) {
-            "Incorrect password or username."
-        } else {
-            ""
-        }
-        return loginSuccessful
+private fun loginUser(
+    username: String,
+    password: String,
+    errorMsg: MutableState<String>,
+    currentUserViewModel: CurrentUserViewModel,
+    activity: Activity
+): Pair<Boolean, String?> {
+    val signInResult = signIn(username, password, activity)
+    if (signInResult.success) {
+        val email = signInResult.email
+        return Pair(true, email)
+    } else {
+        errorMsg.value = "Incorrect password or username."
+        Log.d("UPDATE_UI", "User is signed in 123")
+        return Pair(false, null)
     }
-    return false
 }
