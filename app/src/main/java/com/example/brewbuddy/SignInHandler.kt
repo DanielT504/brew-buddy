@@ -5,6 +5,12 @@ import com.google.firebase.ktx.Firebase
 import android.app.Activity
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import com.google.firebase.auth.AuthResult
 
 private val auth = Firebase.auth
 val db = FirebaseFirestore.getInstance()
@@ -58,64 +64,31 @@ fun createAccount(username: String, password: String, email: String, activity: A
 
 data class SignInResult(var success: Boolean, var email: String?)
 
-fun signIn(username: String, password: String, activity: Activity): SignInResult {
+suspend fun signIn(username: String, password: String, activity: Activity): SignInResult {
     val usersCollection = db.collection("users")
 
-    val result = SignInResult(false, null)
+    return withContext(Dispatchers.IO) {
+        val querySnapshotDeferred = async { usersCollection.whereEqualTo("username", username).get().await() }
+        val querySnapshot = querySnapshotDeferred.await()
 
-    usersCollection.whereEqualTo("username", username)
-        .get()
-        .addOnSuccessListener { querySnapshot ->
-            if (!querySnapshot.isEmpty) {
-                val document = querySnapshot.documents[0]
-                val email = document.getString("email")
-                if (email != null) {
-                    auth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(activity) { task ->
-                            if (task.isSuccessful) {
-                                val user = auth.currentUser
-                                updateUI(user)
-                                result.success = true
-                                result.email = email
-                            } else {
-                                Toast.makeText(
-                                    activity.baseContext,
-                                    "Authentication failed.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                updateUI(null)
-                            }
-                        }
-                } else {
-                    Log.d("SIGN_IN", "Email not found for username: $username")
-                    Toast.makeText(
-                        activity.baseContext,
-                        "Authentication failed. User not found.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    updateUI(null)
+        if (!querySnapshot.isEmpty) {
+            val document = querySnapshot.documents[0]
+            val email = document.getString("email")
+
+            if (email != null) {
+                val authResultDeferred = async { auth.signInWithEmailAndPassword(email, password).await() }
+                val authResult = authResultDeferred.await()
+
+                if (authResult != null) {
+                    val user = auth.currentUser
+                    updateUI(user)
+                    return@withContext SignInResult(true, email)
                 }
-            } else {
-                Log.d("SIGN_IN", "User not found for username: $username")
-                Toast.makeText(
-                    activity.baseContext,
-                    "Authentication failed. User not found.",
-                    Toast.LENGTH_SHORT
-                ).show()
-                updateUI(null)
             }
         }
-        .addOnFailureListener { e ->
-            Log.d("SIGN_IN", "Error getting user document: $e")
-            Toast.makeText(
-                activity.baseContext,
-                "Authentication failed.",
-                Toast.LENGTH_SHORT
-            ).show()
-            updateUI(null)
-        }
 
-    return result
+        return@withContext SignInResult(false, null)
+    }
 }
 
 

@@ -64,6 +64,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.res.painterResource
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 sealed class AccessScreens(val route: String, @StringRes val resourceId: Int) {
     object Login : AccessScreens("Profile", R.string.login_route)
@@ -83,7 +86,7 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
-//TODO: logout button from profile screen, register screen UX, email confirmation, suspend database response
+//TODO: logout button from profile screen, register screen UX, email confirmation, login/signup testing
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController, activity: Activity) {
@@ -155,13 +158,16 @@ fun LoginScreen(navController: NavController, activity: Activity) {
                     keyboardActions = KeyboardActions(
                         onDone = {
                             if (isLoginEnabled) {
-                                val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
-                                Log.d("UPDATE_UI", "User is signed in: 1")
-                                if (!loginResult.first) {
-                                    password = TextFieldValue("") // Clear the password field
-                                    errorMsg.value = "Incorrect password or username."
-                                } else {
-                                    currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                                // Launch a coroutine in the CoroutineScope
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                                    Log.d("UPDATE_UI", "User is signed in: 1")
+                                    if (!loginResult.first) {
+                                        password = TextFieldValue("") // Clear the password field
+                                        errorMsg.value = "Incorrect password or username."
+                                    } else {
+                                        currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                                    }
                                 }
                             }
                         }
@@ -170,13 +176,16 @@ fun LoginScreen(navController: NavController, activity: Activity) {
                 )
                 Button(
                     onClick = {
-                        val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
-                        if (!loginResult.first) {
-                            password = TextFieldValue("") // Clear the password field
-                            errorMsg.value = "Incorrect password or username."
-                        } else {
-                            Log.d("UPDATE_UI", "User is signed in: 2")
-                            currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                        // Launch a coroutine in the CoroutineScope
+                        CoroutineScope(Dispatchers.Main).launch {
+                            val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                            if (!loginResult.first) {
+                                password = TextFieldValue("") // Clear the password field
+                                errorMsg.value = "Incorrect password or username."
+                            } else {
+                                Log.d("UPDATE_UI", "User is signed in: 2")
+                                currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                            }
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
@@ -343,7 +352,7 @@ fun AccessScreen(activity: Activity) {
     }
 }
 
-private fun loginUser(
+private suspend fun loginUser(
     username: String,
     password: String,
     errorMsg: MutableState<String>,

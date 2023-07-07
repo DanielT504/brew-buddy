@@ -43,4 +43,5 @@
 | 2023/07/05 |        |         |      |        |         | 2      | Login with email and password in Firebase                     |
 | 2023/07/06 |        |         |      |        |         | 5      | Can pull user login info from Firestore database with UID     |
 | 2023/07/06 |        |         |      |        |         | 1      | Refactoring to support user emails                            |
+| 2023/07/07 |        |         |      |        |         | 1      | Suspended functions to allow database response time           |
 
