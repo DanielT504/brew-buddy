@@ -47,3 +47,4 @@
 | 2023/07/06 |        |         |      |        |         | 5      | Can pull user login info from Firestore database with UID     |
 | 2023/07/06 |        |         |      |        |         | 1      | Refactoring to support user emails                            |
 | 2023/07/07 |        |         |      |        |         | 1      | Suspended functions to allow database response time           |
+| 2023/07/08 |        |3        |      |        |         |        | Marketplace Screen frontend filters - dropdown and UI setup   |
