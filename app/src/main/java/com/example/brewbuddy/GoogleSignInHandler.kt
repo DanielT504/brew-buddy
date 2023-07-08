@@ -37,7 +37,7 @@ private val auth = Firebase.auth
 private val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
     .requestIdToken("936295543644-ovaailsfjpdibr169fqkqufb2kpf8ian.apps.googleusercontent.com")
     .requestEmail()
-    .build()
+    .build() 
 
 @Composable
 fun GoogleSignInButton(onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit) {

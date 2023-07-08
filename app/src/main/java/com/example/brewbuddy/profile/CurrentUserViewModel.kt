@@ -25,30 +25,19 @@ class CurrentUserViewModel : ViewModel() {
         return currentUser.value!!
     }
 
-    private fun validateUser(username: String, password: String): Boolean {
-        return username == "test" && password == "test"
+    fun loginUser(username: String, email: String) {
+        val user = User(username, email)
+        setUser(user)
     }
 
-    fun loginUser(username: String, password: String): Boolean {
-        if(validateUser(username, password)) {
-            val user = User(username)
-            setUser(user)
-            return true;
-        }
-        return false;
+    fun registerUser(username: String, email: String): Boolean {
+        val user = User(username, email);
+        setUser(user);
+        return true;
     }
 
-    fun registerUser(username: String, password: String): Boolean {
-        if(username != "test") {
-            val user = User(username);
-            setUser(user);
-            return true;
-        }
-        return false;
-    }
-
-    fun registerUserWithGoogle(username: String): Boolean {
-        val user = User(username);
+    fun registerUserWithGoogle(username: String, email: String): Boolean {
+        val user = User(username, email);
         setUser(user);
         return true;
     }
