@@ -1,7 +1,10 @@
 package com.example.brewbuddy
 
+import createAccount
+import signIn
 import GoogleRegisterButton
 import GoogleSignInButton
+import android.app.Activity
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -59,6 +62,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.res.painterResource
+import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.AuthResult
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 sealed class AccessScreens(val route: String, @StringRes val resourceId: Int) {
     object Login : AccessScreens("Profile", R.string.login_route)
@@ -78,10 +86,10 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
-//TODO: logout button from profile screen, save passwords and usernames to firebase
+//TODO: logout button from profile screen, register screen UX, email confirmation, login/signup testing
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, activity: Activity) {
 
     val currentUserViewModel: CurrentUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     val nonWhitespaceFilter = remember { Regex("^[^\n ]*\$")}
@@ -150,10 +158,16 @@ fun LoginScreen(navController: NavController) {
                     keyboardActions = KeyboardActions(
                         onDone = {
                             if (isLoginEnabled) {
-                                val loginSuccessful = currentUserViewModel.loginUser(username.text, password.text)
-                                if (!loginSuccessful) {
-                                    password = TextFieldValue("") // Clear the password field
-                                    errorMsg.value = "Incorrect password or username."
+                                // Launch a coroutine in the CoroutineScope
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                                    Log.d("UPDATE_UI", "User is signed in: 1")
+                                    if (!loginResult.first) {
+                                        password = TextFieldValue("") // Clear the password field
+                                        errorMsg.value = "Incorrect password or username."
+                                    } else {
+                                        currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                                    }
                                 }
                             }
                         }
@@ -162,10 +176,16 @@ fun LoginScreen(navController: NavController) {
                 )
                 Button(
                     onClick = {
-                        val loginSuccessful = loginUser(username.text, password.text, isLoginEnabled, errorMsg, currentUserViewModel)
-                        if (!loginSuccessful) {
-                            password = TextFieldValue("") // Clear the password field
-                            errorMsg.value = "Incorrect password or username."
+                        // Launch a coroutine in the CoroutineScope
+                        CoroutineScope(Dispatchers.Main).launch {
+                            val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                            if (!loginResult.first) {
+                                password = TextFieldValue("") // Clear the password field
+                                errorMsg.value = "Incorrect password or username."
+                            } else {
+                                Log.d("UPDATE_UI", "User is signed in: 2")
+                                currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                            }
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
@@ -187,7 +207,7 @@ fun LoginScreen(navController: NavController) {
                 }
                 GoogleSignInButton(onGoogleSignInSuccess = { account ->
                     Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
-                    currentUserViewModel.registerUserWithGoogle(account.displayName!!)
+                    currentUserViewModel.registerUserWithGoogle(account.displayName!!, account.email!!)
                 })
             }
         }
@@ -196,14 +216,14 @@ fun LoginScreen(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(navController: NavController) {
+fun RegisterScreen(navController: NavController, activity: Activity) {
     val currentUserViewModel: CurrentUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     val nonWhitespaceFilter = remember { Regex("^[^\n]*\$")}
     val alphanumericFilter = remember { Regex("[a-zA-Z0-9]*")}
 
     var username by remember { mutableStateOf(TextFieldValue("")) }
     var password by remember { mutableStateOf(TextFieldValue("")) }
-    var confirmPassword by remember { mutableStateOf(TextFieldValue("")) }
+    var email by remember { mutableStateOf(TextFieldValue("")) }
 
     val errorMsg = remember {mutableStateOf("")}
     Surface(
@@ -240,28 +260,26 @@ fun RegisterScreen(navController: NavController) {
                 visualTransformation = PasswordVisualTransformation()
             )
             TextField(
-                value = confirmPassword,
+                value = email,
                 onValueChange = {
                     if(it.text. matches(nonWhitespaceFilter)){
-                        confirmPassword = it
+                        email = it
                     }
                 },
-                placeholder = { Text(text = "Confirm Password")},
-                visualTransformation = PasswordVisualTransformation()
+                placeholder = { Text(text = "Email")},
             )
             Button(
                 onClick = {
                     Log.d("REGISTER_USER", username.text)
 
                     Log.d("REGISTER_PWD", password.text)
-                    Log.d("REGISTER_CONF_PWD", confirmPassword.text)
+                    Log.d("REGISTER_CONF_PWD", email.text)
 
-                    errorMsg.value = if (password.text != confirmPassword.text) {
-                        "Passwords do not match."
+                    errorMsg.value = if (password.text.length < 6) {
+                        "Password must be at least 6 characters"
                     } else if(
-                        !currentUserViewModel.registerUser(
-                            username.text,
-                            password.text)
+                        createAccount(username.text, password.text, email.text, activity)
+                        && !currentUserViewModel.registerUser(username.text, email.text)
                     ) {
                         "Username is already taken"
                     } else {
@@ -278,7 +296,7 @@ fun RegisterScreen(navController: NavController) {
             ErrorMessage(errorMsg.value)
             GoogleRegisterButton(onGoogleSignInSuccess = { account ->
                 Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: ${account.id}")
-                currentUserViewModel.registerUserWithGoogle(account.displayName!!)
+                currentUserViewModel.registerUserWithGoogle(account.displayName!!, account.email!!)
             })
         }
     }
@@ -312,7 +330,7 @@ fun Title(color: Color = OrangeBrownMedium) {
     }
 }
 @Composable
-fun AccessScreen() {
+fun AccessScreen(activity: Activity) {
     val navController = rememberNavController()
     val vmStoreOwner = rememberViewModelStoreOwner()
 
@@ -322,10 +340,10 @@ fun AccessScreen() {
         ) {
             NavHost(navController, startDestination = AccessScreens.Login.route) {
                 composable(AccessScreens.Login.route) {
-                    LoginScreen(navController)
+                    LoginScreen(navController, activity)
                 }
                 composable(AccessScreens.Register.route) {
-                    RegisterScreen(navController)
+                    RegisterScreen(navController, activity)
                 }
 
             }
@@ -334,15 +352,20 @@ fun AccessScreen() {
     }
 }
 
-private fun loginUser(username: String, password: String, isLoginEnabled: Boolean, errorMsg: MutableState<String>, currentUserViewModel: CurrentUserViewModel): Boolean {
-    if (isLoginEnabled) {
-        val loginSuccessful = currentUserViewModel.loginUser(username, password)
-        errorMsg.value = if (!loginSuccessful) {
-            "Incorrect password or username."
-        } else {
-            ""
-        }
-        return loginSuccessful
+private suspend fun loginUser(
+    username: String,
+    password: String,
+    errorMsg: MutableState<String>,
+    currentUserViewModel: CurrentUserViewModel,
+    activity: Activity
+): Pair<Boolean, String?> {
+    val signInResult = signIn(username, password, activity)
+    if (signInResult.success) {
+        val email = signInResult.email
+        return Pair(true, email)
+    } else {
+        errorMsg.value = "Incorrect password or username."
+        Log.d("UPDATE_UI", "User is signed in 123")
+        return Pair(false, null)
     }
-    return false
 }

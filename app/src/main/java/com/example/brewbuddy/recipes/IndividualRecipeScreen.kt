@@ -64,7 +64,8 @@ fun IndividualRecipeScreen(navController: NavHostController, param: String) {
     var recipe = recipes.last { it.recipeName == title }
     Column (modifier = Modifier
         .fillMaxSize()
-        .verticalScroll(rememberScrollState())){
+        .verticalScroll(rememberScrollState())
+    ){
         Box() {
             RecipeBanner(recipe.backgroundImage, recipe.recipeName, navController)
         }
