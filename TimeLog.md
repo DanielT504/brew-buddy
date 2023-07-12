@@ -43,7 +43,7 @@
 | 2023/06/29 |        |         |      |  2     |         |        | Hello world project init                                      |
 | 2023/06/29 |        |         |      |  3     |         |        | Work on edit profile button                                   |
 | 2023/06/29 |        |         |      |        |         | 5      | Google acc. can now be stored, switched, and logged out of    |
-| 2023/06/29 |        |1        |      |  1     |         | 1      | D3 doc work                                                   |
+| 2023/06/29 |1       |1        |      |  1     |         | 1      | D3 doc work                                                   |
 | 2023/07/04 |        |3        |      |        |         |        | Marketplace screen setup - cards, search field etc            |
 | 2023/07/05 |        |         |      |        |         | 2      | Login with email and password in Firebase                     |
 | 2023/07/06 |        |         |      |        |         | 5      | Can pull user login info from Firestore database with UID     |
