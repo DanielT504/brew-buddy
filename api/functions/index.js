@@ -84,3 +84,45 @@ exports.getRecipeById = onRequest(async ({ query }, response) => {
       });
   }
 });
+
+exports.getRecipes = onRequest(async ({ query }, response) => {
+  var recipes = [];
+
+  await db
+    .collection("recipes")
+    .get()
+    .then((snapshot) => {
+      snapshot.forEach((doc) => {
+        const data = {
+          id: doc.id,
+          author: doc.data().author,
+          ingredients: doc.data().ingredients,
+        };
+        recipes.push(data);
+      });
+    });
+
+  response.send(recipes);
+});
+
+exports.getRecipesMetadata = onRequest(async ({ query }, response) => {
+  var recipes = [];
+
+  await db
+    .collection("recipes")
+    .get()
+    .then((snapshot) => {
+      snapshot.forEach((doc) => {
+        const metadata = {
+          id: doc.id,
+          author: doc.data().author,
+          tags: doc.data().tags,
+          thumbnail: doc.data().thumbnail,
+          title: doc.data().title,
+        };
+        recipes.push(metadata);
+      });
+    });
+
+  response.status(200).json({ data: recipes });
+});
