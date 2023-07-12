@@ -12,40 +12,39 @@ const { logger } = require("firebase-functions");
 const { onRequest } = require("firebase-functions/v2/https");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 
-// The Firebase Admin SDK to access Firestore.
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
-const { defineSecret } = require("firebase-functions/params");
-const databasePassword = defineSecret("database");
 initializeApp();
 const db = getFirestore();
 
-exports.testWorld = onRequest((request, response) => {
-  logger.info(request);
-  logger.info("Hello logs!", { structuredData: true });
-
-  // const secretmanagerClient = new SecretManagerServiceClient();
-  // const secretRequest = { name: "database" };
-
-  // // Run request
-  // const secretResponse = secretmanagerClient.getSecret(secretRequest);
-  response.send("Hi!");
+exports.getRecipesByAuthor = onRequest(async ({ query }, response) => {
+  // Get all recipes from specified author ID.
+  var recipes = [];
+  const { authorId } = query;
+  if (authorId) {
+    await db
+      .collection("recipes")
+      .where("authorId", "==", authorId)
+      .get()
+      .then((snapshot) => {
+        snapshot.forEach((doc) => {
+          const data = {
+            id: doc.id,
+            author: doc.data().author,
+            ingredients: doc.data().ingredients,
+          };
+          recipes.push(data);
+        });
+      });
+  }
+  response.send(recipes);
 });
 
-exports.getRecipeByAuthor = onRequest(
-  { secrets: [databasePassword] },
-  async ({ query }, response) => {
-    // const pwd = databasePassword.value();
-    // const db = new DB("developer", pwd);
+exports.createRecipe = onRequest(async ({ query, body }, response) => {
+  var recipes = [];
+  const { authorId } = query;
 
-    // const res = await db.getRecipeById();
-    // logger.info(request);
-    // logger.info("Hello logs!", { structuredData: true });
-    var recipes = [];
-    const { authorId, recipeId } = query;
-    if (!id) {
-      return [];
-    }
+  if (authorId) {
     await db
       .collection("recipes")
       .get()
@@ -59,39 +58,29 @@ exports.getRecipeByAuthor = onRequest(
           recipes.push(data);
         });
       });
-    // console.log(recipes);
-    response.send(recipes);
   }
-);
+  response.send(recipes);
+});
 
-exports.getRecipeById = onRequest(
-  { secrets: [databasePassword] },
-  async ({ query }, response) => {
-    // const pwd = databasePassword.value();
-    // const db = new DB("developer", pwd);
-
-    // const res = await db.getRecipeById();
-    // logger.info(request);
-    // logger.info("Hello logs!", { structuredData: true });
-    var recipes = [];
-    const id = { query };
-    if (!id) {
-      return [];
-    }
-    await db
-      .collection("recipes")
+exports.getRecipeById = onRequest(async ({ query }, response) => {
+  const { recipeId } = query;
+  if (recipeId) {
+    db.collection("recipes")
+      .where("id", "==", recipeId)
       .get()
       .then((snapshot) => {
+        if (snapshot.length === 0) {
+          response.status(404).send({});
+          return;
+        }
         snapshot.forEach((doc) => {
           const data = {
             id: doc.id,
             author: doc.data().author,
             ingredients: doc.data().ingredients,
           };
-          recipes.push(data);
+          response.send(data);
         });
       });
-    // console.log(recipes);
-    response.send(recipes);
   }
-);
+});
