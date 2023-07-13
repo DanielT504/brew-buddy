@@ -23,6 +23,7 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.brewbuddy.recipes.IndividualRecipeScreen
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
+import com.example.brewbuddy.recipes.RecipesScreenViewModel
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
 
 @Composable
@@ -34,14 +35,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
             color=MaterialTheme.colorScheme.primary,
             style=MaterialTheme.typography.titleLarge
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    BrewBuddyTheme {
-        Greeting("BrewBuddy")
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -101,7 +94,7 @@ private fun MainScreenNavigationConfigurations(
                 FeaturedScreen("featured")
             }
             composable(BottomNavigationScreens.Recipes.route) {
-                RecipesScreen(navController)
+                RecipesScreen(navController, )
             }
             composable(
                 RecipeNavigationScreens.IndividualRecipe.route,

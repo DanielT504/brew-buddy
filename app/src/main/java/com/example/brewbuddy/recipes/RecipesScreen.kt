@@ -1,5 +1,6 @@
 package com.example.brewbuddy
 
+import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -20,7 +21,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
@@ -57,22 +60,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.brewbuddy.recipes.Ingredient
 import com.example.brewbuddy.recipes.IngredientComposition
 import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
+import com.example.brewbuddy.recipes.RecipesScreenViewModel
+import com.example.brewbuddy.recipes.RecipesState
 import com.example.brewbuddy.recipes.TagType
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
+import com.example.brewbuddy.util.formatTitle
 import com.example.brewbuddy.randomSizedPhotos as randomSizedPhotos
-
 @Composable
 fun RecipesScreen(
-    navController: NavHostController
+    navController: NavHostController,
+    viewModel: RecipesScreenViewModel = hiltViewModel()
 ) {
+    val state = viewModel.state.value
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
             modifier = Modifier
@@ -83,7 +91,7 @@ fun RecipesScreen(
                     end = 0.dp
                 )
         ) {
-            RecipeGridLayout(navController)
+            RecipeGridLayout(navController, state)
         }
     }
 }
@@ -118,7 +126,8 @@ private fun CardTitle(text: String, fontSize: TextUnit) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun RecipeGridLayout(navController: NavHostController) {
+private fun RecipeGridLayout(navController: NavHostController, state: RecipesState) {
+    val height = ((recipes.size*200) + 70).dp
      LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
             verticalItemSpacing = 14.dp,
@@ -127,7 +136,7 @@ private fun RecipeGridLayout(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .height(500.dp)
+                .height(height)
         ) {
 
             item( span = StaggeredGridItemSpan.FullLine) {
@@ -147,13 +156,21 @@ private fun RecipeGridLayout(navController: NavHostController) {
              ) {
              Heading(text = "Picked for you")
          }
-            items(recipes) { recipe ->
+/*            items(recipes) { recipe ->
                 RecipeCard(
                     title = recipe.recipeName,
                     photo = recipe.backgroundImage,
                     navController = navController
                 )
-            }
+            }*/
+             items(state.recipes) {
+                 recipe ->
+                    RecipeCard(
+                        title = recipe.title ?: "",
+                        photo = recipe.image ?: R.drawable.x_recipe1,
+                        navController = navController
+                    )
+             }
      }
  }
 
@@ -206,6 +223,7 @@ private fun PopularCard(photo: Any) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RecipeCard(title: String, photo: Any, navController: NavHostController) {
+    val formattedTitle = formatTitle(title)
     Card(
         onClick = { navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + title, )},
         shape = RoundedCornerShape(12.dp),
@@ -249,7 +267,7 @@ private fun RecipeCard(title: String, photo: Any, navController: NavHostControll
                 Box() {
                     Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
                         CardTitle(
-                            title,
+                            formattedTitle,
                             fontSize = 24.sp
                         )
                     }
