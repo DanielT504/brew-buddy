@@ -52,3 +52,4 @@
 | 2023/07/08 |        |3        |      |        |         |        | Marketplace Screen frontend filters - dropdown and UI setup   |
 | 2023/07/11 |        |2        |      |        |         |        | Deliverable 4 Doc Work                                        |
 | 2023/07/11 |2       |         |      |        |         |        | Deliverable 4 Doc Work                                        |
+| 2023/07/11 |2       |         |      |        |         |        | Deliverable 5 Doc Work                                        |
