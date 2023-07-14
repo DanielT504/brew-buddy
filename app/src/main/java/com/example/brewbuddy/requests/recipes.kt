@@ -32,7 +32,7 @@ val MAX_IMAGE_SIZE: Long = 1024 * 1024
 //}
 
 suspend fun getRecipe(id: String): Recipe {
-    Log.d("RECIPEBYID", id)
+    Log.d("RECIPE_BY_ID", id)
     var res = Recipe()
     val functions = FirebaseFunctions.getInstance()
 

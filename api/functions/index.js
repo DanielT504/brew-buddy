@@ -75,32 +75,6 @@ exports.createRecipe = onRequest(async ({ query, body }, response) => {
   response.send(recipes);
 });
 
-// exports.getRecipeById = onRequest(async (request, response) => {
-//   const { recipeId } = request.query;
-//   console.log(request);
-//   if (recipeId) {
-//     db.collection("recipes")
-//       .doc(recipeId)
-//       .get()
-//       .then((doc) => {
-//         if (!doc) {
-//           response.status(404).send({});
-//           return;
-//         }
-//         const data = {
-//           id: doc.id,
-//           author: doc.data().author,
-//           ingredients: doc.data().ingredients,
-//           steps: doc.data().steps,
-//           bannerUrl: doc.data().bannerUrl,
-//           description: doc.data().description,
-//           title: doc.data().title,
-//         };
-//         response.status(200).json({ data });
-//       });
-//   }
-// });
-
 exports.getRecipeById = onCall((data, context) => {
   console.log("GET RECIPE BY ID");
   const { recipeId } = data;

@@ -32,6 +32,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,14 +76,14 @@ fun IndividualRecipeScreen(navController: NavHostController, param: String) {
 //        var recipe = getRecipe(id)
 //        Log.d("getRecipe", "Getting Recipe!")
 //    }
-    var recipe = remember {Recipe() }
+    var recipe = remember { mutableStateOf(Recipe()) }
     LaunchedEffect(param) {
         val id = param.substringAfter("}")
-//    var recipe = recipes.last { it.recipeName == title }
-//    var recipe = getRecipe(id)
         CoroutineScope(Dispatchers.Main).launch {
-            recipe = getRecipe(id)
-            Log.d("getRecipe", "Getting Recipe!")
+            recipe.value = getRecipe(id)
+            Log.d("RECIPE_BY_ID", "Getting Recipe!")
+            Log.d("RECIPE_BY_ID", recipe.value.recipeName)
+
         }
     }
     Column (modifier = Modifier
@@ -90,12 +91,12 @@ fun IndividualRecipeScreen(navController: NavHostController, param: String) {
         .verticalScroll(rememberScrollState())
     ){
         Box() {
-            RecipeBanner(recipe.backgroundImage, recipe.recipeName, navController)
+            RecipeBanner(recipe.value.backgroundImage, recipe.value.recipeName, navController)
         }
         Box(modifier = Modifier
             .offset(y = -(20.dp))
             .fillMaxWidth()) {
-            RecipeSection(recipe)
+            RecipeSection(recipe.value)
         }
     }
 }
