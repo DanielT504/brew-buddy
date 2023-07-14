@@ -3,6 +3,7 @@ import android.widget.Toast
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import android.app.Activity
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,7 @@ val db = FirebaseFirestore.getInstance()
 val documentRef = db.collection("users").document("BKu9YXGYqXhn1uMFeT1J")
 
 fun addUserToFirestore(email: String, username: String, password: String, uid: String) {
+    Log.d("FIRESTORE", "User data stored in Firestore: $username")
     val user = hashMapOf(
         "email" to email,
         "username" to username,
@@ -35,31 +37,19 @@ fun addUserToFirestore(email: String, username: String, password: String, uid: S
         }
 }
 
-fun createAccount(username: String, password: String, email: String, activity: Activity): Boolean {
-    var isSuccess = false
-
-    auth.createUserWithEmailAndPassword(email, password)
+fun createAccount(username: String, password: String, email: String, activity: Activity): Task<AuthResult?> {
+    return auth.createUserWithEmailAndPassword(email, password)
         .addOnCompleteListener(activity) { task ->
             if (task.isSuccessful) {
                 val user = auth.currentUser
                 val uid: String? = user?.uid
                 Log.d("CREATE_ACCOUNT", "Account created successfully. User: $user")
                 Log.d("CREATE_ACCOUNT", "User UID: $uid")
-                updateUI(user)
                 addUserToFirestore(email, username, password, uid!!)
-                isSuccess = true // Set isSuccess as true in case of success
             } else {
                 Log.d("CREATE_ACCOUNT", "Account creation failed: ${task.exception}")
-                Toast.makeText(
-                    activity.baseContext,
-                    "Authentication failed.",
-                    Toast.LENGTH_SHORT,
-                ).show()
-                updateUI(null)
             }
         }
-
-    return isSuccess
 }
 
 data class SignInResult(var success: Boolean, var email: String?)

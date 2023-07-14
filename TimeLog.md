@@ -15,7 +15,7 @@
 | 2023/06/09 |        | 1       |      |        |         |        | Buddy eval work                                               |
 | 2023/06/12 |        |         | 1    |        |         |        | Starting some component development                           |
 | 2023/06/15 |        |         |      |        | 2       |        | Set up colours, theme, and icons                              |
-| 2023/06/16 | 2      |         |      |        |         |        | local env setup, google register                                   |
+| 2023/06/16 | 2      |         |      |        |         |        | local env setup, google register                              |
 | 2023/06/16 |        |         |      |        | 2       |        | Add navigation bar + basic screens                            |
 | 2023/06/16 |        | 2       |      |        |         |        | Custom Card Component                                         |
 | 2023/06/16 |        |         |      |        | 2       |        | Add login and set up viewmodels                               |
@@ -43,12 +43,13 @@
 | 2023/06/29 |        |         |      |  2     |         |        | Hello world project init                                      |
 | 2023/06/29 |        |         |      |  3     |         |        | Work on edit profile button                                   |
 | 2023/06/29 |        |         |      |        |         | 5      | Google acc. can now be stored, switched, and logged out of    |
-| 2023/06/29 |1       |1        |      |  1     |         | 1      | D3 doc work                                                   |
-| 2023/07/04 |        |3        |      |        |         |        | Marketplace screen setup - cards, search field etc            |
+| 2023/06/29 | 1      | 1       |      |  1     |         | 1      | D3 doc work                                                   |
+| 2023/07/04 |        | 3       |      |        |         |        | Marketplace screen setup - cards, search field etc            |
 | 2023/07/05 |        |         |      |        |         | 2      | Login with email and password in Firebase                     |
 | 2023/07/06 |        |         |      |        |         | 5      | Can pull user login info from Firestore database with UID     |
 | 2023/07/06 |        |         |      |        |         | 1      | Refactoring to support user emails                            |
 | 2023/07/07 |        |         |      |        |         | 1      | Suspended functions to allow database response time           |
-| 2023/07/08 |        |3        |      |        |         |        | Marketplace Screen frontend filters - dropdown and UI setup   |
-| 2023/07/11 |        |2        |      |        |         |        | Deliverable 4 Doc Work                                        |
-| 2023/07/11 |2       |         |      |        |         |        | Deliverable 4 Doc Work                                        |
+| 2023/07/08 |        | 3       |      |        |         |        | Marketplace Screen frontend filters - dropdown and UI setup   |
+| 2023/07/11 |        | 2       |      |        |         |        | Deliverable 4 Doc Work                                        |
+| 2023/07/11 | 2      |         |      |        |         |        | Deliverable 4 Doc Work                                        |
+| 2023/07/13 |        |         |      |        |         | 4      | Fixed authentication blocker bug                              |
