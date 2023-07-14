@@ -62,6 +62,7 @@ import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.store1
 import com.google.android.gms.maps.model.CameraPosition
@@ -262,10 +263,9 @@ fun MapWrapper(stores: Array<Store>) {
 fun ProfileHeader(user: User, menuButton: @Composable () -> Unit) {
     val profilePictureSize = 126.dp
     val username = user.getUsername()
-    val avatar = user.getAvatar()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(){
-            ProfileBanner(R.drawable.profile_banner)
+            ProfileBanner(user.getBannerUrl())
             menuButton()
         }
         Box(
@@ -289,20 +289,19 @@ fun ProfileHeader(user: User, menuButton: @Composable () -> Unit) {
 
             }
             Box(modifier=Modifier.align(Alignment.TopCenter)) {
-                ProfilePicture(avatar, profilePictureSize)
+                ProfilePicture(user.getAvatarUrl(), profilePictureSize)
             }
         }
     }
 }
 @Composable
-fun ProfileBanner(@DrawableRes img: Int) {
+fun ProfileBanner(bannerUrl: String) {
     Box(modifier = Modifier.height(200.dp)) {
-        Image(
-            painter = painterResource(id = img),
+        AsyncImage(
+            model = bannerUrl,
             contentDescription = "Profile Banner",
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
-
         )
     }
 }

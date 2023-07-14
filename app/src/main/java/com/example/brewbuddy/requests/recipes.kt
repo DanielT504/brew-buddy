@@ -16,36 +16,16 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
-val MAX_IMAGE_SIZE: Long = 1024 * 1024
-
-//fun getRecipes(): ArrayList<HashMap<String, Object>> {
-//    var result = ArrayList<HashMap<String, Object>>();
-//    FirebaseFunctions
-//        .getInstance()
-//        .getHttpsCallable("getRecipesMetadata")
-//        .call()
-//        .addOnCompleteListener() {task ->
-//            result = task.result?.data as ArrayList<HashMap<String, Object>>
-//            Log.d("RECIPES", result.toString())
-//        }
-//    return result;
-//}
-
 suspend fun getRecipe(id: String): Recipe {
     Log.d("RECIPE_BY_ID", id)
     var res = Recipe()
-    val functions = FirebaseFunctions.getInstance()
+//    val functions = FirebaseFunctions.getInstance()
 
     return withContext(Dispatchers.IO) {
         val dataDeferred = async {
-            functions
+            getFunctions()
                 .getHttpsCallable("getRecipeById")
                 .call(hashMapOf("recipeId" to id)).await()
-//            .addOnCompleteListener() { task ->
-//                val data = task.result?.data as HashMap<String, Object>
-//                Log.d("RECIPEBYID", data.toString())
-//                return task.result?.data as HashMap<String, Object>
-//            }}
         }
         val task = dataDeferred.await()
         val data = task.data as HashMap<String, Object>
@@ -58,31 +38,4 @@ suspend fun getRecipe(id: String): Recipe {
 
         )
     }
-}
-
-@Composable
-fun getImageByUrl(url: String) {
-    val storage = Firebase.storage
-
-    // [START download_create_reference]
-    // Create a storage reference from our app
-    val storageRef = storage.reference
-
-    val gsReference = storage.getReferenceFromUrl(url)
-
-    lateinit var imgBytes: ImageBitmap;
-    gsReference.getBytes(MAX_IMAGE_SIZE).addOnSuccessListener {
-            bitmap ->
-        imgBytes = bitmap as ImageBitmap
-        // Data for "images/island.jpg" is returned, use this as needed
-    }.addOnFailureListener {
-        // Handle any errors
-    }
-
-    Image(
-        bitmap = imgBytes,
-        contentDescription = url,
-    )
-
-
 }

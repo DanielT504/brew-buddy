@@ -69,35 +69,33 @@ sealed class RecipeNavigationScreens(val route: String) {
 
 @Composable
 fun IndividualRecipeScreen(navController: NavHostController, param: String) {
-//    val id = param.substringAfter("}")
-////    var recipe = recipes.last { it.recipeName == title }
-////    var recipe = getRecipe(id)
-//    CoroutineScope(Dispatchers.Main).launch {
-//        var recipe = getRecipe(id)
-//        Log.d("getRecipe", "Getting Recipe!")
-//    }
+
     var recipe = remember { mutableStateOf(Recipe()) }
+
     LaunchedEffect(param) {
         val id = param.substringAfter("}")
         CoroutineScope(Dispatchers.Main).launch {
             recipe.value = getRecipe(id)
-            Log.d("RECIPE_BY_ID", "Getting Recipe!")
             Log.d("RECIPE_BY_ID", recipe.value.recipeName)
 
         }
     }
-    Column (modifier = Modifier
-        .fillMaxSize()
-        .verticalScroll(rememberScrollState())
-    ){
-        Box() {
-            RecipeBanner(recipe.value.backgroundImage, recipe.value.recipeName, navController)
+    Surface() {
+        Column (modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+        ){
+
+            Box() {
+                RecipeBanner(recipe.value.backgroundImage, recipe.value.recipeName, navController)
+            }
+            Box(modifier = Modifier
+                .offset(y = -(20.dp))
+                .fillMaxWidth()) {
+                RecipeSection(recipe.value)
+            }
         }
-        Box(modifier = Modifier
-            .offset(y = -(20.dp))
-            .fillMaxWidth()) {
-            RecipeSection(recipe.value)
-        }
+
     }
 }
 

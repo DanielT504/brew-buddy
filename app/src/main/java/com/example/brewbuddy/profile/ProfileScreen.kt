@@ -81,6 +81,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import com.example.brewbuddy.profile.SettingScreen
 import com.example.brewbuddy.profile.User
 import com.example.brewbuddy.profile.UserScreen
@@ -144,9 +145,18 @@ fun PinnedCard(modifier: Modifier, recipe: Recipe) {
 }
 
 @Composable
-fun ProfilePicture(@DrawableRes img: Int, size: Dp) {
-    Image(
-        painter = painterResource(id = img),
+fun ProfilePicture(avatarUrl: String, size: Dp) {
+//    Image(
+//        painter = painterResource(id = img),
+//        contentDescription = "Profile Picture",
+//        contentScale = ContentScale.Crop,
+//        modifier = Modifier
+//            .clip(CircleShape)
+//            .size(size)
+//            .border(4.dp, Color.White, shape = CircleShape)
+//    )
+    AsyncImage(
+        model = avatarUrl,
         contentDescription = "Profile Picture",
         contentScale = ContentScale.Crop,
         modifier = Modifier
@@ -262,7 +272,7 @@ private fun ProfileMenu(
                 modifier = Modifier.padding(top=20.dp, bottom=20.dp).fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start
             ) {
-                ProfilePicture(user!!.getAvatar(), 64.dp)
+                ProfilePicture(user.getAvatarUrl(), 64.dp)
                 Text(
                     text=username,
                     style=MaterialTheme.typography.titleSmall,
