@@ -18,64 +18,40 @@ const {
   write,
 } = require("firebase-functions/logger");
 
-const {
-  onCall,
-  HttpsError,
-  onRequest,
-} = require("firebase-functions/v2/https");
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
-
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { getUserById } = require("./users.js");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
 initializeApp();
 const db = getFirestore();
 
-exports.getRecipesByAuthor = onRequest(async ({ query }, response) => {
+exports.getRecipesByAuthor = onCall(async ({ data }, context) => {
   // Get all recipes from specified author ID.
   var recipes = [];
-  const { authorId } = query;
-  if (authorId) {
-    await db
-      .collection("recipes")
-      .where("authorId", "==", authorId)
-      .get()
-      .then((snapshot) => {
-        snapshot.forEach((doc) => {
-          const data = {
-            id: doc.id,
-            author: doc.data().author,
-            ingredients: doc.data().ingredients,
-          };
-          recipes.push(data);
-        });
-      });
+  const { authorId } = data;
+
+  if (!authorId) {
+    // Throwing an HttpsError so that the client gets the error details.
+    throw new HttpsError("failed-precondition", "No author ID provided");
   }
-  response.send(recipes);
+  await db
+    .collection("recipes")
+    .where("authorId", "==", authorId)
+    .get()
+    .then((snapshot) => {
+      snapshot.forEach((doc) => {
+        const data = {
+          id: doc.id,
+          author: doc.data().author,
+          ingredients: doc.data().ingredients,
+        };
+        recipes.push(data);
+      });
+    });
+  return recipes;
 });
 
-exports.createRecipe = onRequest(async ({ query, body }, response) => {
-  var recipes = [];
-  const { authorId } = query;
-
-  if (authorId) {
-    await db
-      .collection("recipes")
-      .get()
-      .then((snapshot) => {
-        snapshot.forEach((doc) => {
-          const data = {
-            id: doc.id,
-            author: doc.data().author,
-            ingredients: doc.data().ingredients,
-          };
-          recipes.push(data);
-        });
-      });
-  }
-  response.send(recipes);
-});
-
-exports.getRecipeById = onCall((data, context) => {
+exports.getRecipeById = onCall(async ({ data }, context) => {
   console.log("GET RECIPE BY ID");
   const { recipeId } = data;
   log("getRecipeById Request: ", data);
@@ -85,7 +61,7 @@ exports.getRecipeById = onCall((data, context) => {
     // Throwing an HttpsError so that the client gets the error details.
     throw new HttpsError("failed-precondition", "No recipe ID provided");
   }
-  return db
+  var recipe = await db
     .collection("recipes")
     .doc(recipeId)
     .get()
@@ -98,37 +74,68 @@ exports.getRecipeById = onCall((data, context) => {
       }
       return {
         id: doc.id,
-        author: doc.data().author,
-        ingredients: doc.data().ingredients,
-        steps: doc.data().steps,
-        bannerUrl: doc.data().bannerUrl,
-        description: doc.data().description,
-        title: doc.data().title,
+        ...doc.data(),
+        // authorId: doc.data().authorId,
+        // ingredients: doc.data().ingredients,
+        // steps: doc.data().steps,
+        // bannerUrl: doc.data().bannerUrl,
+        // description: doc.data().description,
+        // title: doc.data().title,
       };
     });
+
+  var author = null;
+  try {
+    author = getUserById(recipe.authorId, db);
+  } catch (e) {
+    author = null;
+  }
+
+  return {
+    ...recipe,
+    author,
+  };
 });
 
-exports.getRecipes = onRequest(async ({ query }, response) => {
-  var recipes = [];
+exports.getUserById = onCall(async ({ data }, context) => {
+  const { userId } = data;
+  log("getUserById Request: ", data);
+  log("getUserById userId: ", userId);
 
-  await db
-    .collection("recipes")
-    .get()
-    .then((snapshot) => {
-      snapshot.forEach((doc) => {
-        const data = {
-          id: doc.id,
-          author: doc.data().author,
-          ingredients: doc.data().ingredients,
-        };
-        recipes.push(data);
-      });
-    });
-
-  response.send(recipes);
+  if (userId === undefined) {
+    // Throwing an HttpsError so that the client gets the error details.
+    throw new HttpsError("failed-precondition", "No user ID provided");
+  }
+  return await getUserById(userId, db);
 });
 
-exports.getRecipesMetadata = onRequest(async ({ query }, response) => {
+// exports.getRecipesMetadataByIds = onCall(async (data, context) => {
+//   var recipes = [];
+//   const { recipeIds } = data;
+//   const refs = recipeIds.map((id) => db.doc(`recipes/${id}`));
+//   const recipes = await db.getAll(...refs);
+
+//   // await db
+//   //   .collection("recipes")
+//   //   .where()
+//   //   .get()
+//   //   .then((snapshot) => {
+//   //     snapshot.forEach((doc) => {
+//   //       const metadata = {
+//   //         id: doc.id,
+//   //         author: doc.data().author,
+//   //         tags: doc.data().tags,
+//   //         thumbnail: doc.data().thumbnail,
+//   //         title: doc.data().title,
+//   //       };
+//   //       recipes.push(metadata);
+//   //     });
+//   //   });
+
+//   return recipes;
+// });
+
+exports.getRecipesMetadata = onCall(async ({ data }, context) => {
   var recipes = [];
 
   await db
@@ -147,5 +154,5 @@ exports.getRecipesMetadata = onRequest(async ({ query }, response) => {
       });
     });
 
-  response.status(200).json({ data: recipes });
+  return recipes;
 });
