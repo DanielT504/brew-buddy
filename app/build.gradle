@@ -80,4 +80,8 @@ dependencies {
     implementation 'com.google.maps.android:maps-compose-widgets:2.11.2'
     implementation(platform("com.google.firebase:firebase-bom:32.1.1"))
     implementation 'com.google.firebase:firebase-firestore-ktx:24.6.1'
+    implementation("com.google.firebase:firebase-functions-ktx")
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1'
+
+
 }
