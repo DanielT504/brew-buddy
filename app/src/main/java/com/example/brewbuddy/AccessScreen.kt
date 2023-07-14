@@ -87,7 +87,7 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
-//TODO: logout button from profile screen, register screen UX, email confirmation, login/signup testing
+//TODO: logout button from profile screen, register screen UX, email confirmation, login/signup testing, prevent reuse of emails
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController, activity: Activity) {
@@ -177,6 +177,7 @@ fun LoginScreen(navController: NavController, activity: Activity) {
                 )
                 Button(
                     onClick = {
+                        Log.d("LOGIN_USER", "Attempting login for username: ${username.text}")
                         // Launch a coroutine in the CoroutineScope
                         CoroutineScope(Dispatchers.Main).launch {
                             val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
@@ -272,25 +273,32 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
             )
             Button(
                 onClick = {
-                    Log.d("REGISTER_USER", username.text)
-
-                    Log.d("REGISTER_PWD", password.text)
-                    Log.d("REGISTER_CONF_PWD", email.text)
-
                     errorMsg.value = if (password.text.length < 6) {
                         "Password must be at least 6 characters"
-                    } else if(
-                        createAccount(username.text, password.text, email.text, activity)
-                        && !currentUserViewModel.registerUser(username.text, email.text)
-                    ) {
-                        "Username is already taken"
                     } else {
+                        createAccount(username.text, password.text, email.text, activity)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                                        Log.d("UPDATE_UI", "User is signed in: 1")
+                                        if (!loginResult.first) {
+                                            password = TextFieldValue("") // Clear the password field
+                                            errorMsg.value = "Incorrect password or username."
+                                        } else {
+                                            currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                                            navController.navigate(AccessScreens.Login.route)
+                                        }
+                                    }
+                                } else {
+                                    errorMsg.value = "Failed to create account"
+                                }
+                            }
                         ""
                     }
-                    Log.d("REGISTER", errorMsg.value)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
-                modifier= Modifier.size(width=280.dp, height=40.dp),
+                modifier = Modifier.size(width = 280.dp, height = 40.dp),
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Text("REGISTER")
