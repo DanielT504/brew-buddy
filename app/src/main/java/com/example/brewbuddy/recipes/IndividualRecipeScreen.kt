@@ -236,7 +236,7 @@ private fun TagsSection(tags: List<TagType>) {
 }
 
 @Composable
-private fun IngredientsSection(ingredients: List<Ingredient>) {
+private fun IngredientsSection(ingredients: List<IngredientSection>) {
     Column(modifier = Modifier.padding(start = 24.dp)) {
         Row(modifier = Modifier.padding(bottom = 4.dp)) {
             Text("Ingredients", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -244,13 +244,14 @@ private fun IngredientsSection(ingredients: List<Ingredient>) {
         Column() {
             ingredients.forEach {
                 Row() {
-                    SectionHeading(it.ingredientName, preparationHeading = false)
+                    SectionHeading(it.sectionName, preparationHeading = false)
                 }
-                for (i in 0 until it.ingredientComposite.quantities.size){
+                for (i in 0 until it.ingredientsList.quantities.size){
                     Row(){
                         IngredientBullet(
-                            quantity = it.ingredientComposite.quantities[i],
-                            subIngredientDetail = it.ingredientComposite.subIngredientDetails[i]
+                            quantity = it.ingredientsList.quantities[i],
+                            unit = it.ingredientsList.units[i],
+                            subIngredientDetail = it.ingredientsList.ingredients[i]
                         )
                     }
                 }
@@ -272,7 +273,7 @@ private fun SectionHeading(heading: String, preparationHeading: Boolean) {
 }
 
 @Composable
-private fun IngredientBullet(quantity: String, subIngredientDetail: String) {
+private fun IngredientBullet(quantity: Number, unit: String, subIngredientDetail: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -289,7 +290,7 @@ private fun IngredientBullet(quantity: String, subIngredientDetail: String) {
                     drawCircle(SolidColor(Color.Black))
                 }
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = quantity, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                Text(text = "${quantity.toString()}${unit ?: ""}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
             }
         }
         Column(modifier = Modifier

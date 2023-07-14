@@ -7,7 +7,7 @@ import kotlin.collections.ArrayList
 public class Recipe {
     var recipeName: String = "";
     var description: String = "";
-    var ingredientList: List<Ingredient> = listOf();
+    var ingredientList: List<IngredientSection> = listOf();
     var thumbnail: Int = R.drawable.default_recipe;
     var tags: List<TagType> = listOf();
     var backgroundImage: Any = "";
@@ -16,7 +16,7 @@ public class Recipe {
     constructor(
                  name: String = "",
                  desc: String = "",
-                 recipeList: List<Ingredient> = listOf(),
+                 recipeList: List<IngredientSection> = listOf(),
                  tags: List<TagType> = listOf(),
                  backgroundImage: Any = "",
                  preparationSteps: List<PreparationStep> = listOf(),

@@ -56,8 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.example.brewbuddy.recipes.Ingredient
-import com.example.brewbuddy.recipes.IngredientComposition
+import com.example.brewbuddy.recipes.IngredientSection
+import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.recipes.TagType
@@ -406,13 +406,13 @@ val randomSizedPhotos = listOf(
 private val shorterList = randomSizedPhotos.subList(3, 9)
 
 val testIngredients = listOf(
-    Ingredient(
-        ingredientName = "Espresso",
-        IngredientComposition(quantities = listOf("4.5 tbsp", "4oz"), subIngredientDetails = listOf("Finely-ground dark roast coffee", "Water"))
+    IngredientSection(
+        sectionName = "Espresso",
+        IngredientsList(quantities = listOf(4.5, 4), units=listOf("tbs", "oz"), ingredients = listOf("Finely-ground dark roast coffee", "Water"))
     ),
-    Ingredient(
-        ingredientName = "Foam Milk",
-        IngredientComposition(quantities = listOf("4oz"), subIngredientDetails = listOf("Milk"))
+    IngredientSection(
+        sectionName = "Foam Milk",
+        IngredientsList(quantities = listOf(4), units=listOf("oz"), ingredients = listOf("Milk"))
     )
 )
 
