@@ -54,5 +54,6 @@
 | 2023/07/11 |2       |         |      |        |         |        | Deliverable 4 Doc Work                                        |
 | 2023/07/11 |2       |         |      |        |         |        | Deliverable 5 Doc Work                                        |
 | 2023/07/11 |4       |         |      |        |         |        | Get current location, debug Places API                        |
-| 2023/07/13 |        |5        |      |        |         |        | Add recipe data source API endpoints & MVMM changes           |
+| 2023/07/13 |        |5        |      |        |         |        | Add recipe data source API endpoints & MVVM changes           |
 | 2023/07/13 |        |         |      |        |         | 4      | Fixed authentication blocker bug                              |
+| 2023/07/14 |        |2        |      |        |         |        | Deliverable 5 Doc Work                                        |
