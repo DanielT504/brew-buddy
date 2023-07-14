@@ -86,8 +86,9 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
-//TODO: logout button from profile screen, register screen UX, email confirmation, login/signup testing, prevent reuse of emails
-//TODO: invalid email check, auth error bug, bad login error handling, invalid email check, disallow redundant accounts
+//TODO: logout button from profile screen, email confirmation, prevent reuse of emails
+//TODO: invalid email check, auth error bug, bad login error handling, disallow redundant accounts
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController, activity: Activity) {
@@ -177,6 +178,7 @@ fun LoginScreen(navController: NavController, activity: Activity) {
                 )
                 Button(
                     onClick = {
+                        Log.d("LOGIN_USER", "Attempting login for username: ${username.text}")
                         // Launch a coroutine in the CoroutineScope
                         CoroutineScope(Dispatchers.Main).launch {
                             val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
@@ -232,8 +234,6 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
     val focusRequester = remember { FocusRequester() }
     val passwordFocusRequester = remember { FocusRequester() }
     val emailFocusRequester = remember { FocusRequester() }
-    val passwordFieldFocusRequester = remember { FocusRequester() }
-    val usernameFieldFocusRequester = remember { FocusRequester() }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -273,6 +273,12 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
                     }
                 },
                 placeholder = { Text(text = "Password") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        emailFocusRequester.requestFocus()
+                    }
+                ),
                 visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(
@@ -285,7 +291,7 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
                         )
                     }
                 },
-                modifier = Modifier.focusRequester(passwordFieldFocusRequester)
+                modifier = Modifier.focusRequester(passwordFocusRequester)
             )
             TextField(
                 value = email,
@@ -298,16 +304,37 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(
                     onDone = {
-                        errorMsg.value = if (password.text.length < 6) {
-                            "Password must be at least 6 characters"
-                        } else if(
-                            createAccount(username.text, password.text, email.text, activity)
-                            && !currentUserViewModel.registerUser(username.text, email.text)
-                        ) {
-                            "Username is already taken"
-                        } else {
-                            ""
+                        Log.d("REGISTER_USER", username.text)
+                        Log.d("REGISTER_PWD", password.text)
+                        Log.d("REGISTER_CONF_PWD", email.text)
+
+                        if (password.text.length < 6) {
+                            password = TextFieldValue("") // Clear the password field
+                            errorMsg.value = "Password must be at least 6 characters"
+                            passwordFocusRequester.requestFocus() // Move focus to the password field
+                            return@KeyboardActions
                         }
+
+                        errorMsg.value = ""
+                        createAccount(username.text, password.text, email.text, activity)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                                        Log.d("UPDATE_UI", "User is signed in: 1")
+                                        if (!loginResult.first) {
+                                            password = TextFieldValue("") // Clear the password field
+                                            errorMsg.value = "Incorrect password or username."
+                                            passwordFocusRequester.requestFocus()
+                                        } else {
+                                            currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                                            navController.navigate(AccessScreens.Login.route)
+                                        }
+                                    }
+                                } else {
+                                    errorMsg.value = "Failed to create account"
+                                }
+                            }
                     }
                 ),
                 modifier = Modifier.focusRequester(emailFocusRequester)
@@ -321,22 +348,33 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
                     if (password.text.length < 6) {
                         password = TextFieldValue("") // Clear the password field
                         errorMsg.value = "Password must be at least 6 characters"
-                        passwordFieldFocusRequester.requestFocus() // Move focus to the password field
+                        passwordFocusRequester.requestFocus() // Move focus to the password field
                         return@Button
                     }
 
-                    // Perform registration process
-                    val registrationSuccessful = createAccount(username.text, password.text, email.text, activity)
-                    if (registrationSuccessful) {
-                        // Registration successful, perform necessary actions
-                        navController.navigate("Home") // Example navigation to Home screen
-                    } else {
-                        // Registration failed, show error message or handle the failure
-                        errorMsg.value = "Registration failed. Please try again."
-                    }
+                    errorMsg.value = ""
+                    createAccount(username.text, password.text, email.text, activity)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                                    Log.d("UPDATE_UI", "User is signed in: 1")
+                                    if (!loginResult.first) {
+                                        password = TextFieldValue("") // Clear the password field
+                                        errorMsg.value = "Incorrect password or username."
+                                        passwordFocusRequester.requestFocus()
+                                    } else {
+                                        currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                                        navController.navigate(AccessScreens.Login.route)
+                                    }
+                                }
+                            } else {
+                                errorMsg.value = "Failed to create account"
+                            }
+                        }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
-                modifier= Modifier.size(width=280.dp, height=40.dp),
+                modifier = Modifier.size(width = 280.dp, height = 40.dp),
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Text("REGISTER")
