@@ -151,7 +151,6 @@ private fun RecipeGridLayout(navController: NavHostController) {
              ) {
              Heading(text = "Picked for you")
          }
-             getRecipes()
             items(recipes) { recipe ->
                 RecipeCard(
                     title = recipe.recipeName,
@@ -212,7 +211,8 @@ private fun PopularCard(photo: Any) {
 @Composable
 private fun RecipeCard(title: String, photo: Any, navController: NavHostController) {
     Card(
-        onClick = { navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + title)},
+        onClick = {
+            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + "V8rQC0fgEX7WQJkVWB3H") },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 15.dp
@@ -408,11 +408,11 @@ private val shorterList = randomSizedPhotos.subList(3, 9)
 val testIngredients = listOf(
     IngredientSection(
         sectionName = "Espresso",
-        IngredientsList(quantities = listOf(4.5, 4), units=listOf("tbs", "oz"), ingredients = listOf("Finely-ground dark roast coffee", "Water"))
+        IngredientsList(quantities = listOf(4.5, 4), units=listOf("tbs", "oz"), labels = listOf("Finely-ground dark roast coffee", "Water"))
     ),
     IngredientSection(
         sectionName = "Foam Milk",
-        IngredientsList(quantities = listOf(4), units=listOf("oz"), ingredients = listOf("Milk"))
+        IngredientsList(quantities = listOf(4), units=listOf("oz"), labels = listOf("Milk"))
     )
 )
 
@@ -422,18 +422,6 @@ var testTags= listOf(
     TagType(iconTint = Color.White, tagColor = Brown, tagText = "Espresso Machine", img = R.drawable.icon_countertops),
     TagType(iconTint = Color.White, tagColor = GreenDark, tagText = "Cappuccino", img = R.drawable.icon_store)
 )
-private fun getRecipes(): ArrayList<HashMap<String, Object>> {
-    var result = ArrayList<HashMap<String, Object>>();
-    FirebaseFunctions
-        .getInstance()
-        .getHttpsCallable("getRecipesMetadata")
-        .call()
-        .addOnCompleteListener() {task ->
-            result = task.result?.data as ArrayList<HashMap<String, Object>>
-            Log.d("RECIPES", result.toString())
-        }
-    return result;
-}
 private val recipes = listOf(
     Recipe(
             "Cappuccino Almond Pistachio",

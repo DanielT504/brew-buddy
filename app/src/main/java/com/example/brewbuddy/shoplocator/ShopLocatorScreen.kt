@@ -42,7 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 import androidx.navigation.compose.*
-import com.example.brewbuddy.recipes.PreparationStep
+import com.example.brewbuddy.recipes.PreparationStepSection
 import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.shoplocator.Store
 

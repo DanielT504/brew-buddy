@@ -1,5 +1,6 @@
 package com.example.brewbuddy.recipes
 
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
@@ -30,6 +31,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.SavedStateHandle
@@ -48,10 +52,14 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.brewbuddy.R
 import com.example.brewbuddy.randomSizedPhotos
+import com.example.brewbuddy.requests.getRecipe
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 sealed class RecipeNavigationScreens(val route: String) {
@@ -60,8 +68,23 @@ sealed class RecipeNavigationScreens(val route: String) {
 
 @Composable
 fun IndividualRecipeScreen(navController: NavHostController, param: String) {
-    val title = param.substringAfter("}")
-    var recipe = recipes.last { it.recipeName == title }
+//    val id = param.substringAfter("}")
+////    var recipe = recipes.last { it.recipeName == title }
+////    var recipe = getRecipe(id)
+//    CoroutineScope(Dispatchers.Main).launch {
+//        var recipe = getRecipe(id)
+//        Log.d("getRecipe", "Getting Recipe!")
+//    }
+    var recipe = remember {Recipe() }
+    LaunchedEffect(param) {
+        val id = param.substringAfter("}")
+//    var recipe = recipes.last { it.recipeName == title }
+//    var recipe = getRecipe(id)
+        CoroutineScope(Dispatchers.Main).launch {
+            recipe = getRecipe(id)
+            Log.d("getRecipe", "Getting Recipe!")
+        }
+    }
     Column (modifier = Modifier
         .fillMaxSize()
         .verticalScroll(rememberScrollState())
@@ -251,7 +274,7 @@ private fun IngredientsSection(ingredients: List<IngredientSection>) {
                         IngredientBullet(
                             quantity = it.ingredientsList.quantities[i],
                             unit = it.ingredientsList.units[i],
-                            subIngredientDetail = it.ingredientsList.ingredients[i]
+                            subIngredientDetail = it.ingredientsList.labels[i]
                         )
                     }
                 }
@@ -311,7 +334,7 @@ private fun PreparationSection(recipe: Recipe) {
         Column() {
             recipe.preparationSteps.forEach {
                 Row() {
-                    SectionHeading(it.mappedIngredient, preparationHeading = true)
+                    SectionHeading(it.sectionName, preparationHeading = true)
                 }
                 for (i in 0 until it.steps.size) {
                     val stepNumber = (i + 1).toString()
@@ -371,8 +394,8 @@ private val recipes = listOf(
         tags = com.example.brewbuddy.testTags,
         backgroundImage = randomSizedPhotos[0],
         preparationSteps =  listOf(
-            PreparationStep(
-            mappedIngredient = "cappuccino",
+            PreparationStepSection(
+            sectionName = "cappuccino",
             steps = listOf("Gather the ingredients.", "Add almond.", "Add to your espresso machine and leave for 10 minutes.")))
         ),
     Recipe(
@@ -382,8 +405,8 @@ private val recipes = listOf(
         tags = com.example.brewbuddy.testTags,
         backgroundImage = randomSizedPhotos[4],
         preparationSteps =  listOf(
-            PreparationStep(
-                mappedIngredient = "espresso",
+            PreparationStepSection(
+                sectionName = "espresso",
                 steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
     ),
     Recipe(
@@ -393,8 +416,8 @@ private val recipes = listOf(
         tags = com.example.brewbuddy.testTags,
         backgroundImage =  randomSizedPhotos[1],
         preparationSteps =  listOf(
-            PreparationStep(
-                mappedIngredient = "espresso",
+            PreparationStepSection(
+                sectionName = "espresso",
                 steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
     ),
     Recipe(
@@ -404,8 +427,8 @@ private val recipes = listOf(
         tags = com.example.brewbuddy.testTags,
         backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 2],
         preparationSteps =  listOf(
-            PreparationStep(
-                mappedIngredient = "espresso",
+            PreparationStepSection(
+                sectionName = "espresso",
                 steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
     ),
     Recipe(
@@ -415,8 +438,8 @@ private val recipes = listOf(
         tags = com.example.brewbuddy.testTags,
         backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 1],
         preparationSteps =  listOf(
-            PreparationStep(
-                mappedIngredient = "espresso",
+            PreparationStepSection(
+                sectionName = "espresso",
                 steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
     ),
     Recipe(

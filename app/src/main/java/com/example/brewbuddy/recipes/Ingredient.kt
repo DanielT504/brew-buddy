@@ -1,18 +1,19 @@
 package com.example.brewbuddy.recipes;
 
+import android.util.Log
 import java.util.Objects
 
 data class IngredientsList (
     val quantities: List<Number>,
     val units: List<String>,
-    val ingredients: List<String>,
+    val labels: List<String>,
 )
 data class IngredientSection (
     val sectionName: String,
     val ingredientsList: IngredientsList
 )
 
-fun createIngredientsFromJSON(ingredients: List<Map<String, Object>>): List<IngredientSection> {
+fun createIngredientsFromJSON(ingredients: List<HashMap<String, Object>>): List<IngredientSection> {
     var recipeIngredients = ArrayList<IngredientSection>()
 
     ingredients.forEach { ingredient ->
@@ -20,21 +21,11 @@ fun createIngredientsFromJSON(ingredients: List<Map<String, Object>>): List<Ingr
         val ingredientList = IngredientsList(
             quantities=ingredient["quantities"] as List<Number>,
             units=ingredient["units"] as List<String>,
-            ingredients=ingredient["ingredients"] as List<String>
+            labels=ingredient["labels"] as List<String>
         )
         recipeIngredients.add(IngredientSection(sectionName=sectionName, ingredientsList=ingredientList))
     }
 
+    Log.d("createIngredientsFromJSON", recipeIngredients.toString())
     return recipeIngredients.toList()
 }
-//    return listOf(
-//        Ingredient(
-//            ingredientName = "Espresso",
-//            IngredientComposition(quantities = listOf("4.5 tbsp", "4oz"), subIngredientDetails = listOf("Finely-ground dark roast coffee", "Water"))
-//
-//        ),
-//        Ingredient(
-//            ingredientName = "Foam Milk",
-//            IngredientComposition(quantities = listOf("4oz"), subIngredientDetails = listOf("Milk"))
-//        )
-//    )

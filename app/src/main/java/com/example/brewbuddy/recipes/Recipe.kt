@@ -11,19 +11,19 @@ public class Recipe {
     var thumbnail: Int = R.drawable.default_recipe;
     var tags: List<TagType> = listOf();
     var backgroundImage: Any = "";
-    var preparationSteps: List<PreparationStep> = listOf();
+    var preparationSteps: List<PreparationStepSection> = listOf();
 
     constructor(
                  name: String = "",
                  desc: String = "",
-                 recipeList: List<IngredientSection> = listOf(),
+                 ingredientList: List<IngredientSection> = listOf(),
                  tags: List<TagType> = listOf(),
                  backgroundImage: Any = "",
-                 preparationSteps: List<PreparationStep> = listOf(),
+                 preparationSteps: List<PreparationStepSection> = listOf(),
     ){
         this.recipeName = name;
         this.description = desc;
-        this.ingredientList = recipeList;
+        this.ingredientList = ingredientList;
         this.tags = tags;
         this.backgroundImage = backgroundImage;
         this.preparationSteps = preparationSteps;
