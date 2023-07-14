@@ -1,6 +1,7 @@
 package com.example.brewbuddy.domain.use_case.get_recipes
 
 import com.example.brewbuddy.common.Resource
+import com.example.brewbuddy.data.remote.dto.RecipeById.toRecipe
 import com.example.brewbuddy.data.remote.dto.toRecipe
 import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.repository.RecipeRepository
@@ -17,7 +18,9 @@ class GetRecipeUseCase @Inject constructor(
         try {
             emit(Resource.Loading())
             val recipe = repository.getRecipeById(recipeId).toRecipe()
-            emit(Resource.Success(recipe))
+            if (recipe !== null) {
+                emit(Resource.Success(recipe))
+            }
         } catch(e: HttpException) {
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred."))
         } catch (e: IOException) {

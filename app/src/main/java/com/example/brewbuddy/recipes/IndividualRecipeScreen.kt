@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -55,27 +56,34 @@ import com.example.brewbuddy.ui.theme.GreenLight
 
 
 sealed class RecipeNavigationScreens(val route: String) {
-    object IndividualRecipe : RecipeNavigationScreens("Recipes/{recipe_name}")
+    object IndividualRecipe : RecipeNavigationScreens("Recipes/{recipeId}")
 }
 
 @Composable
-fun IndividualRecipeScreen(navController: NavHostController, param: String) {
-    val title = param.substringAfter("}")
-    var recipe = recipes.last { it.recipeName == title }
-    Column (modifier = Modifier
-        .fillMaxSize()
-        .verticalScroll(rememberScrollState())
-    ){
-        Box() {
-            RecipeBanner(recipe.backgroundImage, recipe.recipeName, navController)
+fun IndividualRecipeScreen(
+    navController: NavHostController,
+ /*   param: String,*/
+    viewModel: IndividualRecipeScreenViewModel = hiltViewModel()
+) {
+        /*var state = viewModel.state.value*/
+        var state = viewModel.state.value
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            Box() {
+                /*    RecipeBanner(recipe.backgroundImage, recipe.recipeName, navController)*/
+                 RecipeBanner(state.recipe!!.image!!, state.recipe!!.title!!, navController) }
+            }
+            Box(
+                modifier = Modifier
+                    .offset(y = -(20.dp))
+                    .fillMaxWidth()
+            ) {
+                /*RecipeSection(state.recipe)*/
+            }
         }
-        Box(modifier = Modifier
-            .offset(y = -(20.dp))
-            .fillMaxWidth()) {
-            RecipeSection(recipe)
-        }
-    }
-}
 
 @Composable
 private fun RecipeBanner(img: Any, title: String, navController: NavHostController) {

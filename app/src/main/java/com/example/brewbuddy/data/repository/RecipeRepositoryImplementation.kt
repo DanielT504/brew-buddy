@@ -1,6 +1,8 @@
 package com.example.brewbuddy.data.repository
+import com.example.brewbuddy.data.remote.dto.RecipeById.RecipeByIdDto
 import com.example.brewbuddy.data.remote.dto.RecipeDto
 import com.example.brewbuddy.data.remote.dto.SpoonacularApi
+import com.example.brewbuddy.data.remote.dto.toRecipe
 import com.example.brewbuddy.domain.repository.RecipeRepository
 import javax.inject.Inject
 
@@ -11,7 +13,7 @@ class RecipeRepositoryImplementation @Inject constructor (
         return api.getRecipes().recipes
     }
 
-    override suspend fun getRecipeById(recipeId: String): RecipeDto {
-        TODO("Not yet implemented")
+    override suspend fun getRecipeById(recipeId: String): RecipeByIdDto {
+        return api.getRecipeById(recipeId).recipe
     }
 }

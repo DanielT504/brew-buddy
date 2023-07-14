@@ -1,6 +1,5 @@
 package com.example.brewbuddy
 
-import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -21,9 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
@@ -45,8 +42,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import androidx.compose.runtime.getValue
@@ -57,6 +56,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
@@ -68,6 +69,7 @@ import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.recipes.RecipesScreenViewModel
 import com.example.brewbuddy.recipes.RecipesState
+import com.example.brewbuddy.recipes.Screen
 import com.example.brewbuddy.recipes.TagType
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
@@ -92,6 +94,23 @@ fun RecipesScreen(
                 )
         ) {
             RecipeGridLayout(navController, state)
+        }
+    }
+    if(state.error.isNotBlank()) {
+        Text(
+            text = state.error,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+    }
+    if(state.isLoading){
+        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+                Box() {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).size(34.dp))
+                }
         }
     }
 }
@@ -120,7 +139,8 @@ private fun CardTitle(text: String, fontSize: TextUnit) {
         text,
         color = Color.White,
         fontSize = fontSize,
-        fontWeight = FontWeight.Bold
+        fontWeight = FontWeight.Bold,
+        overflow = TextOverflow.Ellipsis
     )
 }
 
@@ -156,19 +176,13 @@ private fun RecipeGridLayout(navController: NavHostController, state: RecipesSta
              ) {
              Heading(text = "Picked for you")
          }
-/*            items(recipes) { recipe ->
-                RecipeCard(
-                    title = recipe.recipeName,
-                    photo = recipe.backgroundImage,
-                    navController = navController
-                )
-            }*/
              items(state.recipes) {
                  recipe ->
                     RecipeCard(
                         title = recipe.title ?: "",
                         photo = recipe.image ?: R.drawable.x_recipe1,
-                        navController = navController
+                        navController = navController,
+                        recipeId = recipe.id
                     )
              }
      }
@@ -222,10 +236,13 @@ private fun PopularCard(photo: Any) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RecipeCard(title: String, photo: Any, navController: NavHostController) {
+private fun RecipeCard(recipeId: Int,title: String, photo: Any, navController: NavHostController) {
     val formattedTitle = formatTitle(title)
     Card(
-        onClick = { navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + title, )},
+        onClick = {
+            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + recipeId, )
+          /*        navController.navigate(Screen.IndividualRecipeScreen.route + "/${recipeId}")*/
+                  },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 15.dp
@@ -267,7 +284,8 @@ private fun RecipeCard(title: String, photo: Any, navController: NavHostControll
                 Box() {
                     Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
                         CardTitle(
-                            formattedTitle,
+                        /*    formattedTitle,*/
+                            recipeId.toString(),
                             fontSize = 24.sp
                         )
                     }

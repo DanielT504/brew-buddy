@@ -24,6 +24,7 @@ import androidx.navigation.navArgument
 import com.example.brewbuddy.recipes.IndividualRecipeScreen
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.recipes.RecipesScreenViewModel
+import com.example.brewbuddy.recipes.Screen
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
 
 @Composable
@@ -94,18 +95,23 @@ private fun MainScreenNavigationConfigurations(
                 FeaturedScreen("featured")
             }
             composable(BottomNavigationScreens.Recipes.route) {
-                RecipesScreen(navController, )
+                RecipesScreen(navController)
             }
-            composable(
+/*           composable(
                 RecipeNavigationScreens.IndividualRecipe.route,
                 arguments = listOf(
-                    navArgument("recipe_name") {
+                    navArgument("recipeId") {
                         type = NavType.StringType
                     }
                 )
             ) {
-                val param = it.arguments?.getString("recipe_name") ?: ""
+                val param = it.arguments?.getString("recipeId") ?: ""
                 IndividualRecipeScreen(navController, param = param)
+            }*/
+            composable(
+                route = Screen.IndividualRecipeScreen.route + "/{recipeId}"
+            ){
+                IndividualRecipeScreen(navController)
             }
 
         }

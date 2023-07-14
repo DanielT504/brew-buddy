@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brewbuddy.common.Resource
-import com.example.brewbuddy.domain.use_case.get_recipes.GetRecipeUseCase
 import com.example.brewbuddy.domain.use_case.get_recipes.GetRecipesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
