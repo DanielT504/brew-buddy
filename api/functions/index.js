@@ -79,12 +79,6 @@ exports.getRecipeById = onCall(async ({ data }, context) => {
       return {
         id: doc.id,
         ...doc.data(),
-        // authorId: doc.data().authorId,
-        // ingredients: doc.data().ingredients,
-        // steps: doc.data().steps,
-        // bannerUrl: doc.data().bannerUrl,
-        // description: doc.data().description,
-        // title: doc.data().title,
       };
     });
 
@@ -112,32 +106,6 @@ exports.getUserById = onCall(async ({ data }, context) => {
   }
   return await getUserById(userId, db);
 });
-
-// exports.getRecipesMetadataByIds = onCall(async (data, context) => {
-//   var recipes = [];
-//   const { recipeIds } = data;
-//   const refs = recipeIds.map((id) => db.doc(`recipes/${id}`));
-//   const recipes = await db.getAll(...refs);
-
-//   // await db
-//   //   .collection("recipes")
-//   //   .where()
-//   //   .get()
-//   //   .then((snapshot) => {
-//   //     snapshot.forEach((doc) => {
-//   //       const metadata = {
-//   //         id: doc.id,
-//   //         author: doc.data().author,
-//   //         tags: doc.data().tags,
-//   //         thumbnail: doc.data().thumbnail,
-//   //         title: doc.data().title,
-//   //       };
-//   //       recipes.push(metadata);
-//   //     });
-//   //   });
-
-//   return recipes;
-// });
 
 exports.getRecipesMetadata = onCall(async ({ data }, context) => {
   var recipes = [];

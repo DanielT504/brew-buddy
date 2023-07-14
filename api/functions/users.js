@@ -18,12 +18,6 @@ const getUserById = (userId, db) => {
       return {
         id: doc.id,
         ...doc.data(),
-        // username: doc.data().username,
-        // email: doc.data().email,
-        // bannerUrl: doc.data().bannerUrl,
-        // avatarUrl: doc.data().avatarUrl,
-        // pinnedRecipeIds: doc.data().pinnedRecipeIds,
-        // recipeIds: doc.data().recipeIds,
       };
     });
 };
