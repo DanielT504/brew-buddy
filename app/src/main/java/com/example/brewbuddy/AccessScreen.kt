@@ -87,6 +87,7 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
 }
 
 //TODO: logout button from profile screen, register screen UX, email confirmation, login/signup testing
+//TODO: invalid email check, auth error bug, bad login error handling, invalid email check, disallow redundant accounts
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController, activity: Activity) {
@@ -226,6 +227,14 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
     var email by remember { mutableStateOf(TextFieldValue("")) }
 
     val errorMsg = remember {mutableStateOf("")}
+    val passwordVisible = remember { mutableStateOf(false) }
+
+    val focusRequester = remember { FocusRequester() }
+    val passwordFocusRequester = remember { FocusRequester() }
+    val emailFocusRequester = remember { FocusRequester() }
+    val passwordFieldFocusRequester = remember { FocusRequester() }
+    val usernameFieldFocusRequester = remember { FocusRequester() }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -233,7 +242,7 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.Start
         ) {
-            IconButton(onClick = { navController.navigate(AccessScreens.Login.route)}) {
+            IconButton(onClick = { navController.navigate(AccessScreens.Login.route) }) {
                 Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = "Back")
             }
         }
@@ -243,49 +252,88 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
             TextField(
                 value = username,
                 onValueChange = {
-                    if(it.text. matches(alphanumericFilter)){
+                    if (it.text.matches(alphanumericFilter)) {
                         username = it
                     }
                 },
-                placeholder = { Text(text = "Username")},
+                placeholder = { Text(text = "Username") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        passwordFocusRequester.requestFocus()
+                    }
+                ),
+                modifier = Modifier.focusRequester(focusRequester)
             )
             TextField(
                 value = password,
                 onValueChange = {
-                    if(it.text. matches(nonWhitespaceFilter)){
+                    if (it.text.matches(nonWhitespaceFilter)) {
                         password = it
                     }
                 },
-                placeholder = { Text(text = "Password")},
-                visualTransformation = PasswordVisualTransformation()
+                placeholder = { Text(text = "Password") },
+                visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(
+                        onClick = { passwordVisible.value = !passwordVisible.value },
+                        modifier = Modifier.padding(end = 4.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(if (passwordVisible.value) R.drawable.baseline_visibility_off_24 else R.drawable.baseline_visibility_24),
+                            contentDescription = if (passwordVisible.value) "Hide password" else "Show password"
+                        )
+                    }
+                },
+                modifier = Modifier.focusRequester(passwordFieldFocusRequester)
             )
             TextField(
                 value = email,
                 onValueChange = {
-                    if(it.text. matches(nonWhitespaceFilter)){
+                    if (it.text.matches(nonWhitespaceFilter)) {
                         email = it
                     }
                 },
-                placeholder = { Text(text = "Email")},
+                placeholder = { Text(text = "Email") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        errorMsg.value = if (password.text.length < 6) {
+                            "Password must be at least 6 characters"
+                        } else if(
+                            createAccount(username.text, password.text, email.text, activity)
+                            && !currentUserViewModel.registerUser(username.text, email.text)
+                        ) {
+                            "Username is already taken"
+                        } else {
+                            ""
+                        }
+                    }
+                ),
+                modifier = Modifier.focusRequester(emailFocusRequester)
             )
             Button(
                 onClick = {
                     Log.d("REGISTER_USER", username.text)
-
                     Log.d("REGISTER_PWD", password.text)
                     Log.d("REGISTER_CONF_PWD", email.text)
 
-                    errorMsg.value = if (password.text.length < 6) {
-                        "Password must be at least 6 characters"
-                    } else if(
-                        createAccount(username.text, password.text, email.text, activity)
-                        && !currentUserViewModel.registerUser(username.text, email.text)
-                    ) {
-                        "Username is already taken"
-                    } else {
-                        ""
+                    if (password.text.length < 6) {
+                        password = TextFieldValue("") // Clear the password field
+                        errorMsg.value = "Password must be at least 6 characters"
+                        passwordFieldFocusRequester.requestFocus() // Move focus to the password field
+                        return@Button
                     }
-                    Log.d("REGISTER", errorMsg.value)
+
+                    // Perform registration process
+                    val registrationSuccessful = createAccount(username.text, password.text, email.text, activity)
+                    if (registrationSuccessful) {
+                        // Registration successful, perform necessary actions
+                        navController.navigate("Home") // Example navigation to Home screen
+                    } else {
+                        // Registration failed, show error message or handle the failure
+                        errorMsg.value = "Registration failed. Please try again."
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
                 modifier= Modifier.size(width=280.dp, height=40.dp),
