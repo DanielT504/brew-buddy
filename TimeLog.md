@@ -49,7 +49,10 @@
 | 2023/07/06 |        |         |      |        |         | 5      | Can pull user login info from Firestore database with UID     |
 | 2023/07/06 |        |         |      |        |         | 1      | Refactoring to support user emails                            |
 | 2023/07/07 |        |         |      |        |         | 1      | Suspended functions to allow database response time           |
-| 2023/07/08 |        | 3       |      |        |         |        | Marketplace Screen frontend filters - dropdown and UI setup   |
-| 2023/07/11 |        | 2       |      |        |         |        | Deliverable 4 Doc Work                                        |
-| 2023/07/11 | 2      |         |      |        |         |        | Deliverable 4 Doc Work                                        |
+| 2023/07/08 |        |3        |      |        |         |        | Marketplace Screen frontend filters - dropdown and UI setup   |
+| 2023/07/11 |        |2        |      |        |         |        | Deliverable 4 Doc Work                                        |
+| 2023/07/11 |2       |         |      |        |         |        | Deliverable 4 Doc Work                                        |
+| 2023/07/11 |2       |         |      |        |         |        | Deliverable 5 Doc Work                                        |
+| 2023/07/11 |4       |         |      |        |         |        | Get current location, debug Places API                        |
+| 2023/07/13 |        |5        |      |        |         |        | Add recipe data source API endpoints & MVMM changes           |
 | 2023/07/13 |        |         |      |        |         | 4      | Fixed authentication blocker bug                              |
