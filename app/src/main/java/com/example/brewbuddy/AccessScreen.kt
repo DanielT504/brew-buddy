@@ -277,7 +277,6 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
                         createAccount(username.text, password.text, email.text, activity)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
-                                    navController.navigate(AccessScreens.Login.route)
                                     CoroutineScope(Dispatchers.Main).launch {
                                         val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
                                         Log.d("UPDATE_UI", "User is signed in: 1")
@@ -286,6 +285,7 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
                                             errorMsg.value = "Incorrect password or username."
                                         } else {
                                             currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                                            navController.navigate(AccessScreens.Login.route)
                                         }
                                     }
                                 } else {
