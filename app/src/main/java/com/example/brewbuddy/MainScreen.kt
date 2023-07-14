@@ -24,6 +24,8 @@ import androidx.navigation.navArgument
 import com.example.brewbuddy.recipes.IndividualRecipeScreen
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
@@ -84,6 +86,10 @@ private fun MainScreenNavigationConfigurations(
     // it is accessing the right scope, e.g. the scope of the main activity instead
     // of making its own scope within the navhost
     val vmStoreOwner = rememberViewModelStoreOwner()
+    val location = LocalContext.current
+    val fusedLocationProviderClient = remember {
+        LocationServices.getFusedLocationProviderClient(location)
+    }
     CompositionLocalProvider(
         LocalNavGraphViewModelStoreOwner provides vmStoreOwner
     ) {
@@ -92,7 +98,7 @@ private fun MainScreenNavigationConfigurations(
                 ProfileScreen()
             }
             composable(BottomNavigationScreens.ShopLocator.route) {
-                ShopLocatorScreen()
+                ShopLocatorScreen(fusedLocationProviderClient)
             }
             composable(BottomNavigationScreens.Marketplace.route) {
                 MarketplaceScreen("marketplace")
