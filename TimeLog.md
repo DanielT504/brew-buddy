@@ -54,4 +54,3 @@
 | 2023/07/11 | 2      |         |      |        |         |        | Deliverable 4 Doc Work                                        |
 | 2023/07/12 |        |         |      |        |         | 1      | Fixed Firestore rules                                         |
 | 2023/07/13 |        |         |      |        |         | 2      | Register screen UX                                            |
-

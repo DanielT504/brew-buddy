@@ -86,7 +86,7 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
-//TODO: logout button from profile screen, register screen UX, email confirmation, login/signup testing
+//TODO: logout button from profile screen, register screen UX, email confirmation, login/signup testing, prevent reuse of emails
 //TODO: invalid email check, auth error bug, bad login error handling, invalid email check, disallow redundant accounts
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
