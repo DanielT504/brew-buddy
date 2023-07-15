@@ -14,9 +14,9 @@ import com.google.android.gms.maps.model.LatLng
 object LocationUtils {
     fun getDefaultLocation(): Location {
         val location = Location(LocationManager.GPS_PROVIDER)
-        val sydney = LatLng(-33.865143, 151.209900)
-        location.latitude = sydney.latitude
-        location.longitude = sydney.longitude
+        val mc = LatLng(43.47232, -80.54403)
+        location.latitude = mc.latitude
+        location.longitude = mc.longitude
         return location
     }
 
