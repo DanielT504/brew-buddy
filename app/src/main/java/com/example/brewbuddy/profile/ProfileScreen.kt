@@ -82,7 +82,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import com.example.brewbuddy.profile.SettingScreen
+import com.example.brewbuddy.profile.PreferencesScreen
 import com.example.brewbuddy.profile.User
 import com.example.brewbuddy.profile.UserScreen
 import com.example.brewbuddy.recipes.Recipe
@@ -94,7 +94,9 @@ import kotlinx.coroutines.CoroutineScope
 sealed class ProfileScreens(val route: String, val label: String) {
     object User : ProfileScreens("profile/user", "Profile")
     object PinnedRecipes : ProfileScreens("profile/pinned_recipes", "Pinned Recipes")
+    object Preferences : ProfileScreens("profile/preferences", "Preferences")
     object Settings : ProfileScreens("profile/settings", "Settings")
+
 }
 
 @Composable
@@ -146,15 +148,6 @@ fun PinnedCard(modifier: Modifier, recipe: Recipe) {
 
 @Composable
 fun ProfilePicture(avatarUrl: String, size: Dp) {
-//    Image(
-//        painter = painterResource(id = img),
-//        contentDescription = "Profile Picture",
-//        contentScale = ContentScale.Crop,
-//        modifier = Modifier
-//            .clip(CircleShape)
-//            .size(size)
-//            .border(4.dp, Color.White, shape = CircleShape)
-//    )
     AsyncImage(
         model = avatarUrl,
         contentDescription = "Profile Picture",
@@ -199,7 +192,7 @@ fun ProfileScreen() {
                     }
 
                     composable(ProfileScreens.Settings.route) {
-                        SettingScreen(menuButton = {MenuButton(coroutineScope, menuDrawerState)})
+                        PreferencesScreen(menuButton = {MenuButton(coroutineScope, menuDrawerState)})
                     }
 
                 }
