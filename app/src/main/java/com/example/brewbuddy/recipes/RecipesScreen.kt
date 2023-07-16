@@ -35,11 +35,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.MaterialTheme
+import com.example.brewbuddy.ui.theme.GreyLight
+import com.example.brewbuddy.ui.theme.GreyMedium
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -50,16 +54,22 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.brewbuddy.recipes.IngredientSection
 import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
+import com.example.brewbuddy.recipes.RecipesScreenViewModel
+import com.example.brewbuddy.recipes.RecipesState
+import com.example.brewbuddy.recipes.Screen
 import com.example.brewbuddy.recipes.TagType
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
@@ -71,12 +81,15 @@ import com.example.brewbuddy.util.randomSampleImageUrl
 import com.google.firebase.functions.FirebaseFunctions
 import org.json.JSONArray
 import java.util.Objects
-
+import com.example.brewbuddy.util.formatTitle
+import com.example.brewbuddy.randomSizedPhotos as randomSizedPhotos
 
 @Composable
 fun RecipesScreen(
-    navController: NavHostController
+    navController: NavHostController,
+    viewModel: RecipesScreenViewModel = hiltViewModel()
 ) {
+    val state = viewModel.state.value
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
             modifier = Modifier
@@ -87,7 +100,24 @@ fun RecipesScreen(
                     end = 0.dp
                 )
         ) {
-            RecipeGridLayout(navController)
+            RecipeGridLayout(navController, state)
+        }
+    }
+    if(state.error.isNotBlank()) {
+        Text(
+            text = state.error,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+    }
+    if(state.isLoading){
+        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+                Box() {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).size(34.dp))
+                }
         }
     }
 }
@@ -116,13 +146,15 @@ private fun CardTitle(text: String, fontSize: TextUnit) {
         text,
         color = Color.White,
         fontSize = fontSize,
-        fontWeight = FontWeight.Bold
+        fontWeight = FontWeight.Bold,
+        overflow = TextOverflow.Ellipsis
     )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun RecipeGridLayout(navController: NavHostController) {
+private fun RecipeGridLayout(navController: NavHostController, state: RecipesState) {
+    val height = ((recipes.size*200) + 70).dp
      LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
             verticalItemSpacing = 14.dp,
@@ -131,7 +163,7 @@ private fun RecipeGridLayout(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .height(500.dp)
+                .height(height)
         ) {
 
             item( span = StaggeredGridItemSpan.FullLine) {
@@ -151,13 +183,15 @@ private fun RecipeGridLayout(navController: NavHostController) {
              ) {
              Heading(text = "Picked for you")
          }
-            items(recipes) { recipe ->
-                RecipeCard(
-                    title = recipe.recipeName,
-                    photo = recipe.backgroundImage,
-                    navController = navController
-                )
-            }
+             items(state.recipes) {
+                 recipe ->
+                    RecipeCard(
+                        title = recipe.title ?: "",
+                        photo = recipe.image ?: R.drawable.x_recipe1,
+                        navController = navController,
+                        recipeId = recipe.id
+                    )
+             }
      }
  }
 
@@ -209,10 +243,17 @@ private fun PopularCard(photo: Any) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RecipeCard(title: String, photo: Any, navController: NavHostController) {
+private fun RecipeCard(recipeId: Int,title: String, photo: Any, navController: NavHostController) {
+    val formattedTitle = formatTitle(title)
     Card(
         onClick = {
-            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + "V8rQC0fgEX7WQJkVWB3H") },
+//<<<<<<< HEAD
+//            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + "V8rQC0fgEX7WQJkVWB3H") },
+//=======
+            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + recipeId, )
+          /*        navController.navigate(Screen.IndividualRecipeScreen.route + "/${recipeId}")*/
+                  },
+//>>>>>>> recipes-api-integration
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 15.dp
@@ -254,7 +295,8 @@ private fun RecipeCard(title: String, photo: Any, navController: NavHostControll
                 Box() {
                     Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
                         CardTitle(
-                            title,
+                        /*    formattedTitle,*/
+                            recipeId.toString(),
                             fontSize = 24.sp
                         )
                     }

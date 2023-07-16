@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -64,40 +65,67 @@ import kotlinx.coroutines.launch
 
 
 sealed class RecipeNavigationScreens(val route: String) {
-    object IndividualRecipe : RecipeNavigationScreens("Recipes/{recipe_name}")
+    object IndividualRecipe : RecipeNavigationScreens("Recipes/{recipeId}")
 }
 
 @Composable
-fun IndividualRecipeScreen(navController: NavHostController, param: String) {
-
-    var recipe = remember { mutableStateOf(Recipe()) }
-
-    LaunchedEffect(param) {
-        val id = param.substringAfter("}")
-        CoroutineScope(Dispatchers.Main).launch {
-            recipe.value = getRecipe(id)
-            Log.d("RECIPE_BY_ID", recipe.value.recipeName)
-
-        }
-    }
-    Surface() {
-        Column (modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-        ){
-
+//<<<<<<< HEAD
+//fun IndividualRecipeScreen(navController: NavHostController, param: String) {
+//
+//    var recipe = remember { mutableStateOf(Recipe()) }
+//
+//    LaunchedEffect(param) {
+//        val id = param.substringAfter("}")
+//        CoroutineScope(Dispatchers.Main).launch {
+//            recipe.value = getRecipe(id)
+//            Log.d("RECIPE_BY_ID", recipe.value.recipeName)
+//
+//        }
+//    }
+//    Surface() {
+//        Column (modifier = Modifier
+//            .fillMaxSize()
+//            .verticalScroll(rememberScrollState())
+//        ){
+//
+//            Box() {
+//                RecipeBanner(recipe.value.backgroundImage, recipe.value.recipeName, navController)
+//            }
+//            Box(modifier = Modifier
+//                .offset(y = -(20.dp))
+//                .fillMaxWidth()) {
+//                RecipeSection(recipe.value)
+//            }
+//        }
+//
+//    }
+//}
+//=======
+fun IndividualRecipeScreen(
+    navController: NavHostController,
+ /*   param: String,*/
+    viewModel: IndividualRecipeScreenViewModel = hiltViewModel()
+) {
+        /*var state = viewModel.state.value*/
+        var state = viewModel.state.value
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
             Box() {
-                RecipeBanner(recipe.value.backgroundImage, recipe.value.recipeName, navController)
+                /*    RecipeBanner(recipe.backgroundImage, recipe.recipeName, navController)*/
+                 RecipeBanner(state.recipe!!.image!!, state.recipe!!.title!!, navController) }
             }
-            Box(modifier = Modifier
-                .offset(y = -(20.dp))
-                .fillMaxWidth()) {
-                RecipeSection(recipe.value)
+            Box(
+                modifier = Modifier
+                    .offset(y = -(20.dp))
+                    .fillMaxWidth()
+            ) {
+                /*RecipeSection(state.recipe)*/
             }
         }
-
-    }
-}
+//>>>>>>> recipes-api-integration
 
 @Composable
 private fun RecipeBanner(img: Any, title: String, navController: NavHostController) {

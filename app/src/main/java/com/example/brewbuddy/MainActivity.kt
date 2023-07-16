@@ -13,8 +13,10 @@ import androidx.lifecycle.Observer
 import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
 import com.google.firebase.FirebaseApp
+import dagger.hilt.android.AndroidEntryPoint
 
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     // initializes the viewmodel for the currently logged in user and attaches it to the
     // scope of the main activity
