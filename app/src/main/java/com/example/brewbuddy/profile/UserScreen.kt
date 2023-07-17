@@ -57,7 +57,6 @@ import com.example.brewbuddy.PinnedCard
 import com.example.brewbuddy.ProfilePicture
 import com.example.brewbuddy.R
 import com.example.brewbuddy.getUser
-import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
@@ -88,7 +87,7 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
 
     val focusColor = GreyMedium
     val unfocusedColor = GreyLight
-    val tempRecipe = Recipe("Latte")
+//    val tempRecipe = Recipe("Latte")
 
     Column(modifier=Modifier.fillMaxWidth()) {
 
@@ -104,12 +103,12 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
             pageContent = { index ->
                 val page = getIndex(index, startIndex, pageCount)
 
-                Box(contentAlignment = Alignment.Center) {
-                    PinnedCard(modifier = Modifier
-                        .width(210.dp)
-                        .height(150.dp), tempRecipe)
-
-                }
+//                Box(contentAlignment = Alignment.Center) {
+//                    PinnedCard(modifier = Modifier
+//                        .width(210.dp)
+//                        .height(150.dp), tempRecipe)
+//
+//                }
             },
         )
 

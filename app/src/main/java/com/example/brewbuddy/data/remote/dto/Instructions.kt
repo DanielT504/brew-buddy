@@ -1,14 +1,15 @@
 package com.example.brewbuddy.data.remote.dto
 
-data class Ingredient(
+data class Instructions(
     val name: String,
-    val quantity: Measures
+    val steps: List<Step>
 ) {
     companion object {
         fun from(map: HashMap<String, Object>) = object {
-            val data = Ingredient(
+            val steps = map["steps"] as List<HashMap<String, Object>>
+            val data = Instructions(
                 name=map["name"] as String,
-                quantity=Measures.from(map["quantity"] as HashMap<String, Object>),
+                steps=steps.map{Step.from(it)},
             )
         }.data
     }

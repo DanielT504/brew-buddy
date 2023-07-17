@@ -1,7 +1,7 @@
 # firebase api using firebase functions
 
 ## index.js
-This is the file where you put the actual endpoints that will be called by the app
+This is the file where you put the actual endpoints that will be called by the app.
 
 ## running locally
 You will need access to the Firebase app to run it locally. When you run it locally, the Firestore DB will be *empty*; you can try running the `local_setup` script if you want to download a local version of the Firestore DB that's live (make sure you're in the `functions` folder to run it).
@@ -19,3 +19,4 @@ If you just want to run without importing the local DB, just use
 Use the command to push functions:
 
 ```firebase deploy --only functions```
+

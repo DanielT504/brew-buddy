@@ -1,6 +1,7 @@
 package com.example.brewbuddy.profile
 
 import com.example.brewbuddy.R
+import com.example.brewbuddy.common.Constants
 
 class User {
 
@@ -18,7 +19,7 @@ class User {
     }
 
     fun getBannerUrl(): String {
-        return bannerUrl ?: "https://firebasestorage.googleapis.com/v0/b/brew-buddy-ece452.appspot.com/o/placeholder_banner.png?alt=media&token=49e30f3c-cc2d-44f4-a91a-a1295f558a6a"
+        return bannerUrl ?: Constants.DEFAULT_BANNER_URL
     }
     fun getUsername(): String {
         return username
@@ -29,6 +30,6 @@ class User {
     }
 
     fun getAvatarUrl(): String {
-        return avatarUrl ?: "https://firebasestorage.googleapis.com/v0/b/brew-buddy-ece452.appspot.com/o/placeholder_avatar.png?alt=media&token=e97bbc7f-8607-4d5a-8a87-312b1a77692b";
+        return avatarUrl ?: Constants.DEFAULT_AVATAR_URL;
     }
 }

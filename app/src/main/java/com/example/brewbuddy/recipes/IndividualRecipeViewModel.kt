@@ -1,5 +1,6 @@
 package com.example.brewbuddy.recipes
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
@@ -22,12 +23,14 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
     val state: State<RecipeState> = _state
 
     init {
+        Log.d("IndividualRecipeScreenViewModel", savedStateHandle.toString())
         savedStateHandle.get<String>(Constants.PARAM_RECIPE_ID)?.let { recipeId ->
+            Log.d("IndividualRecipeScreenViewModel", recipeId)
             getRecipeById(recipeId)
         }
     }
 
-    private fun getRecipeById(recipeId: String) {
+    fun getRecipeById(recipeId: String) {
         getRecipeUseCase(recipeId).onEach { result ->
             when(result) {
                 is Resource.Success -> {

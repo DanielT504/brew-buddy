@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
-import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.recipes.createIngredientsFromJSON
 import com.example.brewbuddy.recipes.createPreparationStepsFromJSON
 import com.google.firebase.functions.FirebaseFunctions
@@ -16,9 +15,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
-suspend fun getRecipe(id: String): Recipe {
+suspend fun getRecipeById(id: String): HashMap<String, Object> {
     Log.d("RECIPE_BY_ID", id)
-    var res = Recipe()
+//    var res = Recipe()
 //    val functions = FirebaseFunctions.getInstance()
 
     return withContext(Dispatchers.IO) {
@@ -29,13 +28,14 @@ suspend fun getRecipe(id: String): Recipe {
         }
         val task = dataDeferred.await()
         val data = task.data as HashMap<String, Object>
-        return@withContext Recipe(
-            name = data["title"] as String,
-            desc = "",
-            ingredientList = createIngredientsFromJSON(data["ingredients"] as List<HashMap<String, Object>>),
-            backgroundImage = data["bannerUrl"] as String,
-            preparationSteps = createPreparationStepsFromJSON(data["steps"] as List<HashMap<String, Object>>)
-
-        )
+        return@withContext data
+//        return@withContext Recipe(
+//            name = data["title"] as String,
+//            desc = "",
+//            ingredientList = createIngredientsFromJSON(data["ingredients"] as List<HashMap<String, Object>>),
+//            backgroundImage = data["bannerUrl"] as String,
+//            preparationSteps = createPreparationStepsFromJSON(data["steps"] as List<HashMap<String, Object>>)
+//
+//        )
     }
 }

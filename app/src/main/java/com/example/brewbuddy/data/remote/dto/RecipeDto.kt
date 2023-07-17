@@ -1,79 +1,69 @@
 package com.example.brewbuddy.data.remote.dto
 
+import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.Recipe
 
 data class RecipeDto(
-    val aggregateLikes: Int,
-    val analyzedInstructions: List<AnalyzedInstruction>,
-    val cheap: Boolean,
-    val cookingMinutes: Int,
-    val creditsText: String,
-    val cuisines: List<Any>,
-    val dairyFree: Boolean,
-    val diets: List<String>,
-    val dishTypes: List<String>,
-    val extendedIngredients: List<ExtendedIngredient>,
-    val gaps: String,
-    val glutenFree: Boolean,
-    val healthScore: Int,
-    val id: Int,
-    val image: String,
-    val imageType: String,
-    val instructions: String,
-    val license: String,
-    val lowFodmap: Boolean,
-    val occasions: List<String>,
-    val originalId: Any,
-    val preparationMinutes: Int,
-    val pricePerServing: Double,
-    val readyInMinutes: Int,
-    val servings: Int,
-    val sourceName: String,
-    val sourceUrl: String,
-    val spoonacularSourceUrl: String,
+    val id: String,
+    val bannerUrl: String,
     val summary: String,
-    val sustainable: Boolean,
     val title: String,
+    val instructions: List<Instructions>,
+    val ingredientLists: List<IngredientList>,
+    val drinkType: List<String>,
+    val preparationMinutes: Int,
+    val servings: Int,
+    val likes: Int,
+    val glutenFree: Boolean,
+    val dairyFree: Boolean,
+    val sustainable: Boolean,
     val vegan: Boolean,
     val vegetarian: Boolean,
-    val veryHealthy: Boolean,
-    val veryPopular: Boolean,
-    val weightWatcherSmartPoints: Int
-)
+    val author: Author
+) {
+    companion object {
+        fun from(map: HashMap<String, Object>) = object {
+            val instructions = map["instructions"] as List<HashMap<String, Object>>
+            val ingredientLists = map["ingredientLists"] as List<HashMap<String, Object>>
+
+            val data = RecipeDto(
+                likes=map["likes"] as Int,
+                servings=map["servings"] as Int,
+                preparationMinutes=map["preparationMinutes"] as Int,
+                drinkType=map["drinkType"] as List<String>,
+                glutenFree=map["glutenFree"] as Boolean,
+                dairyFree=map["dairyFree"] as Boolean,
+                sustainable=map["sustainable"] as Boolean,
+                vegetarian=map["vegetarian"] as Boolean,
+                vegan=map["vegan"] as Boolean,
+                author=Author.from(map["author"] as HashMap<String, Object>),
+                title=map["title"] as String,
+                instructions=instructions.map{Instructions.from(it)},
+                ingredientLists=ingredientLists.map{IngredientList.from(it)},
+                id=map["id"] as String,
+                bannerUrl=map["bannerUrl"] as String,
+                summary=map["summary"] as String,
+                )
+        }.data
+    }
+
+}
 
 fun RecipeDto.toRecipe(): Recipe {
     return Recipe(
-        vegetarian = vegetarian,
-        vegan = vegan,
-        glutenFree = glutenFree,
-        dairyFree = dairyFree,
-        veryHealthy = veryHealthy,
-        cheap = cheap,
-        veryPopular = veryPopular,
-        sustainable = sustainable,
-        lowFodmap = lowFodmap,
-        weightWatcherSmartPoints = weightWatcherSmartPoints,
-        gaps = gaps,
-        preparationMinutes = preparationMinutes,
-        cookingMinutes = cookingMinutes,
-        aggregateLikes = aggregateLikes,
-        healthScore = healthScore,
-        sourceName = sourceName,
-        pricePerServing = pricePerServing,
-        extendedIngredients = extendedIngredients,
-        id = id,
-        title = title,
-        readyInMinutes = readyInMinutes,
-        servings = servings,
-        sourceUrl = sourceUrl,
-        image = image,
-        imageType = imageType,
-        summary = summary,
-        cuisines = cuisines,
-        dishTypes = dishTypes,
-        diets = diets,
+        likes = likes,
         instructions = instructions,
-        analyzedInstructions = analyzedInstructions,
-        spoonacularSourceUrl = spoonacularSourceUrl
+        dairyFree = dairyFree,
+        drinkType = drinkType,
+        glutenFree = glutenFree,
+        id = id,
+        bannerUrl = bannerUrl,
+        preparationMinutes = preparationMinutes,
+        servings = servings,
+        summary = summary,
+        sustainable = sustainable,
+        title = title,
+        vegan = vegan,
+        vegetarian = vegetarian,
     )
 }

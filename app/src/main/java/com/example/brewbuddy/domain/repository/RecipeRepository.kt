@@ -1,11 +1,11 @@
 package com.example.brewbuddy.domain.repository
 
-import com.example.brewbuddy.data.remote.dto.RecipeById.RecipeByIdDto
 import com.example.brewbuddy.data.remote.dto.RecipeDto
+import com.example.brewbuddy.data.remote.dto.RecipeMetadataDto
 
 interface RecipeRepository {
 
-    suspend fun getRecipes(): List<RecipeDto>
+    suspend fun getRecipes(): List<RecipeMetadataDto>
 
-    suspend fun getRecipeById(recipeId: String): RecipeByIdDto
+    suspend fun getRecipeById(recipeId: String): RecipeDto
 }

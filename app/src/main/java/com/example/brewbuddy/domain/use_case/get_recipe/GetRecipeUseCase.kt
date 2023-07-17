@@ -1,7 +1,7 @@
 package com.example.brewbuddy.domain.use_case.get_recipes
 
+import android.util.Log
 import com.example.brewbuddy.common.Resource
-import com.example.brewbuddy.data.remote.dto.RecipeById.toRecipe
 import com.example.brewbuddy.data.remote.dto.toRecipe
 import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.repository.RecipeRepository
@@ -17,6 +17,7 @@ class GetRecipeUseCase @Inject constructor(
     operator fun invoke(recipeId: String): Flow<Resource<Recipe>> = flow {
         try {
             emit(Resource.Loading())
+            Log.d("getRecipeUseCase", recipeId)
             val recipe = repository.getRecipeById(recipeId).toRecipe()
             if (recipe !== null) {
                 emit(Resource.Success(recipe))

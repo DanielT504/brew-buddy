@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -53,8 +55,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.brewbuddy.R
+import com.example.brewbuddy.data.remote.dto.IngredientList
+import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.randomSizedPhotos
-import com.example.brewbuddy.requests.getRecipe
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
@@ -103,11 +106,28 @@ sealed class RecipeNavigationScreens(val route: String) {
 //=======
 fun IndividualRecipeScreen(
     navController: NavHostController,
- /*   param: String,*/
     viewModel: IndividualRecipeScreenViewModel = hiltViewModel()
 ) {
         /*var state = viewModel.state.value*/
-        var state = viewModel.state.value
+    var state = viewModel.state.value
+
+
+    if(state.error.isNotBlank()) {
+        Text(
+            text = state.error,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+    } else if(state.isLoading){
+        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+            Box() {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).size(34.dp))
+            }
+        }
+    } else {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -115,20 +135,21 @@ fun IndividualRecipeScreen(
         ) {
             Box() {
                 /*    RecipeBanner(recipe.backgroundImage, recipe.recipeName, navController)*/
-                 RecipeBanner(state.recipe!!.image!!, state.recipe!!.title!!, navController) }
-            }
-            Box(
-                modifier = Modifier
-                    .offset(y = -(20.dp))
-                    .fillMaxWidth()
-            ) {
-                /*RecipeSection(state.recipe)*/
+                RecipeBanner(state.recipe!!.bannerUrl!!, state.recipe!!.title!!, navController)
             }
         }
-//>>>>>>> recipes-api-integration
+        Box(
+            modifier = Modifier
+                .offset(y = -(20.dp))
+                .fillMaxWidth()
+        ) {
+            /*RecipeSection(state.recipe)*/
+        }
+    }
+}
 
 @Composable
-private fun RecipeBanner(img: Any, title: String, navController: NavHostController) {
+private fun RecipeBanner(img: String, title: String, navController: NavHostController) {
     val contextForToast = LocalContext.current.applicationContext
     Box(modifier = Modifier
         .height(230.dp)
@@ -243,11 +264,11 @@ private fun RecipeSection(recipe: Recipe) {
                     LabelledIcon(img = R.drawable.icon_star_outline, label = "4.5")
                 }
             }
-            Row(modifier = Modifier.padding(top = 8.dp)) {
-                TagsSection(tags = recipe.tags)
-            }
+//            Row(modifier = Modifier.padding(top = 8.dp)) {
+//                TagsSection(tags = recipe.tags)
+//            }
             Row(modifier = Modifier.padding(top = 16.dp)) {
-                IngredientsSection(ingredients = recipe.ingredientList)
+                IngredientsSection(ingredients = recipe.ingredientLists ?: emptyList<IngredientList>())
             }
             Row(modifier = Modifier.padding(top = 24.dp)) {
                 PreparationSection(recipe)
@@ -286,7 +307,7 @@ private fun TagsSection(tags: List<TagType>) {
 }
 
 @Composable
-private fun IngredientsSection(ingredients: List<IngredientSection>) {
+private fun IngredientsSection(ingredients: List<IngredientList>) {
     Column(modifier = Modifier.padding(start = 24.dp)) {
         Row(modifier = Modifier.padding(bottom = 4.dp)) {
             Text("Ingredients", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -294,14 +315,15 @@ private fun IngredientsSection(ingredients: List<IngredientSection>) {
         Column() {
             ingredients.forEach {
                 Row() {
-                    SectionHeading(it.sectionName, preparationHeading = false)
+                    SectionHeading(it.name, preparationHeading = false)
                 }
-                for (i in 0 until it.ingredientsList.quantities.size){
+                for (i in 0 until it.ingredients.size){
+                    val ingredient = it.ingredients[i]
                     Row(){
                         IngredientBullet(
-                            quantity = it.ingredientsList.quantities[i],
-                            unit = it.ingredientsList.units[i],
-                            subIngredientDetail = it.ingredientsList.labels[i]
+                            quantity = ingredient.quantity.imperial.amount,
+                            unit = ingredient.quantity.imperial.unitShort,
+                            subIngredientDetail = ingredient.name
                         )
                     }
                 }
@@ -359,16 +381,16 @@ private fun PreparationSection(recipe: Recipe) {
             Text("Preparation", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         Column() {
-            recipe.preparationSteps.forEach {
+            recipe.instructions.forEach {
                 Row() {
-                    SectionHeading(it.sectionName, preparationHeading = true)
+                    SectionHeading(it.name, preparationHeading = true)
                 }
                 for (i in 0 until it.steps.size) {
                     val stepNumber = (i + 1).toString()
                     Row(modifier = Modifier.padding(end = 4.dp)) {
                         Text(
                             modifier = Modifier.padding(start = 10.dp),
-                            text = stepNumber + ". " + it.steps[i],
+                            text = it.steps[i].number.toString() + ". " + it.steps[i].step,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -412,86 +434,86 @@ private fun Tag(iconTint: Color,
         }
     }
 }
-
-private val recipes = listOf(
-    Recipe(
-        "Cappuccino Almond Pistachio",
-        "Espresso",
-        com.example.brewbuddy.testIngredients,
-        tags = com.example.brewbuddy.testTags,
-        backgroundImage = randomSizedPhotos[0],
-        preparationSteps =  listOf(
-            PreparationStepSection(
-            sectionName = "cappuccino",
-            steps = listOf("Gather the ingredients.", "Add almond.", "Add to your espresso machine and leave for 10 minutes.")))
-        ),
-    Recipe(
-        "The Perfect Espresso",
-        "Espresso",
-        com.example.brewbuddy.testIngredients,
-        tags = com.example.brewbuddy.testTags,
-        backgroundImage = randomSizedPhotos[4],
-        preparationSteps =  listOf(
-            PreparationStepSection(
-                sectionName = "espresso",
-                steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
-    ),
-    Recipe(
-        "Iced Chai Tea Latte",
-        "Espresso",
-        com.example.brewbuddy.testIngredients,
-        tags = com.example.brewbuddy.testTags,
-        backgroundImage =  randomSizedPhotos[1],
-        preparationSteps =  listOf(
-            PreparationStepSection(
-                sectionName = "espresso",
-                steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
-    ),
-    Recipe(
-        "Murphy's Special Matcha Tea",
-        "Espresso",
-        com.example.brewbuddy.testIngredients,
-        tags = com.example.brewbuddy.testTags,
-        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 2],
-        preparationSteps =  listOf(
-            PreparationStepSection(
-                sectionName = "espresso",
-                steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
-    ),
-    Recipe(
-        "Yerba Mate Brew",
-        "Espresso",
-        com.example.brewbuddy.testIngredients,
-        tags = com.example.brewbuddy.testTags,
-        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 1],
-        preparationSteps =  listOf(
-            PreparationStepSection(
-                sectionName = "espresso",
-                steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
-    ),
-    Recipe(
-        "Espresso",
-        "Espresso",
-        com.example.brewbuddy.testIngredients,
-        tags = com.example.brewbuddy.testTags,
-        backgroundImage = randomSizedPhotos[11],
-    ),
-    Recipe(
-        "Espresso",
-        "Espresso",
-        com.example.brewbuddy.testIngredients,
-        tags = com.example.brewbuddy.testTags,
-        backgroundImage = randomSizedPhotos[2],
-    ),
-    Recipe(
-        "Espresso",
-        "Espresso",
-        com.example.brewbuddy.testIngredients,
-        tags = com.example.brewbuddy.testTags,
-        backgroundImage = randomSizedPhotos[8],
-    ),
-
-    )
-
-
-
+//
+//private val recipes = listOf(
+//    Recipe(
+//        "Cappuccino Almond Pistachio",
+//        "Espresso",
+//        com.example.brewbuddy.testIngredients,
+//        tags = com.example.brewbuddy.testTags,
+//        backgroundImage = randomSizedPhotos[0],
+//        preparationSteps =  listOf(
+//            PreparationStepSection(
+//            sectionName = "cappuccino",
+//            steps = listOf("Gather the ingredients.", "Add almond.", "Add to your espresso machine and leave for 10 minutes.")))
+//        ),
+//    Recipe(
+//        "The Perfect Espresso",
+//        "Espresso",
+//        com.example.brewbuddy.testIngredients,
+//        tags = com.example.brewbuddy.testTags,
+//        backgroundImage = randomSizedPhotos[4],
+//        preparationSteps =  listOf(
+//            PreparationStepSection(
+//                sectionName = "espresso",
+//                steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
+//    ),
+//    Recipe(
+//        "Iced Chai Tea Latte",
+//        "Espresso",
+//        com.example.brewbuddy.testIngredients,
+//        tags = com.example.brewbuddy.testTags,
+//        backgroundImage =  randomSizedPhotos[1],
+//        preparationSteps =  listOf(
+//            PreparationStepSection(
+//                sectionName = "espresso",
+//                steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
+//    ),
+//    Recipe(
+//        "Murphy's Special Matcha Tea",
+//        "Espresso",
+//        com.example.brewbuddy.testIngredients,
+//        tags = com.example.brewbuddy.testTags,
+//        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 2],
+//        preparationSteps =  listOf(
+//            PreparationStepSection(
+//                sectionName = "espresso",
+//                steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
+//    ),
+//    Recipe(
+//        "Yerba Mate Brew",
+//        "Espresso",
+//        com.example.brewbuddy.testIngredients,
+//        tags = com.example.brewbuddy.testTags,
+//        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 1],
+//        preparationSteps =  listOf(
+//            PreparationStepSection(
+//                sectionName = "espresso",
+//                steps = listOf("Gather the ingredients.", "Place the water into the boiler of your espresso machine.")))
+//    ),
+//    Recipe(
+//        "Espresso",
+//        "Espresso",
+//        com.example.brewbuddy.testIngredients,
+//        tags = com.example.brewbuddy.testTags,
+//        backgroundImage = randomSizedPhotos[11],
+//    ),
+//    Recipe(
+//        "Espresso",
+//        "Espresso",
+//        com.example.brewbuddy.testIngredients,
+//        tags = com.example.brewbuddy.testTags,
+//        backgroundImage = randomSizedPhotos[2],
+//    ),
+//    Recipe(
+//        "Espresso",
+//        "Espresso",
+//        com.example.brewbuddy.testIngredients,
+//        tags = com.example.brewbuddy.testTags,
+//        backgroundImage = randomSizedPhotos[8],
+//    ),
+//
+//    )
+//
+//
+//

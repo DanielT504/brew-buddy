@@ -1,10 +1,8 @@
 package com.example.brewbuddy.recipes;
 
-import android.nfc.Tag
 import com.example.brewbuddy.R
-import kotlin.collections.ArrayList
 
-public class Recipe {
+public class RecipeDisplay {
     var recipeName: String = "";
     var description: String = "";
     var ingredientList: List<IngredientSection> = listOf();

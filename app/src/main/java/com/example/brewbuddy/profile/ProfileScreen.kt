@@ -82,10 +82,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.profile.PreferencesScreen
 import com.example.brewbuddy.profile.User
 import com.example.brewbuddy.profile.UserScreen
-import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.ui.theme.OrangeBrownMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import com.example.brewbuddy.ui.theme.currentRoute
@@ -115,18 +115,18 @@ fun PinnedCard(modifier: Modifier, recipe: Recipe) {
                 )
             )
         )) {
-            Image(
-                painter = painterResource(id = recipe.getThumbNail()),
+            AsyncImage(
+                model = recipe.bannerUrl,
                 contentDescription = "Recipe Thumbnail",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize() ,
                 alpha = 0.6F
-
             )
+
             Row(modifier = Modifier.padding(16.dp).background(Color.Transparent), verticalAlignment = Alignment.Bottom) {
                 Column(modifier = Modifier.weight(1f).background(Color.Transparent)){
                     Text(
-                        text = recipe.getName(),
+                        text = recipe.title,
                         color= Color.White,
                         modifier = Modifier.align(alignment = Alignment.Start)
                     )

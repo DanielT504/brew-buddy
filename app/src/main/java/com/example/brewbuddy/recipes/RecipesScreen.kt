@@ -65,7 +65,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.brewbuddy.recipes.IngredientSection
 import com.example.brewbuddy.recipes.IngredientsList
-import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.recipes.RecipesScreenViewModel
 import com.example.brewbuddy.recipes.RecipesState
@@ -90,6 +89,7 @@ fun RecipesScreen(
     viewModel: RecipesScreenViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.value
+
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
             modifier = Modifier
@@ -154,7 +154,7 @@ private fun CardTitle(text: String, fontSize: TextUnit) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun RecipeGridLayout(navController: NavHostController, state: RecipesState) {
-    val height = ((recipes.size*200) + 70).dp
+    val height = ((state.recipes.size*200) + 70).dp
      LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
             verticalItemSpacing = 14.dp,
@@ -187,9 +187,9 @@ private fun RecipeGridLayout(navController: NavHostController, state: RecipesSta
                  recipe ->
                     RecipeCard(
                         title = recipe.title ?: "",
-                        photo = recipe.image ?: R.drawable.x_recipe1,
+                        photo = recipe.bannerUrl ?: R.drawable.x_recipe1,
                         navController = navController,
-                        recipeId = recipe.id
+                        recipeId = recipe.id ?: ""
                     )
              }
      }
@@ -243,17 +243,11 @@ private fun PopularCard(photo: Any) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RecipeCard(recipeId: Int,title: String, photo: Any, navController: NavHostController) {
+private fun RecipeCard(recipeId: String,title: String, photo: Any, navController: NavHostController) {
     val formattedTitle = formatTitle(title)
     Card(
         onClick = {
-//<<<<<<< HEAD
-//            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + "V8rQC0fgEX7WQJkVWB3H") },
-//=======
-            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + recipeId, )
-          /*        navController.navigate(Screen.IndividualRecipeScreen.route + "/${recipeId}")*/
-                  },
-//>>>>>>> recipes-api-integration
+            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + "V8rQC0fgEX7WQJkVWB3H") },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 15.dp
@@ -296,7 +290,7 @@ private fun RecipeCard(recipeId: Int,title: String, photo: Any, navController: N
                     Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
                         CardTitle(
                         /*    formattedTitle,*/
-                            recipeId.toString(),
+                            title,
                             fontSize = 24.sp
                         )
                     }
@@ -464,62 +458,62 @@ var testTags= listOf(
     TagType(iconTint = Color.White, tagColor = Brown, tagText = "Espresso Machine", img = R.drawable.icon_countertops),
     TagType(iconTint = Color.White, tagColor = GreenDark, tagText = "Cappuccino", img = R.drawable.icon_store)
 )
-private val recipes = listOf(
-    Recipe(
-            "Cappuccino Almond Pistachio",
-            "Espresso",
-            testIngredients,
-            tags = testTags,
-            backgroundImage = randomSizedPhotos[0],
-    ),
-    Recipe(
-        "The Perfect Espresso",
-        "Espresso",
-        testIngredients,
-        tags = testTags,
-        backgroundImage = randomSizedPhotos[4],
-    ),
-    Recipe(
-        "Iced Chai Tea Latte",
-        "Espresso",
-            testIngredients,
-            tags = testTags,
-            backgroundImage =  randomSizedPhotos[1],
-        ),
-    Recipe(
-        "Murphy's Special Matcha Tea",
-        "Espresso",
-        testIngredients,
-        tags = testTags,
-        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 2],
-        ),
-    Recipe(
-        "Yerba Mate Brew",
-        "Espresso",
-        testIngredients,
-        tags = testTags,
-        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 1],
-    ),
-    Recipe(
-        "Espresso",
-        "Espresso",
-        testIngredients,
-        tags = testTags,
-        backgroundImage = randomSizedPhotos[11],
-    ),
-    Recipe(
-        "Espresso",
-        "Espresso",
-        testIngredients,
-        tags = testTags,
-        backgroundImage = randomSizedPhotos[2],
-    ),
-    Recipe(
-        "Espresso",
-        "Espresso",
-        testIngredients,
-        tags = testTags,
-        backgroundImage = randomSizedPhotos[8],
-    ),
-
-)
+//private val recipes = listOf(
+//    Recipe(
+//            "Cappuccino Almond Pistachio",
+//            "Espresso",
+//            testIngredients,
+//            tags = testTags,
+//            backgroundImage = randomSizedPhotos[0],
+//    ),
+//    Recipe(
+//        "The Perfect Espresso",
+//        "Espresso",
+//        testIngredients,
+//        tags = testTags,
+//        backgroundImage = randomSizedPhotos[4],
+//    ),
+//    Recipe(
+//        "Iced Chai Tea Latte",
+//        "Espresso",
+//            testIngredients,
+//            tags = testTags,
+//            backgroundImage =  randomSizedPhotos[1],
+//        ),
+//    Recipe(
+//        "Murphy's Special Matcha Tea",
+//        "Espresso",
+//        testIngredients,
+//        tags = testTags,
+//        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 2],
+//        ),
+//    Recipe(
+//        "Yerba Mate Brew",
+//        "Espresso",
+//        testIngredients,
+//        tags = testTags,
+//        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 1],
+//    ),
+//    Recipe(
+//        "Espresso",
+//        "Espresso",
+//        testIngredients,
+//        tags = testTags,
+//        backgroundImage = randomSizedPhotos[11],
+//    ),
+//    Recipe(
+//        "Espresso",
+//        "Espresso",
+//        testIngredients,
+//        tags = testTags,
+//        backgroundImage = randomSizedPhotos[2],
+//    ),
+//    Recipe(
+//        "Espresso",
+//        "Espresso",
+//        testIngredients,
+//        tags = testTags,
+//        backgroundImage = randomSizedPhotos[8],
+//    ),
+//
+//)

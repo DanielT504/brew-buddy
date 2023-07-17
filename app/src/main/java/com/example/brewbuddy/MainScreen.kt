@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -111,7 +113,11 @@ private fun MainScreenNavigationConfigurations(
             composable(
                 route = Screen.IndividualRecipeScreen.route + "/{recipeId}"
             ){
+                val param = it.arguments?.getString("recipeId") ?: ""
+                var savedStateHandle = SavedStateHandle()
+                savedStateHandle.set("id", param.substringAfter("}"))
                 IndividualRecipeScreen(navController)
+//                IndividualRecipeScreen(navController)
             }
 
         }

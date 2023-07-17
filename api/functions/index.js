@@ -84,11 +84,12 @@ exports.getRecipeById = onCall(async ({ data }, context) => {
 
   var author = null;
   try {
-    author = getUserById(recipe.authorId, db);
+    author = await getUserById(recipe.authorId, db);
   } catch (e) {
     author = null;
   }
 
+  console.log("Author of GetRecipeById: ", author);
   return {
     ...recipe,
     author,
@@ -117,9 +118,7 @@ exports.getRecipesMetadata = onCall(async ({ data }, context) => {
       snapshot.forEach((doc) => {
         const metadata = {
           id: doc.id,
-          author: doc.data().author,
-          tags: doc.data().tags,
-          thumbnail: doc.data().thumbnail,
+          bannerUrl: doc.data().bannerUrl,
           title: doc.data().title,
         };
         recipes.push(metadata);
