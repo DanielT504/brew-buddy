@@ -1,5 +1,6 @@
 package com.example.brewbuddy
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -24,14 +25,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import com.example.brewbuddy.util.randomSampleImageUrl
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
@@ -42,37 +35,62 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.material3.MaterialTheme
 import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.example.brewbuddy.recipes.Ingredient
-import com.example.brewbuddy.recipes.IngredientComposition
-import com.example.brewbuddy.recipes.Recipe
+import com.example.brewbuddy.domain.model.RecipeMetadata
+import com.example.brewbuddy.recipes.IngredientSection
+import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
+import com.example.brewbuddy.recipes.RecipesScreenViewModel
+import com.example.brewbuddy.recipes.RecipesState
+import com.example.brewbuddy.recipes.Screen
 import com.example.brewbuddy.recipes.TagType
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
+import com.example.brewbuddy.ui.theme.GreyLight
+import com.example.brewbuddy.ui.theme.GreyMedium
+import com.example.brewbuddy.util.randomSampleImageUrl
+import com.google.firebase.functions.FirebaseFunctions
+import org.json.JSONArray
+import java.util.Objects
+import com.example.brewbuddy.util.formatTitle
 import com.example.brewbuddy.randomSizedPhotos as randomSizedPhotos
 
 @Composable
 fun RecipesScreen(
-    navController: NavHostController
+    navController: NavHostController,
+    viewModel: RecipesScreenViewModel = hiltViewModel()
 ) {
+    val state = viewModel.state.value
+
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
             modifier = Modifier
@@ -83,7 +101,24 @@ fun RecipesScreen(
                     end = 0.dp
                 )
         ) {
-            RecipeGridLayout(navController)
+            RecipeGridLayout(navController, state)
+        }
+    }
+    if(state.error.isNotBlank()) {
+        Text(
+            text = state.error,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+    }
+    if(state.isLoading){
+        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+                Box() {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).size(34.dp))
+                }
         }
     }
 }
@@ -112,13 +147,15 @@ private fun CardTitle(text: String, fontSize: TextUnit) {
         text,
         color = Color.White,
         fontSize = fontSize,
-        fontWeight = FontWeight.Bold
+        fontWeight = FontWeight.Bold,
+        overflow = TextOverflow.Ellipsis
     )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun RecipeGridLayout(navController: NavHostController) {
+private fun RecipeGridLayout(navController: NavHostController, state: RecipesState) {
+    val height = ((state.recipes.size*200) + 70).dp
      LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
             verticalItemSpacing = 14.dp,
@@ -127,7 +164,7 @@ private fun RecipeGridLayout(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .height(500.dp)
+                .height(height)
         ) {
 
             item( span = StaggeredGridItemSpan.FullLine) {
@@ -147,13 +184,15 @@ private fun RecipeGridLayout(navController: NavHostController) {
              ) {
              Heading(text = "Picked for you")
          }
-            items(recipes) { recipe ->
-                RecipeCard(
-                    title = recipe.recipeName,
-                    photo = recipe.backgroundImage,
-                    navController = navController
-                )
-            }
+             items(state.recipes) {
+                 recipe ->
+                    RecipeCard(
+                        title = recipe.title ?: "",
+                        photo = recipe.bannerUrl,
+                        navController = navController,
+                        recipeId = recipe.id ?: ""
+                    )
+             }
      }
  }
 
@@ -205,9 +244,10 @@ private fun PopularCard(photo: Any) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RecipeCard(title: String, photo: Any, navController: NavHostController) {
+private fun RecipeCard(recipeId: String, title: String, photo: Any, navController: NavHostController) {
     Card(
-        onClick = { navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + title, )},
+        onClick = {
+            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + recipeId) },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 15.dp
@@ -215,12 +255,13 @@ private fun RecipeCard(title: String, photo: Any, navController: NavHostControll
         modifier = Modifier.fillMaxWidth()
 
     ) {
-            Box() {
+            Box(modifier = Modifier.fillMaxSize()) {
                 AsyncImage(
                     model = photo,
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.FillHeight,
                     modifier = Modifier
+                        .height(300.dp)
                         .fillMaxWidth()
                         .fillMaxHeight()
                         .wrapContentHeight()
@@ -249,6 +290,7 @@ private fun RecipeCard(title: String, photo: Any, navController: NavHostControll
                 Box() {
                     Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
                         CardTitle(
+                        /*    formattedTitle,*/
                             title,
                             fontSize = 24.sp
                         )
@@ -401,13 +443,13 @@ val randomSizedPhotos = listOf(
 private val shorterList = randomSizedPhotos.subList(3, 9)
 
 val testIngredients = listOf(
-    Ingredient(
-        ingredientName = "Espresso",
-        IngredientComposition(quantities = listOf("4.5 tbsp", "4oz"), subIngredientDetails = listOf("Finely-ground dark roast coffee", "Water"))
+    IngredientSection(
+        sectionName = "Espresso",
+        IngredientsList(quantities = listOf(4.5, 4), units=listOf("tbs", "oz"), labels = listOf("Finely-ground dark roast coffee", "Water"))
     ),
-    Ingredient(
-        ingredientName = "Foam Milk",
-        IngredientComposition(quantities = listOf("4oz"), subIngredientDetails = listOf("Milk"))
+    IngredientSection(
+        sectionName = "Foam Milk",
+        IngredientsList(quantities = listOf(4), units=listOf("oz"), labels = listOf("Milk"))
     )
 )
 
@@ -417,64 +459,62 @@ var testTags= listOf(
     TagType(iconTint = Color.White, tagColor = Brown, tagText = "Espresso Machine", img = R.drawable.icon_countertops),
     TagType(iconTint = Color.White, tagColor = GreenDark, tagText = "Cappuccino", img = R.drawable.icon_store)
 )
-
-
-private val recipes = listOf(
-    Recipe(
-            "Cappuccino Almond Pistachio",
-            "Espresso",
-            testIngredients,
-            tags = testTags,
-            backgroundImage = randomSizedPhotos[0],
-    ),
-    Recipe(
-        "The Perfect Espresso",
-        "Espresso",
-        testIngredients,
-        tags = testTags,
-        backgroundImage = randomSizedPhotos[4],
-    ),
-    Recipe(
-        "Iced Chai Tea Latte",
-        "Espresso",
-            testIngredients,
-            tags = testTags,
-            backgroundImage =  randomSizedPhotos[1],
-        ),
-    Recipe(
-        "Murphy's Special Matcha Tea",
-        "Espresso",
-        testIngredients,
-        tags = testTags,
-        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 2],
-        ),
-    Recipe(
-        "Yerba Mate Brew",
-        "Espresso",
-        testIngredients,
-        tags = testTags,
-        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 1],
-    ),
-    Recipe(
-        "Espresso",
-        "Espresso",
-        testIngredients,
-        tags = testTags,
-        backgroundImage = randomSizedPhotos[11],
-    ),
-    Recipe(
-        "Espresso",
-        "Espresso",
-        testIngredients,
-        tags = testTags,
-        backgroundImage = randomSizedPhotos[2],
-    ),
-    Recipe(
-        "Espresso",
-        "Espresso",
-        testIngredients,
-        tags = testTags,
-        backgroundImage = randomSizedPhotos[8],
-    ),
-
-)
+//private val recipes = listOf(
+//    Recipe(
+//            "Cappuccino Almond Pistachio",
+//            "Espresso",
+//            testIngredients,
+//            tags = testTags,
+//            backgroundImage = randomSizedPhotos[0],
+//    ),
+//    Recipe(
+//        "The Perfect Espresso",
+//        "Espresso",
+//        testIngredients,
+//        tags = testTags,
+//        backgroundImage = randomSizedPhotos[4],
+//    ),
+//    Recipe(
+//        "Iced Chai Tea Latte",
+//        "Espresso",
+//            testIngredients,
+//            tags = testTags,
+//            backgroundImage =  randomSizedPhotos[1],
+//        ),
+//    Recipe(
+//        "Murphy's Special Matcha Tea",
+//        "Espresso",
+//        testIngredients,
+//        tags = testTags,
+//        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 2],
+//        ),
+//    Recipe(
+//        "Yerba Mate Brew",
+//        "Espresso",
+//        testIngredients,
+//        tags = testTags,
+//        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 1],
+//    ),
+//    Recipe(
+//        "Espresso",
+//        "Espresso",
+//        testIngredients,
+//        tags = testTags,
+//        backgroundImage = randomSizedPhotos[11],
+//    ),
+//    Recipe(
+//        "Espresso",
+//        "Espresso",
+//        testIngredients,
+//        tags = testTags,
+//        backgroundImage = randomSizedPhotos[2],
+//    ),
+//    Recipe(
+//        "Espresso",
+//        "Espresso",
+//        testIngredients,
+//        tags = testTags,
+//        backgroundImage = randomSizedPhotos[8],
+//    ),
+//
+//)

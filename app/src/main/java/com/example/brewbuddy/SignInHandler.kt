@@ -52,7 +52,7 @@ fun createAccount(username: String, password: String, email: String, activity: A
         }
 }
 
-data class SignInResult(var success: Boolean, var email: String?)
+data class SignInResult(var success: Boolean, var email: String?, var userId: String?)
 
 suspend fun signIn(username: String, password: String, activity: Activity): SignInResult {
     val usersCollection = db.collection("users")
@@ -72,12 +72,12 @@ suspend fun signIn(username: String, password: String, activity: Activity): Sign
                 if (authResult != null) {
                     val user = auth.currentUser
                     updateUI(user)
-                    return@withContext SignInResult(true, email)
+                    return@withContext SignInResult(true, email, user?.uid)
                 }
             }
         }
 
-        return@withContext SignInResult(false, null)
+        return@withContext SignInResult(false, null, null)
     }
 }
 

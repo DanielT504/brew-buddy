@@ -62,6 +62,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.res.painterResource
+import com.example.brewbuddy.requests.getUserById
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import kotlinx.coroutines.CoroutineScope
@@ -185,7 +186,8 @@ fun LoginScreen(navController: NavController, activity: Activity) {
                                 errorMsg.value = "Incorrect password or username."
                             } else {
                                 Log.d("UPDATE_UI", "User is signed in: 2")
-                                currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                                val user = getUserById(loginResult.second!!)
+                                currentUserViewModel.setUser(user)
                             }
                         }
                     },
@@ -370,7 +372,7 @@ private suspend fun loginUser(
     val signInResult = signIn(username, password, activity)
     if (signInResult.success) {
         val email = signInResult.email
-        return Pair(true, email)
+        return Pair(true, signInResult.userId)
     } else {
         errorMsg.value = "Incorrect password or username."
         Log.d("UPDATE_UI", "User is signed in 123")
