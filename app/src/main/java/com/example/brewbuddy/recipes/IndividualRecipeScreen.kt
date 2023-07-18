@@ -1,10 +1,8 @@
 package com.example.brewbuddy.recipes
 
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,9 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -78,7 +73,6 @@ fun IndividualRecipeScreen(
     navController: NavHostController,
     viewModel: IndividualRecipeScreenViewModel = hiltViewModel()
 ) {
-        /*var state = viewModel.state.value*/
     var state = viewModel.state.value
 
 
@@ -100,20 +94,27 @@ fun IndividualRecipeScreen(
             }
         }
     } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            Box() {
-                RecipeBanner(state.recipe!!.bannerUrl!!, state.recipe!!.title!!, navController, state.recipe!!.author!!)
-            }
-            Box(
+        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+            Column(
                 modifier = Modifier
-                    .offset(y = -(20.dp))
-                    .fillMaxWidth()
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
-                RecipeSection(state.recipe)
+                Box() {
+                    RecipeBanner(
+                        state.recipe!!.bannerUrl!!,
+                        state.recipe!!.title!!,
+                        navController, state.recipe!!.author!!
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .offset(y = -(20.dp))
+                        .padding(bottom = 60.dp)
+                        .fillMaxSize()
+                ) {
+                    RecipeSection(state.recipe)
+                }
             }
         }
 
@@ -127,13 +128,6 @@ private fun RecipeBanner(img: String, title: String, navController: NavHostContr
         .height(230.dp)
         .fillMaxWidth(),
     ) {
-/*        Image(
-            painter = painterResource(id = img),
-            contentDescription = "Recipe Banner",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-
-        )*/
         AsyncImage(
             model = img,
             contentDescription = "Recipe Banner",
@@ -218,6 +212,7 @@ private fun RecipeSection(recipe: Recipe?) {
             TitleLarge(text = "Recipe could not be found.")
         }
     } else {
+        var recipeRating = if (recipe.likes >= 5) 5.0 else recipe.likes.toDouble()
         Surface(
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
             modifier = Modifier
@@ -236,24 +231,36 @@ private fun RecipeSection(recipe: Recipe?) {
                 )
                 {
                     Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                        LabelledIcon(img = R.drawable.icon_time, label = "10 min")
+                        LabelledIcon(
+                            img = R.drawable.icon_time,
+                            label = recipe.preparationMinutes.toString() + " min"
+                        )
                         Divider(modifier = Modifier
                             .width(1.dp)
                             .size(28.dp), color = Brown)
-                        LabelledIcon(img = R.drawable.icon_mug, label = "Serves 1")
+                        LabelledIcon(
+                            img = R.drawable.icon_mug,
+                            label = "Serves " + recipe.servings.toString()
+                        )
                         Divider(modifier = Modifier
                             .width(1.dp)
                             .size(28.dp), color = Brown)
-                        LabelledIcon(img = R.drawable.icon_star_outline, label = "4.5")
+                        LabelledIcon(
+                            img = R.drawable.icon_star_outline,
+                            label = recipeRating.toString()
+                        )
                     }
                 }
-//            Row(modifier = Modifier.padding(top = 8.dp)) {
-//                TagsSection(tags = recipe.tags)
-//            }
+                Row(modifier = Modifier.padding(top = 8.dp)) {
+                  TagsSection(recipe)
+                  }
                 Row(modifier = Modifier.padding(top = 16.dp)) {
                     IngredientsSection(ingredients = recipe.ingredientLists)
                 }
-                Row(modifier = Modifier.padding(top = 24.dp)) {
+                Row(modifier = Modifier
+                    .padding(top = 24.dp)
+                    .fillMaxSize()
+                ) {
                     PreparationSection(recipe)
                 }
             }
@@ -275,9 +282,65 @@ private fun LabelledIcon(@DrawableRes img: Int, label: String) {
     }
 }
 
+private fun generateTags(recipe: Recipe?): List<TagType> {
+    var recipeTags = mutableListOf<TagType>()
+    var isDairyFree = recipe?.dairyFree
+    var isGlutenFree = recipe?.glutenFree
+    var isVegan = recipe?.vegan
+    var isVegetarian = recipe?.vegetarian
+
+    if (!isDairyFree!!) {
+        recipeTags.add(
+            TagType(
+                tagColor = GreenLight,
+                iconTint = Color.White,
+                tagText = "Dairy",
+                img = R.drawable.icon_info
+            )
+        )
+    }
+
+    if (isGlutenFree!!) {
+        recipeTags.add(
+            TagType(
+                tagColor = GreenLight,
+                iconTint = Color.White,
+                tagText = "Gluten Free",
+                img = R.drawable.icon_custom_gluten_free
+            )
+        )
+    }
+
+    if (isVegan!!) {
+        recipeTags.add(
+            TagType(
+                tagColor = Brown,
+                iconTint = Color.White,
+                tagText = "Vegan",
+                img = R.drawable.icon_custom_vegan
+            )
+        )
+    }
+
+    if (isVegetarian!!) {
+        recipeTags.add(
+            TagType(
+                tagColor = Brown,
+                iconTint = Color.White,
+                tagText = "Vegetarian",
+                img = R.drawable.icon_custom_vegetarian
+            )
+        )
+    }
+    return recipeTags
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TagsSection(tags: List<TagType>) {
+private fun TagsSection(
+    recipe: Recipe?
+) {
+    var tags = generateTags(recipe)
     FlowRow(
         modifier = Modifier
             .padding(start = 22.dp)
@@ -285,7 +348,7 @@ private fun TagsSection(tags: List<TagType>) {
         maxItemsInEachRow = 4,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        tags.forEach {
+       tags.forEach {
             Tag(it.iconTint, it.tagColor, it.tagText, it.img)
         }
     }
@@ -331,6 +394,13 @@ private fun SectionHeading(heading: String, preparationHeading: Boolean) {
 
 @Composable
 private fun IngredientBullet(quantity: Number, unit: String, subIngredientDetail: String) {
+    var displayQuantity = quantity.toString()
+    if (
+        displayQuantity.contains('.') &&
+        displayQuantity.substringAfter('.').length > 2
+    ) {
+        displayQuantity = displayQuantity.substring(0, displayQuantity.indexOf(".") + 2)
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -347,7 +417,11 @@ private fun IngredientBullet(quantity: Number, unit: String, subIngredientDetail
                     drawCircle(SolidColor(Color.Black))
                 }
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = "${quantity.toString()} ${unit ?: ""}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "$displayQuantity ${unit.lowercase() ?: ""}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
         Column(modifier = Modifier
@@ -361,18 +435,20 @@ private fun IngredientBullet(quantity: Number, unit: String, subIngredientDetail
 
 @Composable
 private fun PreparationSection(recipe: Recipe) {
-    Column(modifier = Modifier.padding(start = 24.dp, bottom = 16.dp)) {
+    Column(modifier = Modifier
+        .padding(start = 24.dp, end = 24.dp)
+        .fillMaxHeight()) {
         Row(modifier = Modifier.padding(bottom = 4.dp)) {
             Text("Preparation", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
-        Column() {
+        Column(modifier = Modifier.fillMaxSize()) {
             recipe.instructions.forEach {
                 Row() {
                     SectionHeading(it.name, preparationHeading = true)
                 }
                 for (i in 0 until it.steps.size) {
                     val stepNumber = (i + 1).toString()
-                    Row(modifier = Modifier.padding(end = 4.dp)) {
+                    Row(modifier = Modifier.padding(end = 8.dp, bottom = 6.dp)) {
                         Text(
                             modifier = Modifier.padding(start = 10.dp),
                             text = it.steps[i].number.toString() + ". " + it.steps[i].step,
