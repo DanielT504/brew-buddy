@@ -39,9 +39,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -197,6 +199,45 @@ fun ImageGrid(
     }
 }
 
+@Composable
+fun RecipeModal(openDialog: Boolean, onClose: () -> Unit) {
+    if (openDialog) {
+        AlertDialog(
+            onDismissRequest = { onClose() },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onClose()
+                    }
+                ) {
+                    Text("Confirm")
+                }
+            },
+//            modifier = Modifier.wrapContentSize(),
+            dismissButton = {},
+            icon = {},
+            title = {
+                Text(
+                    text = "Upload Recipe"
+                )
+            },
+            text = {
+                Text(
+                    text = "ingredient, quantity, notes"
+                )
+            },
+            shape = MaterialTheme.shapes.large,
+//            containerColor = MaterialTheme.colors.surface,
+            iconContentColor = Color.Black,
+            titleContentColor = Color.Black,
+            textContentColor = Color.Black,
+//            tonalElevation = AlertDialogDefaults.TonalElevation,
+//            properties = DialogProperties(usePlatformDefaultWidth = false)
+        )
+    }
+}
+
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserScreen(menuButton: @Composable () -> Unit) {
@@ -213,10 +254,20 @@ fun UserScreen(menuButton: @Composable () -> Unit) {
                 TitleLarge(text = "Your Recipes")
             }
             ImageGrid(3, modifier = Modifier.padding(16.dp))
+            var showDialog = false
+            Button(
+                onClick = {
+                    showDialog = true
+                }
+            ) {
+                Text(text = "Simple Button")
+            }
+            RecipeModal(showDialog,  onClose = { showDialog = false })
             Box() {
                 TitleLarge(text = "Saved Shops near you")
             }
-            Box(modifier = Modifier.fillMaxWidth()
+            Box(modifier = Modifier
+                .fillMaxWidth()
                 .background(Color.White, shape = RoundedCornerShape(32.dp))
                 .padding(16.dp, 0.dp, 16.dp, 100.dp)) {
                 if (store1.saved) {
