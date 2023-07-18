@@ -9,7 +9,9 @@ This is the file where you put the actual endpoints that will be called by the a
 
 ### app setup
 
-In assets/env there is a field called "DEBUG". switching it between true/false will either set it to use the local instance (which you can run below). if it is false it will access the production instances of the firebase app `brewbuddy-ece452`
+In `assets/env` there is a field called `DEBUG`. switching it between true/false will either set it to use the local instance (which you can run below). if it is false it will access the production instances of the firebase app `brewbuddy-ece452`
+
+![Alt text](image.png)
 
 You will need access to the Firebase app to run it locally. When you run it locally, the Firestore DB will be *empty*; you can try running the `clone_prod_db` script if you want to download a local version of the Firestore DB that's live (make sure you're in the `functions` folder to run it).
 
