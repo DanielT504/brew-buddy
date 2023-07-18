@@ -16,7 +16,6 @@ data class Recipe(
     var title: String = "Unnamed Recipe",
     var servings: Int = 0,
     var summary: String? = null,
-    var drinkType: List<String> = emptyList(),
     var diets: List<String> = emptyList(),
     var instructions: List<Instructions> = emptyList(),
     var bannerUrl: String = Constants.DEFAULT_BANNER_URL,

@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.recipes.IngredientSection
 import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
@@ -187,7 +188,7 @@ private fun RecipeGridLayout(navController: NavHostController, state: RecipesSta
                  recipe ->
                     RecipeCard(
                         title = recipe.title ?: "",
-                        photo = recipe.bannerUrl ?: R.drawable.x_recipe1,
+                        photo = recipe.bannerUrl,
                         navController = navController,
                         recipeId = recipe.id ?: ""
                     )
@@ -243,11 +244,10 @@ private fun PopularCard(photo: Any) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RecipeCard(recipeId: String,title: String, photo: Any, navController: NavHostController) {
-    val formattedTitle = formatTitle(title)
+private fun RecipeCard(recipeId: String, title: String, photo: Any, navController: NavHostController) {
     Card(
         onClick = {
-            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + "V8rQC0fgEX7WQJkVWB3H") },
+            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + recipeId) },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 15.dp
@@ -255,12 +255,13 @@ private fun RecipeCard(recipeId: String,title: String, photo: Any, navController
         modifier = Modifier.fillMaxWidth()
 
     ) {
-            Box() {
+            Box(modifier = Modifier.fillMaxSize()) {
                 AsyncImage(
                     model = photo,
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.FillHeight,
                     modifier = Modifier
+                        .height(300.dp)
                         .fillMaxWidth()
                         .fillMaxHeight()
                         .wrapContentHeight()

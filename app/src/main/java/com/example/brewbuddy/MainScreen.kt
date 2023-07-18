@@ -119,9 +119,6 @@ private fun MainScreenNavigationConfigurations(
             composable(
                 route = Screen.IndividualRecipeScreen.route + "/{recipeId}"
             ){
-                val param = it.arguments?.getString("recipeId") ?: ""
-                var savedStateHandle = SavedStateHandle()
-                savedStateHandle.set("id", param.substringAfter("}"))
                 IndividualRecipeScreen(navController)
 //                IndividualRecipeScreen(navController)
             }

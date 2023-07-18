@@ -26,7 +26,8 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
         Log.d("IndividualRecipeScreenViewModel", savedStateHandle.toString())
         savedStateHandle.get<String>(Constants.PARAM_RECIPE_ID)?.let { recipeId ->
             Log.d("IndividualRecipeScreenViewModel", recipeId)
-            getRecipeById(recipeId)
+            val id = recipeId.substringAfter("}")
+            getRecipeById(id)
         }
     }
 

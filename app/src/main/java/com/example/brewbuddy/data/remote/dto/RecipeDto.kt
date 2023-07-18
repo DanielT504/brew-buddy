@@ -1,5 +1,6 @@
 package com.example.brewbuddy.data.remote.dto
 
+import android.util.Log
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.Recipe
 
@@ -10,7 +11,6 @@ data class RecipeDto(
     val title: String,
     val instructions: List<Instructions>,
     val ingredientLists: List<IngredientList>,
-    val drinkType: List<String>,
     val preparationMinutes: Int,
     val servings: Int,
     val likes: Int,
@@ -25,12 +25,10 @@ data class RecipeDto(
         fun from(map: HashMap<String, Object>) = object {
             val instructions = map["instructions"] as List<HashMap<String, Object>>
             val ingredientLists = map["ingredientLists"] as List<HashMap<String, Object>>
-
             val data = RecipeDto(
                 likes=map["likes"] as Int,
                 servings=map["servings"] as Int,
                 preparationMinutes=map["preparationMinutes"] as Int,
-                drinkType=map["drinkType"] as List<String>,
                 glutenFree=map["glutenFree"] as Boolean,
                 dairyFree=map["dairyFree"] as Boolean,
                 sustainable=map["sustainable"] as Boolean,
@@ -54,7 +52,6 @@ fun RecipeDto.toRecipe(): Recipe {
         likes = likes,
         instructions = instructions,
         dairyFree = dairyFree,
-        drinkType = drinkType,
         glutenFree = glutenFree,
         id = id,
         bannerUrl = bannerUrl,
@@ -65,5 +62,7 @@ fun RecipeDto.toRecipe(): Recipe {
         title = title,
         vegan = vegan,
         vegetarian = vegetarian,
+        ingredientLists = ingredientLists,
+        author=author
     )
 }
