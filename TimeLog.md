@@ -54,7 +54,13 @@
 | 2023/07/11 |2       |         |      |        |         |        | Deliverable 4 Doc Work                                        |
 | 2023/07/11 |2       |         |      |        |         |        | Deliverable 5 Doc Work                                        |
 | 2023/07/11 |4       |         |      |        |         |        | Get current location, debug Places API                        |
+| 2023/07/12 |        |         |      |        | 4       |        | Initial firebase integration + d4 doc work                    |
+| 2023/07/13 |        |         |      |        | 1       |        | Slight refactor of recipe/ingredient classes                  |
 | 2023/07/13 |        |5        |      |        |         |        | Add recipe data source API endpoints & MVVM changes           |
 | 2023/07/13 |        |         |      |        |         | 4      | Fixed authentication blocker bug                              |
 | 2023/07/14 |        |2        |      |        |         |        | Deliverable 5 Doc Work                                        |
+| 2023/07/14 |        |         |      |        | 4       |        | Connect endpoints to user + add ability to locally test api   |
+| 2023/07/15 |        |         |      |        | 4       |        | Refactor endpoints and models to accept new api               |
+| 2023/07/15 |        |         |      |        | 1       |        | Mass-import recipes into Firestore for use in app             |
+| 2023/07/15 |        |         |      |        | 2       |        | Connect endpoint to individual recipe/recipe page             |
 | 2023/07/15 |3       |         |      |        |         |        | Apply for MyBusiness API access, get cafes within x radius    |
