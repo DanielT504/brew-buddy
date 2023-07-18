@@ -127,3 +127,17 @@ exports.getRecipesMetadata = onCall(async ({ data }, context) => {
 
   return recipes;
 });
+
+exports.createRecipe = onRequest(async ({ body }, response) => {
+  console.log(body);
+  const { recipes, users } = body;
+  recipes.forEach((recipe) => {
+    db.collection("recipes").doc().set(recipe);
+  });
+
+  users.forEach((user) => {
+    db.collection("users").doc(user["uid"]).set(user);
+  });
+  // const res = await db.collection("recipes").doc().set(body);
+  response.status(200).send();
+});

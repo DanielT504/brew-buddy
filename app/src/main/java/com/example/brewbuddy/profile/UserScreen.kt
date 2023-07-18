@@ -103,6 +103,7 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
             pageContent = { index ->
                 val page = getIndex(index, startIndex, pageCount)
 
+                // TODO: Temporarily commented out because there is no pinned recipes data being returned by a user
 //                Box(contentAlignment = Alignment.Center) {
 //                    PinnedCard(modifier = Modifier
 //                        .width(210.dp)
