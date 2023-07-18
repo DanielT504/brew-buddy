@@ -66,3 +66,4 @@
 | 2023/07/17 |        |         |      |        | 2       |        | Connect endpoint to individual recipe/recipe page             |
 | 2023/07/17 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync meeting                                          |
 | 2023/07/17 |        |         | 2    |        |         |        | Adding upload recipe button + modal, reading firebase docs    |
+| 2023/07/18 |        |2        |      |        |         |        | Local firebase setup + refactoring Recipes UI with new API    |
