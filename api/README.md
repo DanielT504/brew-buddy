@@ -1,5 +1,8 @@
 # firebase api using firebase functions
 
+### !!! NOTE
+idk how this will work on computers that have to set up firebase still. try following all of step 2 and 3.1 [here](https://firebase.google.com/docs/functions/get-started?gen=2nd#set-up-your-environment-and-the-firebase-cli) and then see if just running it will work.
+
 ## index.js
 This is the file where you put the actual endpoints that will be called by the app.
 
