@@ -61,13 +61,18 @@ dependencies {
     implementation platform('androidx.compose:compose-bom:2022.10.00')
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
     implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.material3:material3:1.1.0-alpha06'
     implementation 'androidx.compose.ui:ui-graphics'
     implementation 'androidx.compose.ui:ui-tooling-preview'
     implementation 'androidx.compose.material3:material3'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'com.google.android.gms:play-services-location:21.0.1'
     implementation 'com.google.firebase:firebase-auth-ktx:21.1.0'
+<<<<<<< HEAD
     implementation 'com.google.android.datatransport:transport-runtime:3.1.2'
+=======
+    implementation 'com.google.android.libraries.places:places:2.5.0'
+>>>>>>> main
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
@@ -87,6 +92,7 @@ dependencies {
     implementation 'com.google.maps.android:maps-compose-widgets:2.11.2'
     implementation(platform("com.google.firebase:firebase-bom:32.1.1"))
     implementation 'com.google.firebase:firebase-firestore-ktx:24.6.1'
+<<<<<<< HEAD
     implementation("com.google.firebase:firebase-functions-ktx")
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1'
     implementation("com.google.firebase:firebase-storage-ktx")
@@ -105,3 +111,22 @@ dependencies {
 }
 
 kapt {   correctErrorTypes true }
+=======
+    implementation 'com.google.maps.android:places-ktx:2.0.0'
+    implementation 'com.google.android.libraries.places:places:3.1.0'
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.18.0")
+    implementation("com.google.accompanist:accompanist-insets:0.18.0")
+    implementation("com.google.accompanist:accompanist-navigation-animation:0.18.0")
+    implementation "androidx.compose.ui:ui-util"
+
+
+}
+
+secrets {
+    // To add your Places API key to this project:
+    // 1. Update a file in your root project called `local.properties` and add this line,
+    // where YOUR_API_KEY is your API key:
+    //     PLACES_API_KEY=YOUR_API_KEY
+    defaultPropertiesFileName 'local.properties'
+}
+>>>>>>> main

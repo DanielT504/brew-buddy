@@ -57,3 +57,4 @@
 | 2023/07/13 |        |5        |      |        |         |        | Add recipe data source API endpoints & MVVM changes           |
 | 2023/07/13 |        |         |      |        |         | 4      | Fixed authentication blocker bug                              |
 | 2023/07/14 |        |2        |      |        |         |        | Deliverable 5 Doc Work                                        |
+| 2023/07/15 |3       |         |      |        |         |        | Apply for MyBusiness API access, get cafes within x radius    |
