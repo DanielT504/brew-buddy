@@ -25,6 +25,18 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -62,11 +74,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.brewbuddy.marketplace.Filter
 import com.example.brewbuddy.marketplace.MarketplaceItem
 import com.example.brewbuddy.recipes.RecipeResultsVeiwModel
+import coil.compose.AsyncImage
+import com.example.brewbuddy.recipes.IngredientSection
+import com.example.brewbuddy.recipes.IngredientsList
+import com.example.brewbuddy.recipes.RecipeNavigationScreens
+import com.example.brewbuddy.recipes.TagType
+import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
 import com.example.brewbuddy.ui.theme.SlateLight
 import com.example.brewbuddy.ui.theme.TitleLarge
+import com.example.brewbuddy.util.randomSampleImageUrl
 
 @Composable
 fun RecipesScreen (
