@@ -143,6 +143,9 @@ const getRecipesMetadataWithAuthor = async (db) => {
   return res;
 };
 exports.getRecipesMetadata = onCall(async ({ data }, context) => {
+  const { query } = data;
+  if (query) {
+  }
   const res = await getRecipesMetadataWithAuthor(db);
 
   return res;

@@ -100,3 +100,18 @@ exports.getRecipesMetadata = (db) => {
       }));
     });
 };
+
+exports.getRecipesMetadataByQuery = (db) => {
+  return db
+    .collection("recipes")
+    .get()
+    .then((snapshot) => {
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        bannerUrl: doc.data().bannerUrl,
+        title: doc.data().title,
+        likes: doc.data().likes,
+        authorId: doc.data().authorId,
+      }));
+    });
+};

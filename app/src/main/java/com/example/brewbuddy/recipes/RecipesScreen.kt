@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -57,18 +58,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.brewbuddy.marketplace.Filter
 import com.example.brewbuddy.marketplace.MarketplaceItem
+import com.example.brewbuddy.recipes.RecipeResultsVeiwModel
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
 import com.example.brewbuddy.ui.theme.SlateLight
+import com.example.brewbuddy.ui.theme.TitleLarge
 
 @Composable
 fun RecipesScreen (
     name: String
 ) {
     var activeFilters =  remember { mutableStateListOf<Filter>() }
+
+    var searchQuery = remember { mutableStateOf("") }
     var marketplaceSectionOffset = 20.dp
     if (activeFilters.size >= 3) {
         marketplaceSectionOffset = -(5.dp)
@@ -77,14 +83,19 @@ fun RecipesScreen (
         Column(modifier = Modifier
             .fillMaxSize()) {
             Box() {
-                SearchBarWrapper(activeFilters)
+                SearchBarWrapper(activeFilters, searchQuery)
             }
             Box(modifier = Modifier
                 .offset(y = -(marketplaceSectionOffset))
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
             ) {
-                Marketplace()
+                if(searchQuery.value.length === 0) {
+                    TitleLarge(text = "Search for your next recipe.")
+                } else {
+                    RecipeSearchResults()
+
+                }
             }
         }
     }
@@ -97,8 +108,7 @@ fun RecipesScreen (
     ExperimentalLayoutApi::class
 )
 @Composable
-private fun SearchBar(activeFilters: SnapshotStateList<Filter>) {
-    var text by remember { mutableStateOf("")}
+private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: MutableState<String>) {
     var filtersExpanded by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -110,8 +120,8 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>) {
         ) {
             Column() {
                 TextField(
-                    value = text,
-                    onValueChange = { text = it },
+                    value = searchQuery.value,
+                    onValueChange = { searchQuery.value = it },
                     label = { Text("Search") },
                     colors = TextFieldDefaults
                         .textFieldColors(
@@ -281,7 +291,7 @@ private fun FilterTag(filter: Filter, activeFilters: SnapshotStateList<Filter>) 
 }
 
 @Composable
-private fun SearchBarWrapper(activeFilters: SnapshotStateList<Filter>) {
+private fun SearchBarWrapper(activeFilters: SnapshotStateList<Filter>, searchQuery: MutableState<String>) {
     /*Modify this height based on number of applied filters*/
     var searchbarHeight = 120.dp
     if (activeFilters.size > 3) {
@@ -290,7 +300,7 @@ private fun SearchBarWrapper(activeFilters: SnapshotStateList<Filter>) {
     Box(modifier = Modifier
         .height(searchbarHeight)
         .background(color = Color.White)) {
-        SearchBar(activeFilters)
+        SearchBar(activeFilters, searchQuery)
     }
 }
 
@@ -306,7 +316,7 @@ private fun ActiveFilters() {
 }
 
 @Composable
-private fun Marketplace() {
+private fun RecipeSearchResults(viewStateModel: RecipeResultsVeiwModel = hiltViewModel()) {
     Surface(shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -319,7 +329,7 @@ private fun Marketplace() {
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             for (marketplaceItem in marketplaceItems) {
-                MarketplaceCard(
+                ResultCard(
                     title = marketplaceItem.postTitle,
                     price = marketplaceItem.price,
                     city = marketplaceItem.city,
@@ -332,7 +342,7 @@ private fun Marketplace() {
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MarketplaceCard(
+private fun ResultCard(
     title: String,
     price: String,
     city: String,
