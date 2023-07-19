@@ -30,6 +30,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -118,6 +122,7 @@ fun IndividualRecipeScreen(
 @Composable
 private fun RecipeBanner(img: String, title: String, navController: NavHostController, author: Author) {
     val contextForToast = LocalContext.current.applicationContext
+    var favourited by remember { mutableStateOf(false)}
     Box(modifier = Modifier
         .height(230.dp)
         .fillMaxWidth(),
@@ -148,11 +153,11 @@ private fun RecipeBanner(img: String, title: String, navController: NavHostContr
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween)
         {
-            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 24.dp)) {
-                Row() {
+            Column(modifier = Modifier.padding(start = 12.dp, top = 24.dp, bottom = 24.dp).width(300.dp)) {
+                Row(horizontalArrangement = Arrangement.Start) {
                     Text(style = MaterialTheme.typography.titleLarge, text =  title, color =  Cream)
                 }
-                Row() {
+                Row(horizontalArrangement = Arrangement.Start) {
                     Text(modifier = Modifier.padding(horizontal = 2.dp), text = "@" + author.username, color = Cream)
                 }
             }
@@ -162,16 +167,27 @@ private fun RecipeBanner(img: String, title: String, navController: NavHostContr
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.End,
                 ) {
-                    Box( modifier = Modifier.align(Alignment.CenterVertically)) {
-                        IconButton(onClick = { Toast.makeText(contextForToast, "Added to Favourites", Toast.LENGTH_SHORT).show()}) {
+                    Box(modifier = Modifier.align(Alignment.CenterVertically).padding(end = 4.dp)) {
+                        IconButton(
+                            onClick = {
+                                favourited = !favourited
+                                Toast.makeText(
+                                    contextForToast,
+                                    if (favourited) { "Added to Favourites" } else { "Removed from Favourites" },
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        ) {
                             Canvas(modifier = Modifier.size(38.dp)) {
                                 drawCircle(color = Cream)
                             }
                             Icon(
                                 tint = Brown,
-                                painter = painterResource(id = R.drawable.icon_favourite_heart),
+                                painter = painterResource(
+                                    id = if (favourited) { R.drawable.icon_favourite_heart } else { R.drawable.icon_favourite_border}
+                                ),
                                 contentDescription = "Favourite Recipe",
                                 modifier = Modifier
                                     .size(24.dp)
@@ -179,14 +195,14 @@ private fun RecipeBanner(img: String, title: String, navController: NavHostContr
                             )
                         }
                     }
-                    IconButton(onClick = { /*TODO*/ }) {
+/*                    IconButton(onClick = { *//*TODO*//* }) {
                         Icon(
                             tint = Cream,
                             painter = painterResource(id = R.drawable.icon_more_vertical),
                             contentDescription = "Explore more",
                             modifier = Modifier.size(42.dp),
                         )
-                    }
+                    }*/
                 }
             }
         }
