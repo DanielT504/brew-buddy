@@ -3,6 +3,7 @@ package com.example.brewbuddy
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -128,9 +129,27 @@ private fun PopularRecipes(viewModel: FeaturedViewModel, navController: NavHostC
         modifier = Modifier
             .height(300.dp)
     ) {
-
         item {
             TitleLarge(text = "Popular")
+        }
+        item {
+            if(state.error.isNotBlank()) {
+                Text(
+                    text = state.error,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                )
+            }
+            if(state.isLoading){
+                Surface(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)) {
+                    Loading()
+                }
+            }
         }
         item {
             Carousel(
@@ -142,23 +161,6 @@ private fun PopularRecipes(viewModel: FeaturedViewModel, navController: NavHostC
         }
     }
 
-    if(state.error.isNotBlank()) {
-        Text(
-            text = state.error,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        )
-    }
-    if(state.isLoading){
-        Surface(modifier = Modifier
-            .fillMaxWidth()
-            .height(300.dp)) {
-            Loading()
-        }
-    }
 }
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -179,12 +181,7 @@ private fun GridLayout(navController: NavHostController, viewModel: FeaturedView
         ) {
             items(state.data) {
                     recipe ->
-                RecipeCard(
-                    title = recipe.title ?: "",
-                    photo = recipe.bannerUrl,
-                    navController = navController,
-                    recipeId = recipe.id ?: ""
-                )
+                RecipeCard(recipe, navController)
             }
         }
     }
@@ -265,9 +262,9 @@ private fun navigateToRecipe(recipeId: String, navController: NavHostController)
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RecipeCard(recipeId: String, title: String, photo: Any, navController: NavHostController) {
+private fun RecipeCard(recipe: RecipeMetadata, navController: NavHostController) {
     Card(
-        onClick = {navigateToRecipe(recipeId, navController)},
+        onClick = {navigateToRecipe(recipe.id!!, navController)},
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 15.dp
@@ -277,7 +274,7 @@ private fun RecipeCard(recipeId: String, title: String, photo: Any, navControlle
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
-                model = photo,
+                model = recipe.bannerUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -297,31 +294,42 @@ private fun RecipeCard(recipeId: String, title: String, photo: Any, navControlle
                     tint = Color.White
                 )
                 Spacer(modifier = Modifier.weight(1f).padding(bottom = 40.dp))
-                CardTitle(text=title, fontSize = 24.sp)
+                CardTitle(text=recipe.title, fontSize = 24.sp)
                 Row(
                     modifier=Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Spacer(modifier = Modifier.weight(1f))
-                    Text("John Doe", color = Color.White, fontSize = 18.sp)
-                    Box(
-                        Modifier
-                            .padding(horizontal = 6.dp, vertical = 0.dp)
-                            .size(30.dp), contentAlignment = Alignment.Center) {
-                        Canvas(modifier = Modifier.fillMaxSize()) {
-                            drawCircle(SolidColor(Color.White))
-                        }
-                        Icon(
-                            painter = painterResource(id = R.drawable.icon_user),
-                            contentDescription = "User image placeholder"
-                        )
-                    }
+                    Text(recipe.author.username, color = Color.White, fontSize = 18.sp)
+                    AsyncImage(
+                        model = recipe.author.avatarUrl,
+                        contentDescription = "Profile Picture",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(30.dp)
+                            .border(4.dp, Color.White, shape = CircleShape)
+                    )
+
+//                    Box(
+//                        Modifier
+//                            .padding(horizontal = 6.dp, vertical = 0.dp)
+//                            .size(30.dp), contentAlignment = Alignment.Center) {
+//                        Canvas(modifier = Modifier.fillMaxSize()) {
+//                            drawCircle(SolidColor(Color.White))
+//                        }
+//                        Icon(
+//                            painter = painterResource(id = R.drawable.icon_user),
+//                            contentDescription = "User image placeholder"
+//                        )
+//                    }
                 }
 
             }
         }
     }
 }
+
 
 
 @OptIn(ExperimentalFoundationApi::class)

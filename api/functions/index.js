@@ -126,16 +126,36 @@ exports.pinRecipe = onCall(async ({ data }, context) => {
   }
 });
 
-exports.getRecipesMetadata = onCall(async ({ data }, context) => {
+const getRecipesMetadataWithAuthor = async (db) => {
   const metadatas = await getRecipesMetadata(db);
+  const res = [];
+  for (let i = 0; i < metadatas.length; i++) {
+    const metadata = metadatas[i];
+    const author = await getUserById(metadata.authorId, db);
+    res.push({
+      id: metadata.id,
+      bannerUrl: metadata.bannerUrl,
+      likes: metadata.likes,
+      title: metadata.title,
+      author,
+    });
+  }
+  return res;
+};
+exports.getRecipesMetadata = onCall(async ({ data }, context) => {
+  const res = await getRecipesMetadataWithAuthor(db);
 
-  return metadatas;
+  return res;
 });
 
 exports.getPopularRecipes = onCall(async ({ data }, context) => {
-  const popularRecipes = await getRecipesMetadata(db);
+  const popularRecipes = await getRecipesMetadataWithAuthor(db);
 
   popularRecipes.sort((a, b) => b.likes - a.likes);
   console.log("Popular Recipes: ", popularRecipes);
   return popularRecipes.slice(0, 5);
+});
+
+exports.getFeaturedRecipes = onCall(async ({ data }, context) => {
+  const metadatas = await getRecipesMetadata(db);
 });
