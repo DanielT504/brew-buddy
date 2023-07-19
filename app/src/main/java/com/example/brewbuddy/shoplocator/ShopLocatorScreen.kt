@@ -4,21 +4,18 @@ package com.example.brewbuddy
 
 import android.location.Geocoder
 import android.location.Location
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +28,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
 import com.example.brewbuddy.shoplocator.LocationPermissionsAndSettingDialogs
@@ -53,23 +53,24 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
-import com.google.android.libraries.places.api.net.PlacesClient
-import com.google.maps.android.compose.CameraPositionState
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONObject
 import java.util.Locale
-import androidx.compose.ui.unit.IntOffset
 import kotlin.math.roundToInt
 
 
@@ -169,7 +170,12 @@ fun StoreListSheet(currentLocation: Location) {
         modifier = Modifier
             .fillMaxWidth()
             .background(color = Color.Transparent)
-            .offset { IntOffset(0, (slideOffset * 900).roundToInt()) } // Adjust the height value (900) as needed
+            .offset {
+                IntOffset(
+                    0,
+                    (slideOffset * 900).roundToInt()
+                )
+            } // Adjust the height value (900) as needed
             .draggable(
                 state = rememberDraggableState { delta ->
                     slideOffset += delta / 900 // Adjust the height value (900) as needed
@@ -215,7 +221,31 @@ fun StoreListSheet(currentLocation: Location) {
 }
 
 data class CafeMarker(val name: String, val position: LatLng)
+var radius = 0f;
+private suspend fun retrieveRadiusFromFirestore() {
+    val firestore = FirebaseFirestore.getInstance()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val preferencesRef = userId?.let { firestore.collection("user_preferences").document(it) }
 
+
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val snapshot = preferencesRef?.get()?.await()
+            val getRadius = snapshot?.getDouble("radius")
+
+            // Update the UI or do further processing with the retrieved radius value
+            getRadius?.let {
+                // Use the retrieved radius value
+                // For example, update a mutable state or call a function to update the UI
+                getRadius?.let {
+                    radius = getRadius.toFloat()
+                }
+            }
+        } catch (e: Exception) {
+            // Handle exceptions, such as network errors or document retrieval failures
+        }
+    }
+}
 @Composable
 fun MapWrapper(currentLocation: Location,
                cameraPositionState: CameraPositionState
@@ -229,10 +259,14 @@ fun MapWrapper(currentLocation: Location,
 
     val location = LatLng(latitude, longitude)
     var cafeList by remember { mutableStateOf<List<CafeMarker>>(emptyList()) }
+    runBlocking {         retrieveRadiusFromFirestore()
+    }
+
     LaunchedEffect(Unit) {
+
         val url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
                 "?location=${location.latitude}%2C${location.longitude}" +
-                "&radius=2000" +
+                "&radius=${radius*1000}" +
                 "&type=cafe" +
                 "&keyword=independent"+
                 "&keyword=organic|fair+trade|eco-friendly"+
@@ -273,9 +307,10 @@ fun MapWrapper(currentLocation: Location,
             }
         }
     }
-
+    val scale = (radius*650 / 500).toDouble()
+    val zoomLevel = (16 - Math.log(scale) / Math.log(2.0)).toInt()
     val cameraPositionState1 = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(location, 15f)
+        position = CameraPosition.fromLatLngZoom(location, zoomLevel +.5f)
     }
 
 
