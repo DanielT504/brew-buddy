@@ -43,5 +43,19 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             return@withContext RecipeDto.from(data)
         }
     }
+    override suspend fun getPopular(): List<RecipeMetadataDto> {
+        Log.d("GET_POPULAR", "Running")
+
+        return withContext(Dispatchers.IO) {
+            val dataDeferred = async {
+                getFunctions()
+                    .getHttpsCallable("getPopularRecipes")
+                    .call().await()
+            }
+            val task = dataDeferred.await()
+            val data = task.data as List<HashMap<String, Object>>
+            return@withContext data.map{RecipeMetadataDto.from(it)}
+        }
+    }
 
 }

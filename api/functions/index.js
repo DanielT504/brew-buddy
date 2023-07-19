@@ -23,9 +23,17 @@ const {
   HttpsError,
   onRequest,
 } = require("firebase-functions/v2/https");
-const { getUserById } = require("./users.js");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
+
+const {
+  getRecipeById,
+  getRecipes,
+  getRecipesMetadata,
+  getRecipeMetadataById,
+} = require("./utils/recipes.js");
+const { getUserById, updatePinnedRecipes } = require("./utils/users.js");
+
 initializeApp();
 const db = getFirestore();
 
@@ -65,22 +73,7 @@ exports.getRecipeById = onCall(async ({ data }, context) => {
     // Throwing an HttpsError so that the client gets the error details.
     throw new HttpsError("failed-precondition", "No recipe ID provided");
   }
-  var recipe = await db
-    .collection("recipes")
-    .doc(recipeId)
-    .get()
-    .then((doc) => {
-      if (!doc) {
-        throw new HttpsError(
-          "failed-precondition",
-          `No recipe with ID ${recipeId} found`
-        );
-      }
-      return {
-        id: doc.id,
-        ...doc.data(),
-      };
-    });
+  var recipe = await getRecipeById(recipeId, db);
 
   var author = null;
   try {
@@ -108,36 +101,41 @@ exports.getUserById = onCall(async ({ data }, context) => {
   return await getUserById(userId, db);
 });
 
-exports.getRecipesMetadata = onCall(async ({ data }, context) => {
-  var recipes = [];
+exports.pinRecipe = onCall(async ({ data }, context) => {
+  const { userId, recipeId } = data;
+  log("pinRecipe Request: ", data);
 
-  await db
-    .collection("recipes")
-    .get()
-    .then((snapshot) => {
-      snapshot.forEach((doc) => {
-        const metadata = {
-          id: doc.id,
-          bannerUrl: doc.data().bannerUrl,
-          title: doc.data().title,
-        };
-        recipes.push(metadata);
-      });
-    });
-
-  return recipes;
+  if (userId === undefined || userecipeIdrId === undefined) {
+    // Throwing an HttpsError so that the client gets the error details.
+    throw new HttpsError(
+      "failed-precondition",
+      "pinRecipe: No user or recipe ID provided"
+    );
+  }
+  const user = await getUserById(userId, db);
+  const pinnedRecipes = user.pinnedRecipes || [];
+  if (pinnedRecipes.includes(recipeId)) {
+    // the recipe is already pinned, so unpin it
+    updatePinnedRecipes(
+      userId,
+      pinnedRecipes.filter((id) => id !== recipeId),
+      db
+    );
+  } else {
+    updatePinnedRecipes(userId, [...pinnedRecipes, recipeId], db);
+  }
 });
 
-exports.createRecipe = onRequest(async ({ body }, response) => {
-  console.log(body);
-  const { recipes, users } = body;
-  recipes.forEach((recipe) => {
-    db.collection("recipes").doc().set(recipe);
-  });
+exports.getRecipesMetadata = onCall(async ({ data }, context) => {
+  const metadatas = await getRecipesMetadata(db);
 
-  users.forEach((user) => {
-    db.collection("users").doc(user["uid"]).set(user);
-  });
-  // const res = await db.collection("recipes").doc().set(body);
-  response.status(200).send();
+  return metadatas;
+});
+
+exports.getPopularRecipes = onCall(async ({ data }, context) => {
+  const recipes = await getRecipesMetadata(db);
+
+  const popularRecipes = recipes.sort((a, b) => a.likes > b.likes);
+  console.log("Popular Recipes: ", popularRecipes);
+  return popularRecipes.slice(0, 10);
 });

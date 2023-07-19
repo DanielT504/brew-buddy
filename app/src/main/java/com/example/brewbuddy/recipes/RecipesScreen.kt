@@ -1,14 +1,13 @@
 package com.example.brewbuddy
 
-import android.util.Log
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -19,305 +18,399 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.material3.MaterialTheme
-import com.example.brewbuddy.ui.theme.GreyLight
-import com.example.brewbuddy.ui.theme.GreyMedium
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
-import com.example.brewbuddy.domain.model.RecipeMetadata
-import com.example.brewbuddy.recipes.IngredientSection
-import com.example.brewbuddy.recipes.IngredientsList
-import com.example.brewbuddy.recipes.RecipeNavigationScreens
-import com.example.brewbuddy.recipes.RecipesScreenViewModel
-import com.example.brewbuddy.recipes.RecipesState
-import com.example.brewbuddy.recipes.Screen
-import com.example.brewbuddy.recipes.TagType
-import com.example.brewbuddy.ui.theme.Brown
+import com.example.brewbuddy.marketplace.Filter
+import com.example.brewbuddy.marketplace.MarketplaceItem
 import com.example.brewbuddy.ui.theme.Cream
-import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
-import com.example.brewbuddy.ui.theme.GreyLight
-import com.example.brewbuddy.ui.theme.GreyMedium
-import com.example.brewbuddy.util.randomSampleImageUrl
-import com.google.firebase.functions.FirebaseFunctions
-import org.json.JSONArray
-import java.util.Objects
-import com.example.brewbuddy.util.formatTitle
-import com.example.brewbuddy.randomSizedPhotos as randomSizedPhotos
+import com.example.brewbuddy.ui.theme.GreenMedium
+import com.example.brewbuddy.ui.theme.SlateLight
 
 @Composable
-fun RecipesScreen(
-    navController: NavHostController,
-    viewModel: RecipesScreenViewModel = hiltViewModel()
+fun RecipesScreen (
+    name: String
 ) {
-    val state = viewModel.state.value
-
+    var activeFilters =  remember { mutableStateListOf<Filter>() }
+    var marketplaceSectionOffset = 20.dp
+    if (activeFilters.size >= 3) {
+        marketplaceSectionOffset = -(5.dp)
+    }
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+        Column(modifier = Modifier
+            .fillMaxSize()) {
+            Box() {
+                SearchBarWrapper(activeFilters)
+            }
+            Box(modifier = Modifier
+                .offset(y = -(marketplaceSectionOffset))
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+            ) {
+                Marketplace()
+            }
+        }
+    }
+
+}
+
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalComposeUiApi::class,
+    ExperimentalLayoutApi::class
+)
+@Composable
+private fun SearchBar(activeFilters: SnapshotStateList<Filter>) {
+    var text by remember { mutableStateOf("")}
+    var filtersExpanded by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    Column() {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column() {
+                TextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text("Search") },
+                    colors = TextFieldDefaults
+                        .textFieldColors(
+                            containerColor = Color.White,
+                            textColor = Color.DarkGray,
+                            unfocusedIndicatorColor = Color.LightGray,
+                            focusedIndicatorColor = Color.Gray,
+                            disabledLeadingIconColor = Color.DarkGray,
+                            disabledIndicatorColor = Color.DarkGray
+                        ),
+                    leadingIcon = {
+                        Icon(
+                            painterResource(id = R.drawable.icon_search),
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier
+                        .width(352.dp)
+                        .padding(start = 16.dp),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = {
+                        /*onSearch(text)*/
+                        // Hide the keyboard after submitting the search
+                        keyboardController?.hide()
+                        //or hide keyboard
+                        focusManager.clearFocus()
+
+                    })
+                )
+            }
+            Column(modifier = Modifier.background(color = Color.White)) {
+                Row(
+                    modifier = Modifier.padding(top = 4.dp, end = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(1.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .height(52.dp)
+                            .padding(top = 8.dp)
+                            .padding(top = 8.dp, start = 2.dp, end = 8.dp)
+
+                            .align(Alignment.CenterVertically)
+                    ) {
+                        IconButton(onClick = { filtersExpanded = !filtersExpanded }) {
+                            BadgedBox(
+                                badge = {
+                                    Badge(containerColor = GreenMedium) {
+                                        Text(
+                                            text = activeFilters.size.toString(),
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painterResource(id = R.drawable.icon_tune),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(28.dp),
+                                    tint = Color.Gray,
+                                )
+                            }
+                        }
+                    }
+                    DropdownMenu(
+                        expanded = filtersExpanded,
+                        onDismissRequest = { filtersExpanded = false },
+                        modifier = Modifier.background(color = Color.White)
+                    ) {
+                        for (filter in filters) {
+                            DropdownMenuItem(
+                                text = { Text(filter.filterLabel) },
+                                onClick = {
+                                    canAddToActiveFilters(
+                                        filter,
+                                        activeFilters
+                                    ) && activeFilters.add(filter)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(start = 12.dp, end = 12.dp)
+        ) {
+            for (filter in activeFilters) {
+                FilterTag(filter = filter, activeFilters = activeFilters)
+            }
+        }
+    }
+}
+
+private fun canAddToActiveFilters(
+    filterToAdd: Filter,
+    activeFilters: SnapshotStateList<Filter>
+): Boolean {
+    val oldestToNewest = filters.last { filter: Filter -> filter.filterLabel == "Oldest to Newest" }
+    val newestToOldest = filters.last { filter: Filter -> filter.filterLabel == "Newest to Oldest" }
+    val priceLowToHigh = filters.last { filter: Filter -> filter.filterLabel == "Price (Low to High)" }
+    val priceHighToLow = filters.last { filter: Filter -> filter.filterLabel == "Price (High to Low)" }
+    if (activeFilters.contains(filterToAdd)) {
+        return false
+    }
+    if (filterToAdd.filterLabel == "Newest to Oldest"
+        && activeFilters.contains(oldestToNewest))
+    {
+        return false
+    }
+    if (filterToAdd.filterLabel == "Oldest to Newest"
+        && activeFilters.contains(newestToOldest))
+    {
+        return false
+    }
+    if (filterToAdd.filterLabel == "Price (Low to High)"
+        && activeFilters.contains(priceHighToLow))
+    {
+        return false
+    }
+    if (filterToAdd.filterLabel == "Price (High to Low)"
+        && activeFilters.contains(priceLowToHigh))
+    {
+        return false
+    }
+    return true
+}
+
+@Composable
+private fun FilterTag(filter: Filter, activeFilters: SnapshotStateList<Filter>) {
+    Box(modifier = Modifier.padding(top = 6.dp)) {
+        Box(
+            modifier =
+            Modifier
+                .clip(RoundedCornerShape(14.dp))
+                .background(color = GreenLight)
+                .height(28.dp)
+            ,
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 2.dp, horizontal = 8.dp)
+            ) {
+                Box(modifier = Modifier.align(Alignment.CenterVertically)) {
+                    IconButton(onClick = { activeFilters.remove(filter) }, modifier = Modifier.size(16.dp)) {
+                        Canvas(modifier = Modifier.size(16.dp)) {
+                            drawCircle(color = SlateLight)
+                        }
+                        Icon(
+                            tint = Color.Black,
+                            painter = painterResource(id = R.drawable.icon_close),
+                            contentDescription = "Display icon",
+                            modifier = Modifier.size(10.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = filter.filterLabel,
+                    color = Color.Black,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchBarWrapper(activeFilters: SnapshotStateList<Filter>) {
+    /*Modify this height based on number of applied filters*/
+    var searchbarHeight = 120.dp
+    if (activeFilters.size > 3) {
+        searchbarHeight = 140.dp
+    }
+    Box(modifier = Modifier
+        .height(searchbarHeight)
+        .background(color = Color.White)) {
+        SearchBar(activeFilters)
+    }
+}
+
+@Composable
+private fun ActiveFilters() {
+    Row() {
+        for (filter in filters) {
+            if (filter.enabled){
+                Text(text = filter.filterLabel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun Marketplace() {
+    Surface(shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .background(color = Color.Transparent))
+    {
         Column(
             modifier = Modifier
-                .padding(
-                    start = 0.dp,
-                    top = 16.dp,
-                    bottom = 0.dp,
-                    end = 0.dp
-                )
+                .padding(start = 16.dp, end = 16.dp, top = 34.dp, bottom = 94.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-            RecipeGridLayout(navController, state)
-        }
-    }
-    if(state.error.isNotBlank()) {
-        Text(
-            text = state.error,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        )
-    }
-    if(state.isLoading){
-        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-                Box() {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).size(34.dp))
-                }
+            for (marketplaceItem in marketplaceItems) {
+                MarketplaceCard(
+                    title = marketplaceItem.postTitle,
+                    price = marketplaceItem.price,
+                    city = marketplaceItem.city,
+                    province = marketplaceItem.province,
+                    userName = marketplaceItem.userName
+                )
+            }
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Heading(text: String) {
-    Box(
+private fun MarketplaceCard(
+    title: String,
+    price: String,
+    city: String,
+    province: String,
+    userName: String,
+) {
+    Card(
         modifier = Modifier
-            .padding(
-                start = 8.dp,
-                top = 0.dp,
-                bottom = 0.dp,
-                end = 0.dp
-            )
-            .fillMaxWidth()
-    ) {
-        Text(text,
-            fontWeight = FontWeight.Bold,
-            fontSize=22.sp
-        )
-    }
-}
-
-@Composable
-private fun CardTitle(text: String, fontSize: TextUnit) {
-    Text(
-        text,
-        color = Color.White,
-        fontSize = fontSize,
-        fontWeight = FontWeight.Bold,
-        overflow = TextOverflow.Ellipsis
-    )
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun RecipeGridLayout(navController: NavHostController, state: RecipesState) {
-    val height = ((state.recipes.size*200) + 70).dp
-     LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
-            verticalItemSpacing = 14.dp,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .height(height)
-        ) {
-
-            item( span = StaggeredGridItemSpan.FullLine) {
-                Heading(text = "Popular")
-            }
-            item(
-                span = StaggeredGridItemSpan.FullLine
-            ) {
-                Carousel(
-                    itemsCount = shorterList.size,
-                    itemContent = {  index ->
-                        PopularCard(photo = randomSizedPhotos[index])
-                    })
-            }
-            item(
-              span = StaggeredGridItemSpan.FullLine
-             ) {
-             Heading(text = "Picked for you")
-         }
-             items(state.recipes) {
-                 recipe ->
-                    RecipeCard(
-                        title = recipe.title ?: "",
-                        photo = recipe.bannerUrl,
-                        navController = navController,
-                        recipeId = recipe.id ?: ""
-                    )
-             }
-     }
- }
-
-
-@Composable
-@OptIn(ExperimentalMaterial3Api::class)
-private fun PopularCard(photo: Any) {
-    Card(
-        onClick = { },
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 15.dp
+            .height(160.dp)
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        elevation =  CardDefaults.cardElevation(
+            defaultElevation = 8.dp
         ),
-    ) {
-        Box() {
-            AsyncImage(
-                model = photo,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .height(190.dp)
-                    .width(260.dp)
-            )
-            Box(modifier = Modifier.padding(start = 0.dp, top = 135.dp, bottom = 0.dp, end = 0.dp)) {
-                Row(
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.width(250.dp)
-                ) {
-                    Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                        CardTitle(
-                            text = "Card Title",
-                            fontSize = 22.sp
-                        )
-                    }
-                    Box(modifier = Modifier.padding(start = 8.dp, end = 4.dp, top = 4.dp, bottom = 8.dp)) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.icon_locator),
-                            contentDescription = "Location Pin Icon",
-                            modifier = Modifier.size(36.dp),
-                            tint = Color.White
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun RecipeCard(recipeId: String, title: String, photo: Any, navController: NavHostController) {
-    Card(
-        onClick = {
-            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + recipeId) },
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 15.dp
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White,
         ),
-        modifier = Modifier.fillMaxWidth()
-
+        onClick = {/*TODO*/}
     ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                AsyncImage(
-                    model = photo,
-                    contentDescription = null,
-                    contentScale = ContentScale.FillHeight,
-                    modifier = Modifier
-                        .height(300.dp)
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .wrapContentHeight()
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(modifier = Modifier.width(135.dp)) {
+                Image(
+                    painterResource(id = R.drawable.coffee_image_1),
+                    contentDescription = "Recipe Banner",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
                 )
-            Row() {
-                Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.icon_page),
-                        contentDescription = "Location Pin Icon",
-                        modifier = Modifier.size(36.dp),
-                        tint = Color.White
-                    )
-                }
             }
-            Row(
+            Column(
                 modifier = Modifier
-                    .padding
-                        (
-                        start = 0.dp,
-                        top = 130.dp,
-                        end = 0.dp,
-                        bottom = 0.dp
-                    )
-            )
-            {
-                Box() {
-                    Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
-                        CardTitle(
-                        /*    formattedTitle,*/
-                            title,
-                            fontSize = 24.sp
-                        )
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Row() {
+                    Text(text = title, style = MaterialTheme.typography.titleMedium, fontSize = 20.sp)
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(28.dp),
+                    verticalAlignment = Alignment.Bottom,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(bottom = 8.dp)
+                ) {
+                    Column() {
+                        Row(modifier = Modifier.padding(bottom = 16.dp)) {
+                            Text(text = price, fontSize = 20.sp)
+                        }
+                        Row() {
+                            Text(
+                                text = "$city, $province",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Light,
+                                color = Color.DarkGray
+                            )
+                        }
                     }
-                    Row(
-                        modifier = Modifier
-                            .padding
-                                (
-                                start = 0.dp,
-                                top = 120.dp,
-                                end = 8.dp,
-                                bottom = 8.dp
+                    Column(horizontalAlignment = Alignment.End) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = userName,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Light,
+                                color = Color.DarkGray
                             )
-                            .align(Alignment.CenterEnd)
-                    ) {
-                        Text("John Doe", color = Color.White, fontSize = 18.sp)
-                        Box(
-                            Modifier
-                                .padding(horizontal = 6.dp, vertical = 0.dp)
-                                .size(30.dp), contentAlignment = Alignment.Center) {
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                drawCircle(SolidColor(Color.White))
+                            Box(contentAlignment = Alignment.Center) {
+                                Canvas(modifier = Modifier.size(22.dp)) {
+                                    drawCircle(color = Color.Gray)
+                                }
+                                Icon(
+                                    painterResource(id = R.drawable.icon_user),
+                                    contentDescription = "User image placeholder",
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
-                            Icon(
-                                painter = painterResource(id = R.drawable.icon_user),
-                                contentDescription = "User image placeholder"
-                            )
                         }
                     }
                 }
@@ -326,195 +419,19 @@ private fun RecipeCard(recipeId: String, title: String, photo: Any, navControlle
     }
 }
 
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun Carousel(
-    modifier: Modifier = Modifier,
-    pagerState: PagerState = remember{ PagerState() },
-    itemsCount: Int,
-    itemContent: @Composable (index: Int) -> Unit,
-) {
-    val isDragged by pagerState.interactionSource.collectIsDraggedAsState()
-
-    Box(
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        HorizontalPager(pageCount = itemsCount, state = pagerState, pageSize = PageSize.Fixed(300.dp), pageSpacing = 8.dp) { page ->
-            itemContent(page)
-        }
-    }
-    Box(modifier = modifier
-        .fillMaxWidth()
-        .padding(top = 2.dp, start = 0.dp, end = 0.dp, bottom = 12.dp)
-        .offset(x = 0.dp, y = 200.dp)
-    )
-    {
-        Surface(
-            modifier = Modifier
-                .align(Alignment.BottomCenter),
-            shape = CircleShape,
-            color = Color.Transparent
-        ) {
-            DotsIndicator(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-                totalDots = itemsCount,
-                selectedIndex = if (isDragged) pagerState.currentPage else pagerState.targetPage,
-                dotSize = 12.dp
-            )
-        }
-    }
-}
-
-@Composable
-fun IndicatorDot(
-    modifier: Modifier = Modifier,
-    size: Dp,
-    color: Color
-) {
-    Box(
-        modifier = modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(color)
-    )
-}
-@Composable
-fun DotsIndicator(
-    modifier: Modifier = Modifier,
-    totalDots: Int,
-    selectedIndex: Int,
-    selectedColor: Color = GreyMedium,
-    unSelectedColor: Color = GreyLight,
-    dotSize: Dp
-) {
-    LazyRow(
-        modifier = modifier
-            .wrapContentWidth()
-            .wrapContentHeight()
-            .height(14.dp)
-    ) {
-        items(totalDots) { index ->
-            IndicatorDot(
-                color = if (index == selectedIndex) selectedColor else unSelectedColor,
-                size = dotSize
-            )
-
-            if (index != totalDots - 1) {
-                Spacer(modifier = Modifier.padding(horizontal = 2.dp))
-            }
-        }
-    }
-}
-
-
-
-val randomSizedPhotos = listOf(
-    R.drawable.individual_recipe_banner,
-    R.drawable.coffee_image_1,
-    randomSampleImageUrl(width = 1100, height = 1200),
-    randomSampleImageUrl(width = 900, height = 1600),
-    randomSampleImageUrl(width = 500, height = 800),
-    randomSampleImageUrl(width = 500, height = 700),
-    randomSampleImageUrl(width = 1100, height = 900),
-    randomSampleImageUrl(width = 500, height = 800),
-    randomSampleImageUrl(width = 1100, height = 900),
-    randomSampleImageUrl(width = 900, height = 1600),
-    randomSampleImageUrl(width = 500, height = 700),
-    randomSampleImageUrl(width = 500, height = 800),
-    randomSampleImageUrl(width = 1100, height = 900),
-    randomSampleImageUrl(width = 500, height = 700),
-    randomSampleImageUrl(width = 900, height = 1600),
-    randomSampleImageUrl(width = 500, height = 800),
-    randomSampleImageUrl(width = 500, height = 700),
-    randomSampleImageUrl(width = 1100, height = 900),
-    randomSampleImageUrl(width = 500, height = 800),
-    randomSampleImageUrl(width = 500, height = 700),
-    randomSampleImageUrl(width = 500, height = 800),
-    randomSampleImageUrl(width = 1100, height = 900),
-    randomSampleImageUrl(width = 500, height = 700),
-    randomSampleImageUrl(width = 900, height = 1600),
-    randomSampleImageUrl(width = 500, height = 800),
-    randomSampleImageUrl(width = 500, height = 700),
-    randomSampleImageUrl(width = 1100, height = 900),
-    randomSampleImageUrl(width = 500, height = 800),
-    randomSampleImageUrl(width = 900, height = 1600),
-)
-private val shorterList = randomSizedPhotos.subList(3, 9)
-
-val testIngredients = listOf(
-    IngredientSection(
-        sectionName = "Espresso",
-        IngredientsList(quantities = listOf(4.5, 4), units=listOf("tbs", "oz"), labels = listOf("Finely-ground dark roast coffee", "Water"))
-    ),
-    IngredientSection(
-        sectionName = "Foam Milk",
-        IngredientsList(quantities = listOf(4), units=listOf("oz"), labels = listOf("Milk"))
-    )
+private val marketplaceItems = listOf(
+    MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe"),
+    MarketplaceItem(postTitle = "20lbs of fresh-grounded black tea", price = "$150", city = "Cambridge", province = "ON", userName = "Jane Doe"),
+    MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe"),
+    MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe")
 )
 
-var testTags= listOf(
-    TagType(iconTint = Color.White, tagColor = GreenLight, tagText = "Tree Nuts", img = R.drawable.icon_info),
-    TagType(iconTint = Color.White, tagColor = GreenLight, tagText = "Dairy", img = R.drawable.icon_info),
-    TagType(iconTint = Color.White, tagColor = Brown, tagText = "Espresso Machine", img = R.drawable.icon_countertops),
-    TagType(iconTint = Color.White, tagColor = GreenDark, tagText = "Cappuccino", img = R.drawable.icon_store)
+private val filters = mutableListOf<Filter>(
+    Filter(filterLabel = "Equipment", enabled = false),
+    Filter(filterLabel = "Ingredients", enabled = false),
+    Filter(filterLabel = "Newest to Oldest", enabled = false),
+    Filter(filterLabel = "Oldest to Newest", enabled = false),
+    Filter(filterLabel = "Price (Low to High)", enabled = false),
+    Filter(filterLabel = "Price (High to Low)", enabled = false),
+    Filter(filterLabel = "Range (10km-25km)", enabled = false),
 )
-//private val recipes = listOf(
-//    Recipe(
-//            "Cappuccino Almond Pistachio",
-//            "Espresso",
-//            testIngredients,
-//            tags = testTags,
-//            backgroundImage = randomSizedPhotos[0],
-//    ),
-//    Recipe(
-//        "The Perfect Espresso",
-//        "Espresso",
-//        testIngredients,
-//        tags = testTags,
-//        backgroundImage = randomSizedPhotos[4],
-//    ),
-//    Recipe(
-//        "Iced Chai Tea Latte",
-//        "Espresso",
-//            testIngredients,
-//            tags = testTags,
-//            backgroundImage =  randomSizedPhotos[1],
-//        ),
-//    Recipe(
-//        "Murphy's Special Matcha Tea",
-//        "Espresso",
-//        testIngredients,
-//        tags = testTags,
-//        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 2],
-//        ),
-//    Recipe(
-//        "Yerba Mate Brew",
-//        "Espresso",
-//        testIngredients,
-//        tags = testTags,
-//        backgroundImage = randomSizedPhotos[randomSizedPhotos.size - 1],
-//    ),
-//    Recipe(
-//        "Espresso",
-//        "Espresso",
-//        testIngredients,
-//        tags = testTags,
-//        backgroundImage = randomSizedPhotos[11],
-//    ),
-//    Recipe(
-//        "Espresso",
-//        "Espresso",
-//        testIngredients,
-//        tags = testTags,
-//        backgroundImage = randomSizedPhotos[2],
-//    ),
-//    Recipe(
-//        "Espresso",
-//        "Espresso",
-//        testIngredients,
-//        tags = testTags,
-//        backgroundImage = randomSizedPhotos[8],
-//    ),
-//
-//)
