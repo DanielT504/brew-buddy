@@ -133,9 +133,9 @@ exports.getRecipesMetadata = onCall(async ({ data }, context) => {
 });
 
 exports.getPopularRecipes = onCall(async ({ data }, context) => {
-  const recipes = await getRecipesMetadata(db);
+  const popularRecipes = await getRecipesMetadata(db);
 
-  const popularRecipes = recipes.sort((a, b) => a.likes > b.likes);
-  console.log("Popular Recipes: ", popularRecipes.slice(0, 5));
+  popularRecipes.sort((a, b) => b.likes - a.likes);
+  console.log("Popular Recipes: ", popularRecipes);
   return popularRecipes.slice(0, 5);
 });

@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -89,8 +90,8 @@ fun FeaturedScreen(
                 .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
         ) {
-            PopularRecipes(viewModel = viewModel)
-            GridLayout(navController, viewModel)
+            PopularRecipes(navController = navController, viewModel = viewModel)
+            GridLayout(navController = navController, viewModel = viewModel)
         }
     }
 }
@@ -111,12 +112,13 @@ private fun CardTitle(text: String, fontSize: TextUnit) {
         color = Color.White,
         fontSize = fontSize,
         fontWeight = FontWeight.Bold,
-        overflow = TextOverflow.Ellipsis
+        overflow = TextOverflow.Ellipsis,
+        modifier=Modifier.fillMaxWidth().wrapContentHeight()
     )
 }
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun PopularRecipes(viewModel: FeaturedViewModel) {
+private fun PopularRecipes(viewModel: FeaturedViewModel, navController: NavHostController) {
     val state = viewModel.popularState.value
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(1),
@@ -134,7 +136,7 @@ private fun PopularRecipes(viewModel: FeaturedViewModel) {
             Carousel(
                 itemsCount = state.data.size,
                 itemContent = { index ->
-                    PopularCard(recipe = state.data[index])
+                    PopularCard(recipe = state.data[index], navController)
                 }
             )
         }
@@ -212,19 +214,22 @@ private fun GridLayout(navController: NavHostController, viewModel: FeaturedView
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun PopularCard(recipe: RecipeMetadata) {
+private fun PopularCard(recipe: RecipeMetadata, navController: NavHostController) {
     Card(
-        onClick = { },
+        onClick = {navigateToRecipe(recipe.id!!, navController)},
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 15.dp
         ),
+        modifier = Modifier.height(190.dp)
+            .width(260.dp)
+
     ) {
         Box() {
             AsyncImage(
                 model = recipe.bannerUrl,
                 contentDescription = null,
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier
                     .height(190.dp)
                     .width(260.dp)
@@ -255,85 +260,64 @@ private fun PopularCard(recipe: RecipeMetadata) {
     }
 }
 
+private fun navigateToRecipe(recipeId: String, navController: NavHostController) {
+    navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + recipeId)
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RecipeCard(recipeId: String, title: String, photo: Any, navController: NavHostController) {
     Card(
-        onClick = {
-            navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + recipeId) },
+        onClick = {navigateToRecipe(recipeId, navController)},
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 15.dp
         ),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)
 
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
                 model = photo,
                 contentDescription = null,
-                contentScale = ContentScale.FillHeight,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .height(300.dp)
+                    .fillMaxSize()
+            )
+            Column(
+                modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight()
-                    .wrapContentHeight()
-            )
-            Row() {
-                Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.icon_page),
-                        contentDescription = "Location Pin Icon",
-                        modifier = Modifier.size(36.dp),
-                        tint = Color.White
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .padding
-                        (
-                        start = 0.dp,
-                        top = 130.dp,
-                        end = 0.dp,
-                        bottom = 0.dp
-                    )
-            )
-            {
-                Box() {
-                    Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
-                        CardTitle(
-                            /*    formattedTitle,*/
-                            title,
-                            fontSize = 24.sp
+                    .padding(8.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.icon_page),
+                    contentDescription = "Location Pin Icon",
+                    modifier = Modifier.size(32.dp),
+                    tint = Color.White
+                )
+                Spacer(modifier = Modifier.weight(1f).padding(bottom = 40.dp))
+                CardTitle(text=title, fontSize = 24.sp)
+                Row(
+                    modifier=Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text("John Doe", color = Color.White, fontSize = 18.sp)
+                    Box(
+                        Modifier
+                            .padding(horizontal = 6.dp, vertical = 0.dp)
+                            .size(30.dp), contentAlignment = Alignment.Center) {
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            drawCircle(SolidColor(Color.White))
+                        }
+                        Icon(
+                            painter = painterResource(id = R.drawable.icon_user),
+                            contentDescription = "User image placeholder"
                         )
                     }
-                    Row(
-                        modifier = Modifier
-                            .padding
-                                (
-                                start = 0.dp,
-                                top = 120.dp,
-                                end = 8.dp,
-                                bottom = 8.dp
-                            )
-                            .align(Alignment.CenterEnd)
-                    ) {
-                        Text("John Doe", color = Color.White, fontSize = 18.sp)
-                        Box(
-                            Modifier
-                                .padding(horizontal = 6.dp, vertical = 0.dp)
-                                .size(30.dp), contentAlignment = Alignment.Center) {
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                drawCircle(SolidColor(Color.White))
-                            }
-                            Icon(
-                                painter = painterResource(id = R.drawable.icon_user),
-                                contentDescription = "User image placeholder"
-                            )
-                        }
-                    }
                 }
+
             }
         }
     }
@@ -343,7 +327,6 @@ private fun RecipeCard(recipeId: String, title: String, photo: Any, navControlle
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Carousel(
-    modifier: Modifier = Modifier,
     pagerState: PagerState = remember{ PagerState() },
     itemsCount: Int,
     itemContent: @Composable (index: Int) -> Unit,
@@ -369,33 +352,6 @@ private fun Carousel(
             )
         }
     }
-//    Box(
-//        modifier = modifier.fillMaxWidth(),
-//    ) {
-//        HorizontalPager(pageCount = itemsCount, state = pagerState, pageSize = PageSize.Fixed(300.dp), pageSpacing = 8.dp) { page ->
-//            itemContent(page)
-//        }
-//    }
-//    Box(modifier = modifier
-//        .fillMaxWidth()
-//        .padding(top = 2.dp, start = 0.dp, end = 0.dp, bottom = 12.dp)
-//        .offset(x = 0.dp, y = 200.dp)
-//    )
-//    {
-//        Surface(
-//            modifier = Modifier
-//                .align(Alignment.BottomCenter),
-//            shape = CircleShape,
-//            color = Color.Transparent
-//        ) {
-//            DotsIndicator(
-//                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-//                totalDots = itemsCount,
-//                selectedIndex = if (isDragged) pagerState.currentPage else pagerState.targetPage,
-//                dotSize = 12.dp
-//            )
-//        }
-//    }
 }
 
 @Composable
