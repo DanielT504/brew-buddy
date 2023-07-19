@@ -44,16 +44,28 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.brewbuddy.AccessScreens
 import com.example.brewbuddy.PinnedCard
 import com.example.brewbuddy.ProfilePicture
@@ -64,6 +76,7 @@ import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.store1
 import com.google.android.gms.maps.model.CameraPosition
@@ -199,9 +212,61 @@ fun ImageGrid(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipeModal(openDialog: Boolean, onClose: () -> Unit) {
-    if (openDialog) {
+fun IngredientInput(ingredientNumber: Number) {
+    var ingredient by remember { mutableStateOf("")}
+    var quantity by remember { mutableStateOf("")}
+    var quantityAsInt by remember { mutableStateOf(0)}
+    var unit by remember { mutableStateOf("")}
+    Column() {
+        Row(Modifier.fillMaxWidth().padding(4.dp)) {
+            Text(
+                text = "Ingredient $ingredientNumber"
+            )
+        }
+        Row(Modifier.fillMaxWidth()) {
+            TextField(
+                value = ingredient,
+                onValueChange = { ingredient = it },
+                label = { Text("Ingredient", style = TextStyle(fontSize = 12.sp, color = Color.Gray)) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp),
+            )
+        }
+        Row(Modifier.fillMaxWidth()) {
+            TextField(
+                value = quantity,
+                onValueChange = {
+                        newQuantity ->
+                    quantity = newQuantity
+                    val numericQuantity = newQuantity.toInt()
+                    quantityAsInt = numericQuantity
+                },
+                label = { Text("Quantity", style = TextStyle(fontSize = 12.sp, color = Color.Gray)) },
+                modifier = Modifier
+                    .weight(0.5f)
+                    .padding(4.dp),
+            )
+            TextField(
+                value = unit,
+                onValueChange = { unit = it },
+                label = { Text("Unit", style = TextStyle(fontSize = 12.sp, color = Color.Gray)) },
+                modifier = Modifier
+                    .weight(0.5f)
+                    .padding(4.dp),
+            )
+        }
+    }
+}
+
+@Composable
+fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
+    if (openDialog.value) {
+        val ingredientNames = remember { mutableStateListOf<String>() }
+        val ingredientQuantities = remember { mutableStateListOf<Number>() }
+        val ingredientUnits = remember { mutableStateListOf<String>() }
         AlertDialog(
             onDismissRequest = { onClose() },
             confirmButton = {
@@ -217,14 +282,10 @@ fun RecipeModal(openDialog: Boolean, onClose: () -> Unit) {
             dismissButton = {},
             icon = {},
             title = {
-                Text(
-                    text = "Upload Recipe"
-                )
+                Text(text = "Upload Recipe")
             },
             text = {
-                Text(
-                    text = "ingredient, quantity, notes"
-                )
+                IngredientInput(1)
             },
             shape = MaterialTheme.shapes.large,
 //            containerColor = MaterialTheme.colors.surface,
@@ -254,15 +315,15 @@ fun UserScreen(menuButton: @Composable () -> Unit) {
                 TitleLarge(text = "Your Recipes")
             }
             ImageGrid(3, modifier = Modifier.padding(16.dp))
-            var showDialog = false
+            var showDialog = remember { mutableStateOf(false) }
             Button(
                 onClick = {
-                    showDialog = true
+                    showDialog.value = true
                 }
             ) {
                 Text(text = "Simple Button")
             }
-            RecipeModal(showDialog,  onClose = { showDialog = false })
+            RecipeModal(showDialog,  onClose = { showDialog.value = false })
             Box() {
                 TitleLarge(text = "Saved Shops near you")
             }
