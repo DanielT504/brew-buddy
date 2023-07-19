@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brewbuddy.common.Resource
+import com.example.brewbuddy.domain.use_case.get_recipes.GetPopularUseCase
 import com.example.brewbuddy.domain.use_case.get_recipes.GetRecipesUseCase
 import com.example.brewbuddy.featured.FeaturedState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,11 +16,14 @@ import javax.inject.Inject
 @HiltViewModel
 class FeaturedViewModel @Inject constructor(
     private val getRecipesUseCase: GetRecipesUseCase,
-    private val getPopularUseCase: GetRecipesUseCase,
+    private val getPopularUseCase: GetPopularUseCase,
 ): ViewModel() {
 
-    private val _state = mutableStateOf(FeaturedState())
-    val state: State<FeaturedState> = _state
+    private val _recipeState = mutableStateOf(FeaturedState())
+    private val _popularState = mutableStateOf(FeaturedState())
+
+    val recipeState: State<FeaturedState> = _recipeState
+    val popularState: State<FeaturedState> = _popularState
 
     init {
         getPopular()
@@ -30,13 +34,13 @@ class FeaturedViewModel @Inject constructor(
         getPopularUseCase().onEach { result ->
             when(result) {
                 is Resource.Success -> {
-                    _state.value = FeaturedState(popular = result.data ?: emptyList())
+                    _popularState.value = FeaturedState(data = result.data ?: emptyList())
                 }
                 is Resource.Error -> {
-                    _state.value = FeaturedState(popularError = result.message ?: "An unexpected error occurred.")
+                    _popularState.value = FeaturedState(error = result.message ?: "An unexpected error occurred.")
                 }
                 is Resource.Loading -> {
-                    _state.value = FeaturedState(isPopularLoading = true)
+                    _popularState.value = FeaturedState(isLoading = true)
                 }
             }
         }.launchIn(viewModelScope)
@@ -46,13 +50,13 @@ class FeaturedViewModel @Inject constructor(
         getRecipesUseCase().onEach { result ->
             when(result) {
                 is Resource.Success -> {
-                    _state.value = FeaturedState(recipes = result.data ?: emptyList())
+                    _recipeState.value = FeaturedState(data = result.data ?: emptyList())
                 }
                 is Resource.Error -> {
-                    _state.value = FeaturedState(recipesError = result.message ?: "An unexpected error occurred.")
+                    _recipeState.value = FeaturedState(error = result.message ?: "An unexpected error occurred.")
                 }
                 is Resource.Loading -> {
-                    _state.value = FeaturedState(isRecipesLoading = true)
+                    _recipeState.value = FeaturedState(isLoading = true)
                 }
             }
         }.launchIn(viewModelScope)

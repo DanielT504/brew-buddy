@@ -42,6 +42,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.ComposableOpenTarget
 import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import androidx.compose.runtime.getValue
@@ -68,13 +69,13 @@ import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.featured.FeaturedViewModel
 import com.example.brewbuddy.featured.FeaturedState
 import com.example.brewbuddy.ui.theme.Cream
+import com.example.brewbuddy.ui.theme.TitleLarge
 
 @Composable
 fun FeaturedScreen(
     navController: NavHostController,
     viewModel: FeaturedViewModel = hiltViewModel()
 ) {
-    val state = viewModel.state.value
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -85,44 +86,21 @@ fun FeaturedScreen(
                     bottom = 0.dp,
                     end = 0.dp
                 )
-        ) {
-            GridLayout(navController, state)
-        }
-    }
-    if(state.recipesError.isNotBlank()) {
-        Text(
-            text = state.recipesError,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
+                .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        )
-    }
-    if(state.isRecipesLoading){
-        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-            Box() {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).size(34.dp))
-            }
+        ) {
+            PopularRecipes(viewModel = viewModel)
+            GridLayout(navController, viewModel)
         }
     }
 }
+
 @Composable
-private fun Heading(text: String) {
-    Box(
-        modifier = Modifier
-            .padding(
-                start = 8.dp,
-                top = 0.dp,
-                bottom = 0.dp,
-                end = 0.dp
-            )
-            .fillMaxWidth()
-    ) {
-        Text(text,
-            fontWeight = FontWeight.Bold,
-            fontSize=22.sp
-        )
+private fun Loading() {
+    Box() {
+        CircularProgressIndicator(modifier = Modifier
+            .align(Alignment.Center)
+            .size(34.dp))
     }
 }
 
@@ -138,20 +116,33 @@ private fun CardTitle(text: String, fontSize: TextUnit) {
 }
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun PopularRecipes(state: FeaturedState) {
-    Row(){
-        Heading(text = "Popular")
-    }
-    Carousel(
-        itemsCount = state.popular.size,
-        itemContent = {  index ->
-            PopularCard(recipe = state.popular[index])
-        }
-    )
+private fun PopularRecipes(viewModel: FeaturedViewModel) {
+    val state = viewModel.popularState.value
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(1),
+        verticalItemSpacing = 14.dp,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+        modifier = Modifier
+            .height(300.dp)
+    ) {
 
-    if(state.popularError.isNotBlank()) {
+        item {
+            TitleLarge(text = "Popular")
+        }
+        item {
+            Carousel(
+                itemsCount = state.data.size,
+                itemContent = { index ->
+                    PopularCard(recipe = state.data[index])
+                }
+            )
+        }
+    }
+
+    if(state.error.isNotBlank()) {
         Text(
-            text = state.popularError,
+            text = state.error,
             color = MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -159,47 +150,63 @@ private fun PopularRecipes(state: FeaturedState) {
                 .padding(horizontal = 20.dp)
         )
     }
-    if(state.isPopularLoading){
-        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-            Box() {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).size(34.dp))
-            }
+    if(state.isLoading){
+        Surface(modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)) {
+            Loading()
         }
     }
 }
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun GridLayout(navController: NavHostController, state: FeaturedState) {
-    val height = ((state.recipes.size*200) + 70).dp
-    LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
-        verticalItemSpacing = 14.dp,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .height(height)
-    ) {
+private fun GridLayout(navController: NavHostController, viewModel: FeaturedViewModel) {
+    val state = viewModel.recipeState.value
 
-        item( span = StaggeredGridItemSpan.FullLine) {
-            PopularRecipes(state)
-        }
-        item(
-            span = StaggeredGridItemSpan.FullLine
+    val height = ((state.data.size*200) + 70).dp
+    Column() {
+        TitleLarge(text = "Picked for you")
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(2),
+            verticalItemSpacing = 14.dp,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .height(height)
         ) {
-            Heading(text = "Picked for you")
-        }
-        items(state.recipes) {
-                recipe ->
-            RecipeCard(
-                title = recipe.title ?: "",
-                photo = recipe.bannerUrl,
-                navController = navController,
-                recipeId = recipe.id ?: ""
-            )
+            items(state.data) {
+                    recipe ->
+                RecipeCard(
+                    title = recipe.title ?: "",
+                    photo = recipe.bannerUrl,
+                    navController = navController,
+                    recipeId = recipe.id ?: ""
+                )
+            }
         }
     }
+
+    if(state.error.isNotBlank()) {
+        Text(
+            text = state.error,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+    }
+    if(state.isLoading){
+        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+            Box() {
+                CircularProgressIndicator(modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(34.dp))
+            }
+        }
+    }
+
 }
 
 
@@ -343,22 +350,14 @@ private fun Carousel(
 ) {
     val isDragged by pagerState.interactionSource.collectIsDraggedAsState()
 
-    Box(
-        modifier = modifier.fillMaxWidth(),
+    Column(    verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         HorizontalPager(pageCount = itemsCount, state = pagerState, pageSize = PageSize.Fixed(300.dp), pageSpacing = 8.dp) { page ->
             itemContent(page)
         }
-    }
-    Box(modifier = modifier
-        .fillMaxWidth()
-        .padding(top = 2.dp, start = 0.dp, end = 0.dp, bottom = 12.dp)
-        .offset(x = 0.dp, y = 200.dp)
-    )
-    {
         Surface(
             modifier = Modifier
-                .align(Alignment.BottomCenter),
+                .align(Alignment.CenterHorizontally),
             shape = CircleShape,
             color = Color.Transparent
         ) {
@@ -370,6 +369,33 @@ private fun Carousel(
             )
         }
     }
+//    Box(
+//        modifier = modifier.fillMaxWidth(),
+//    ) {
+//        HorizontalPager(pageCount = itemsCount, state = pagerState, pageSize = PageSize.Fixed(300.dp), pageSpacing = 8.dp) { page ->
+//            itemContent(page)
+//        }
+//    }
+//    Box(modifier = modifier
+//        .fillMaxWidth()
+//        .padding(top = 2.dp, start = 0.dp, end = 0.dp, bottom = 12.dp)
+//        .offset(x = 0.dp, y = 200.dp)
+//    )
+//    {
+//        Surface(
+//            modifier = Modifier
+//                .align(Alignment.BottomCenter),
+//            shape = CircleShape,
+//            color = Color.Transparent
+//        ) {
+//            DotsIndicator(
+//                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+//                totalDots = itemsCount,
+//                selectedIndex = if (isDragged) pagerState.currentPage else pagerState.targetPage,
+//                dotSize = 12.dp
+//            )
+//        }
+//    }
 }
 
 @Composable
