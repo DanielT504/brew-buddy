@@ -76,6 +76,7 @@ import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.brewbuddy.recipes.IndividualIngredient
 import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.store1
@@ -214,13 +215,24 @@ fun ImageGrid(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun IngredientInput(ingredientNumber: Number) {
+fun IngredientInput(ingredientNumber: Number, ingredientData: IndividualIngredient? = null, onIngredientChange: (IndividualIngredient) -> Unit)  {
     var ingredient by remember { mutableStateOf("")}
     var quantity by remember { mutableStateOf("")}
-    var quantityAsInt by remember { mutableStateOf(0)}
+    var quantityAsNum by remember { mutableStateOf(0)}
     var unit by remember { mutableStateOf("")}
+
+    if (ingredientData != null) {
+        ingredient = ingredientData.label
+        quantity = ingredientData.quantity.toString()
+        quantityAsNum = ingredientData.quantity.toInt()
+        unit = ingredientData.unit
+    }
+
     Column() {
-        Row(Modifier.fillMaxWidth().padding(4.dp)) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(4.dp)) {
             Text(
                 text = "Ingredient $ingredientNumber"
             )
@@ -228,7 +240,12 @@ fun IngredientInput(ingredientNumber: Number) {
         Row(Modifier.fillMaxWidth()) {
             TextField(
                 value = ingredient,
-                onValueChange = { ingredient = it },
+                onValueChange = { newValue ->
+                    ingredient = newValue
+                    onIngredientChange(
+                        IndividualIngredient(quantityAsNum, unit, newValue)
+                    )
+                },
                 label = { Text("Ingredient", style = TextStyle(fontSize = 12.sp, color = Color.Gray)) },
                 modifier = Modifier
                     .weight(1f)
@@ -238,11 +255,12 @@ fun IngredientInput(ingredientNumber: Number) {
         Row(Modifier.fillMaxWidth()) {
             TextField(
                 value = quantity,
-                onValueChange = {
-                        newQuantity ->
+                onValueChange = { newQuantity ->
                     quantity = newQuantity
-                    val numericQuantity = newQuantity.toInt()
-                    quantityAsInt = numericQuantity
+                    quantityAsNum = newQuantity.toInt()
+                    onIngredientChange(
+                        IndividualIngredient(quantityAsNum, unit, ingredient)
+                    )
                 },
                 label = { Text("Quantity", style = TextStyle(fontSize = 12.sp, color = Color.Gray)) },
                 modifier = Modifier
@@ -250,8 +268,14 @@ fun IngredientInput(ingredientNumber: Number) {
                     .padding(4.dp),
             )
             TextField(
+
                 value = unit,
-                onValueChange = { unit = it },
+                onValueChange = { newValue ->
+                    unit = newValue
+                    onIngredientChange(
+                        IndividualIngredient(quantityAsNum, newValue, ingredient)
+                    )
+                },
                 label = { Text("Unit", style = TextStyle(fontSize = 12.sp, color = Color.Gray)) },
                 modifier = Modifier
                     .weight(0.5f)
@@ -263,10 +287,10 @@ fun IngredientInput(ingredientNumber: Number) {
 
 @Composable
 fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
+    val ingredients = remember { mutableStateListOf<IndividualIngredient>() }
+//    ingredients.add(IndividualIngredient(0, "", ""))
+
     if (openDialog.value) {
-        val ingredientNames = remember { mutableStateListOf<String>() }
-        val ingredientQuantities = remember { mutableStateListOf<Number>() }
-        val ingredientUnits = remember { mutableStateListOf<String>() }
         AlertDialog(
             onDismissRequest = { onClose() },
             confirmButton = {
@@ -285,7 +309,28 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                 Text(text = "Upload Recipe")
             },
             text = {
-                IngredientInput(1)
+                Column(modifier = Modifier.height(400.dp), verticalArrangement = Arrangement.SpaceBetween) {
+                    Column(Modifier.verticalScroll(rememberScrollState())) {
+                        ingredients.forEachIndexed { index, ingredient ->
+                            Row() {
+                                IngredientInput(
+                                    index,
+                                    ingredientData = ingredient,
+                                    onIngredientChange = { updatedIngredient ->
+                                        ingredients[index] = updatedIngredient
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    Row(Modifier.weight(1f, false)) {
+                        Button(
+                            onClick = { ingredients.add(IndividualIngredient(0, "", "")) }
+                        ) {
+                            Text("Add Ingredient")
+                        }
+                    }
+                }
             },
             shape = MaterialTheme.shapes.large,
 //            containerColor = MaterialTheme.colors.surface,
