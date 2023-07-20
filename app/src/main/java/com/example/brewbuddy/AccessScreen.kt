@@ -418,24 +418,21 @@ fun Title(color: Color = OrangeBrownMedium) {
     }
 }
 @Composable
-fun AccessScreen(activity: Activity) {
+fun AccessScreen(activity: Activity, handleLogout: () -> Unit) {
     val navController = rememberNavController()
     val vmStoreOwner = rememberViewModelStoreOwner()
-
     Surface() {
         CompositionLocalProvider(
             LocalNavGraphViewModelStoreOwner provides vmStoreOwner
         ) {
             NavHost(navController, startDestination = AccessScreens.Login.route) {
                 composable(AccessScreens.Login.route) {
-                    LoginScreen(navController, activity)
+                    LoginScreen(navController, activity) // Pass handleLogout to LoginScreen
                 }
                 composable(AccessScreens.Register.route) {
-                    RegisterScreen(navController, activity)
+                    RegisterScreen(navController, activity) // Pass handleLogout to RegisterScreen
                 }
-
             }
-
         }
     }
 }
