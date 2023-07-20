@@ -55,6 +55,8 @@
 | 2023/07/11 |2       |         |      |        |         |        | Deliverable 5 Doc Work                                        |
 | 2023/07/11 |4       |         |      |        |         |        | Get current location, debug Places API                        |
 | 2023/07/12 |        |         |      |        | 4       |        | Initial firebase integration + d4 doc work                    |
+| 2023/07/12 |        |         |      |        |         | 1      | Fixed Firestore rules                                         |
+| 2023/07/13 |        |         |      |        |         | 3      | Register screen UX                                            |
 | 2023/07/13 |        |         |      |        | 1       |        | Slight refactor of recipe/ingredient classes                  |
 | 2023/07/13 |        |5        |      |        |         |        | Add recipe data source API endpoints & MVVM changes           |
 | 2023/07/13 |        |         |      |        |         | 4      | Fixed authentication blocker bug                              |
