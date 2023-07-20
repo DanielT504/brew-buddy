@@ -72,7 +72,7 @@
 | 2023/07/18 |6       |         |      |        |         |        | Reading firebase docs, implemententing user settings in db    |
 | 2023/07/19 |        |1        |      |        |         |        | Featured page infinite scroll bug fix                         |
 | 2023/07/19 |        |1        |      |        |         |        | Favourite button bug fix and added state for unfavourited     |
-| 2023/07/19 |        |         | 1    |        |         |        | Firebase setup, nodde/npm issue fixes                         |
+| 2023/07/19 |        |         | 1    |        |         |        | Firebase setup, node/npm issue fixes                          |
 | 2023/07/19 |        |         | 6    |        |         |        | Adding ui for recipe upload function                          |
 | 2023/07/18 |5       |         |      |        |         |        | Start notif work, adding saved stores to db                   |
 | 2023/07/18 |        |         | 3    |        |         |        | Deliverable 5 Doc Work                                        |
