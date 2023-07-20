@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.BoxWithConstraints
 import android.provider.CalendarContract
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollableDefaults
@@ -84,6 +85,7 @@ import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.store1
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.auth.FirebaseAuth
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
@@ -96,6 +98,28 @@ private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
     }
     return diff % pageCount
 }
+fun postRecipe(recipe: IngredientsList?, title: String?, summary: String?) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val recipesRef = db.collection("recipes").document(userId)
+        val recipeInfo = hashMapOf(
+            "bannerUrl" to "temp",
+            "ingredientLists" to recipe,
+            "title" to title,
+            "summary" to summary,
+//            "summary" to lactoseFree
+        )
+        recipesRef.set(recipeInfo)
+        .addOnSuccessListener {
+            // Successfully updated the radius in Firestore
+            Log.d("EDIT_PREFS", "User prefs changed in user pref")
+        }
+        .addOnFailureListener { exception ->
+            Log.d("EDIT_PREFS", "Error changing user prefs: $exception")
+        }
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
@@ -362,8 +386,9 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                     quantityList.add(ingredient.quantity)
                                 }
 
-                                val completedRecipe =
-                                    IngredientsList(quantityList, unitList, labelList)
+                                val completedRecipe = IngredientsList(quantityList, unitList, labelList)
+
+                                postRecipe(completedRecipe, title, description)
                                 onClose()
                             }
                         ) {
