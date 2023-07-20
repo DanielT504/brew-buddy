@@ -5,6 +5,11 @@ data class PreparationStepSection (
     val steps: List<String>,
 )
 
+data class IndividualStep (
+    val stepNumber: Number,
+    val stepInfo: String
+)
+
 fun createPreparationStepsFromJSON(sections: List<HashMap<String, Object>>): List<PreparationStepSection> {
     val list = ArrayList<PreparationStepSection>()
 

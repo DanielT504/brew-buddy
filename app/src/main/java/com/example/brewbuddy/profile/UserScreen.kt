@@ -78,6 +78,7 @@ import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.brewbuddy.recipes.IndividualIngredient
+import com.example.brewbuddy.recipes.IndividualStep
 import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.store1
@@ -216,6 +217,41 @@ fun ImageGrid(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun StepInput(stepNumber: Number, inputStep: String? = null, onStepChange: (IndividualStep) -> Unit) {
+    var step by remember { mutableStateOf("") }
+    if (inputStep != null) {
+        step = inputStep
+    }
+
+    Column() {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(4.dp)) {
+            Text(
+                text = "Step $stepNumber"
+            )
+        }
+        Row(Modifier.fillMaxWidth()) {
+            TextField(
+                value = step,
+                onValueChange = { newValue ->
+                    step = newValue
+                    onStepChange(IndividualStep(stepNumber, step))
+                },
+                label = { Text("Add Step", style = TextStyle(fontSize = 12.sp, color = Color.Gray)) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp),
+            )
+        }
+    }
+}
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun IngredientInput(ingredientNumber: Number, ingredientData: IndividualIngredient? = null, onIngredientChange: (IndividualIngredient) -> Unit)  {
     var ingredient by remember { mutableStateOf("")}
     var quantity by remember { mutableStateOf("")}
@@ -285,37 +321,54 @@ fun IngredientInput(ingredientNumber: Number, ingredientData: IndividualIngredie
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
     val ingredients = remember { mutableStateListOf<IndividualIngredient>() }
+    val instructions = remember { mutableStateListOf<IndividualStep>() }
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+
+    ingredients.add(IndividualIngredient(0, "", ""))
+    instructions.add(IndividualStep(0, ""))
 
     if (openDialog.value) {
         AlertDialog(
             onDismissRequest = { onClose() },
             confirmButton = {
-                Row {
-                    Button(
-                        onClick = { ingredients.add(IndividualIngredient(0, "", "")) }
-                    ) {
-                        Text("Add Ingredient")
-                    }
-                    Button(
-                        onClick = {
-                            var labelList = mutableStateListOf<String>()
-                            var unitList = mutableStateListOf<String>()
-                            var quantityList = mutableStateListOf<Number>()
-
-                            ingredients.forEach { ingredient ->
-                                labelList.add(ingredient.label)
-                                unitList.add(ingredient.unit)
-                                quantityList.add(ingredient.quantity)
-                            }
-
-                            val completedRecipe = IngredientsList(quantityList, unitList, labelList)
-                            onClose()
+                Column() {
+                    Row {
+                        Button(
+                            onClick = { ingredients.add(IndividualIngredient(0, "", "")) }
+                        ) {
+                            Text("Add Ingredient")
                         }
-                    ) {
-                        Text("Confirm")
+                        Button(
+                            onClick = { instructions.add(IndividualStep(0, "")) }
+                        ) {
+                            Text("Add Step")
+                        }
+                    }
+                    Row {
+                        Button(
+                            onClick = {
+                                var labelList = mutableStateListOf<String>()
+                                var unitList = mutableStateListOf<String>()
+                                var quantityList = mutableStateListOf<Number>()
+
+                                ingredients.forEach { ingredient ->
+                                    labelList.add(ingredient.label)
+                                    unitList.add(ingredient.unit)
+                                    quantityList.add(ingredient.quantity)
+                                }
+
+                                val completedRecipe =
+                                    IngredientsList(quantityList, unitList, labelList)
+                                onClose()
+                            }
+                        ) {
+                            Text("Confirm")
+                        }
                     }
                 }
             },
@@ -327,6 +380,34 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
             text = {
                 Column(modifier = Modifier.height(400.dp), verticalArrangement = Arrangement.SpaceBetween) {
                     Column(Modifier.verticalScroll(rememberScrollState())) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)) {
+                            Text(
+                                text = "Recipe Title",
+                                style = TextStyle(fontSize = 20.sp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 10.dp)) {
+                            TextField(
+                                value = title,
+                                onValueChange = { newValue: String -> title = newValue },
+                                label = { Text(text = "Title") },
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)) {
+                            Text(
+                                text = "Ingredients",
+                                style = TextStyle(fontSize = 20.sp)
+                            )
+                        }
                         ingredients.forEachIndexed { index, ingredient ->
                             Row(modifier = Modifier.padding(bottom = 8.dp)) {
                                 IngredientInput(
@@ -337,6 +418,45 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                     }
                                 )
                             }
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)) {
+                            Text(
+                                text = "Instructions",
+                                style = TextStyle(fontSize = 20.sp)
+                            )
+                        }
+                        instructions.forEachIndexed { index, instruction ->
+                            Row(modifier = Modifier.padding(bottom = 8.dp)) {
+                                StepInput(
+                                    index + 1,
+                                    inputStep = instruction.stepInfo,
+                                    onStepChange = { updatedStep ->
+                                        instructions[index] = updatedStep
+                                    }
+                                )
+                            }
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)) {
+                            Text(
+                                text = "Description",
+                                style = TextStyle(fontSize = 20.sp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 10.dp)) {
+                            TextField(
+                                value = description,
+                                onValueChange = { newValue: String -> description = newValue },
+                                label = { Text(text = "Description") },
+                            )
                         }
                     }
                 }
