@@ -79,3 +79,4 @@
 | 2023/07/19 |        |         | 6    |        |         |        | Adding ui for recipe upload function                          |
 | 2023/07/19 |        |         |      |        |         | 2      | Working logout using a restart simulation screen              |
 | 2023/07/20 |        |         |      |        |         | 3      | Started delete account button and added user settings scroll  |
+| 2023/07/20 |        |1        |      |        |         |        | Fixed recipe card issues/bugs & added random heights for them |
