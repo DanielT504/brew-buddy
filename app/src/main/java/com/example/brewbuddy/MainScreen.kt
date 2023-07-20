@@ -21,6 +21,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.example.brewbuddy.recipes.IndividualRecipeScreen
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
@@ -46,7 +47,7 @@ fun GreetingPreview() {
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(currentUserViewModel: CurrentUserViewModel, navController: NavHostController) {
 
     val navController = rememberNavController()
     val bottomNavigationItems = listOf(
@@ -60,8 +61,8 @@ fun MainScreen() {
         bottomBar = {
             BottomNavigation(navController, bottomNavigationItems)
         },
-        content = {innerPadding ->
-            MainScreenNavigationConfigurations(navController, innerPadding)
+        content = { innerPadding ->
+            MainScreenNavigationConfigurations(navController, innerPadding, currentUserViewModel)
         }
     )
 }
@@ -78,7 +79,8 @@ val LocalNavGraphViewModelStoreOwner =
 @Composable
 private fun MainScreenNavigationConfigurations(
     navController: NavHostController,
-    padding: PaddingValues
+    padding: PaddingValues,
+    currentUserViewModel: CurrentUserViewModel
 ) {
     // make sure that when you try to access the view model in the navhost children (the screens)
     // it is accessing the right scope, e.g. the scope of the main activity instead
@@ -89,7 +91,7 @@ private fun MainScreenNavigationConfigurations(
     ) {
         NavHost(navController, startDestination = BottomNavigationScreens.Profile.route) {
             composable(BottomNavigationScreens.Profile.route) {
-                ProfileScreen()
+                ProfileScreen(currentUserViewModel, navController)
             }
             composable(BottomNavigationScreens.ShopLocator.route) {
                 ShopLocatorScreen()

@@ -89,6 +89,11 @@ import com.example.brewbuddy.ui.theme.OrangeBrownMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import com.example.brewbuddy.ui.theme.currentRoute
 import kotlinx.coroutines.CoroutineScope
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.*
+import androidx.navigation.compose.*
+
+val LocalNavController = compositionLocalOf<NavController> { error("No NavController provided") }
 
 sealed class ProfileScreens(val route: String, val label: String) {
     object User : ProfileScreens("profile/user", "Profile")
@@ -159,7 +164,7 @@ fun ProfilePicture(@DrawableRes img: Int, size: Dp) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(currentUserViewModel: CurrentUserViewModel, navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     var menuDrawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val localNavController = rememberNavController()
@@ -174,32 +179,28 @@ fun ProfileScreen() {
                 localNavController,
                 menuItems,
                 coroutineScope,
-                menuDrawerState)
+                menuDrawerState
+            )
         },
         drawerState = menuDrawerState
     ) {
         Surface() {
-
             CompositionLocalProvider(
-                LocalNavGraphViewModelStoreOwner provides vmStoreOwner
+                LocalNavGraphViewModelStoreOwner provides vmStoreOwner,
+                LocalNavController provides localNavController // Provide LocalNavController
             ) {
                 NavHost(localNavController, startDestination = ProfileScreens.User.route) {
                     composable(ProfileScreens.User.route) {
-                        UserScreen(menuButton = {MenuButton(coroutineScope, menuDrawerState, Color.White)})
+                        UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.White) })
                     }
 
                     composable(ProfileScreens.Settings.route) {
-                        SettingScreen(menuButton = {MenuButton(coroutineScope, menuDrawerState)})
+                        SettingScreen(currentUserViewModel, navController, menuButton = {MenuButton(coroutineScope, menuDrawerState)})
                     }
-
                 }
-
             }
-
-
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

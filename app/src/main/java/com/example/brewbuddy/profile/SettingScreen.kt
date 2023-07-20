@@ -37,13 +37,20 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import com.example.brewbuddy.AccessScreens
 import com.example.brewbuddy.ShopLocatorScreen
 import com.example.brewbuddy.ui.theme.TitleLarge
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingScreen(menuButton: @Composable () -> Unit) {
+fun SettingScreen(
+    currentUserViewModel: CurrentUserViewModel,
+    navController: NavController,
+    menuButton: @Composable () -> Unit
+) {
     Surface(modifier= Modifier.fillMaxSize()) {
         Column {
             menuButton()
@@ -190,7 +197,21 @@ fun SettingScreen(menuButton: @Composable () -> Unit) {
                     Text(text = "Save preferences")
                 }
             }
-
+            Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
+                Button(
+                    onClick = {
+                        // Logout the user and navigate back to the login screen
+                        currentUserViewModel.setUser(null)
+                        navController.navigate(AccessScreens.Login.route)
+                    },
+                    shape = RoundedCornerShape(50.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    Text(text = "Logout")
+                }
+            }
         }
     }
 }
