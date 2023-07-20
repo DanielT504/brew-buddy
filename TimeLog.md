@@ -72,3 +72,4 @@
 | 2023/07/19 |        |1        |      |        |         |        | Favourite button bug fix and added state for unfavourited     |
 | 2023/07/19 |        |         | 1    |        |         |        | Firebase setup, nodde/npm issue fixes                         |
 | 2023/07/19 |        |         | 6    |        |         |        | Adding ui for recipe upload function                          |
+| 2023/07/18 |5       |         |      |        |         |        | Start notif work, adding saved stores to db                   |
