@@ -20,6 +20,7 @@ import android.provider.CalendarContract
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -268,7 +269,6 @@ fun IngredientInput(ingredientNumber: Number, ingredientData: IndividualIngredie
                     .padding(4.dp),
             )
             TextField(
-
                 value = unit,
                 onValueChange = { newValue ->
                     unit = newValue
@@ -288,21 +288,37 @@ fun IngredientInput(ingredientNumber: Number, ingredientData: IndividualIngredie
 @Composable
 fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
     val ingredients = remember { mutableStateListOf<IndividualIngredient>() }
-//    ingredients.add(IndividualIngredient(0, "", ""))
 
     if (openDialog.value) {
         AlertDialog(
             onDismissRequest = { onClose() },
             confirmButton = {
-                Button(
-                    onClick = {
-                        onClose()
+                Row {
+                    Button(
+                        onClick = { ingredients.add(IndividualIngredient(0, "", "")) }
+                    ) {
+                        Text("Add Ingredient")
                     }
-                ) {
-                    Text("Confirm")
+                    Button(
+                        onClick = {
+                            var labelList = mutableStateListOf<String>()
+                            var unitList = mutableStateListOf<String>()
+                            var quantityList = mutableStateListOf<Number>()
+
+                            ingredients.forEach { ingredient ->
+                                labelList.add(ingredient.label)
+                                unitList.add(ingredient.unit)
+                                quantityList.add(ingredient.quantity)
+                            }
+
+                            val completedRecipe = IngredientsList(quantityList, unitList, labelList)
+                            onClose()
+                        }
+                    ) {
+                        Text("Confirm")
+                    }
                 }
             },
-//            modifier = Modifier.wrapContentSize(),
             dismissButton = {},
             icon = {},
             title = {
@@ -312,22 +328,15 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                 Column(modifier = Modifier.height(400.dp), verticalArrangement = Arrangement.SpaceBetween) {
                     Column(Modifier.verticalScroll(rememberScrollState())) {
                         ingredients.forEachIndexed { index, ingredient ->
-                            Row() {
+                            Row(modifier = Modifier.padding(bottom = 8.dp)) {
                                 IngredientInput(
-                                    index,
+                                    index + 1,
                                     ingredientData = ingredient,
                                     onIngredientChange = { updatedIngredient ->
                                         ingredients[index] = updatedIngredient
                                     }
                                 )
                             }
-                        }
-                    }
-                    Row(Modifier.weight(1f, false)) {
-                        Button(
-                            onClick = { ingredients.add(IndividualIngredient(0, "", "")) }
-                        ) {
-                            Text("Add Ingredient")
                         }
                     }
                 }
@@ -366,7 +375,7 @@ fun UserScreen(menuButton: @Composable () -> Unit) {
                     showDialog.value = true
                 }
             ) {
-                Text(text = "Simple Button")
+                Text(text = "Upload Recipe")
             }
             RecipeModal(showDialog,  onClose = { showDialog.value = false })
             Box() {
