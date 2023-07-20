@@ -20,6 +20,7 @@ import android.provider.CalendarContract
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,19 +40,33 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.brewbuddy.AccessScreens
 import com.example.brewbuddy.PinnedCard
 import com.example.brewbuddy.ProfilePicture
@@ -62,6 +77,8 @@ import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.brewbuddy.recipes.IndividualIngredient
+import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.store1
 import com.google.android.gms.maps.model.CameraPosition
@@ -197,6 +214,145 @@ fun ImageGrid(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun IngredientInput(ingredientNumber: Number, ingredientData: IndividualIngredient? = null, onIngredientChange: (IndividualIngredient) -> Unit)  {
+    var ingredient by remember { mutableStateOf("")}
+    var quantity by remember { mutableStateOf("")}
+    var quantityAsNum by remember { mutableStateOf(0)}
+    var unit by remember { mutableStateOf("")}
+
+    if (ingredientData != null) {
+        ingredient = ingredientData.label
+        quantity = ingredientData.quantity.toString()
+        quantityAsNum = ingredientData.quantity.toInt()
+        unit = ingredientData.unit
+    }
+
+    Column() {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(4.dp)) {
+            Text(
+                text = "Ingredient $ingredientNumber"
+            )
+        }
+        Row(Modifier.fillMaxWidth()) {
+            TextField(
+                value = ingredient,
+                onValueChange = { newValue ->
+                    ingredient = newValue
+                    onIngredientChange(
+                        IndividualIngredient(quantityAsNum, unit, newValue)
+                    )
+                },
+                label = { Text("Ingredient", style = TextStyle(fontSize = 12.sp, color = Color.Gray)) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp),
+            )
+        }
+        Row(Modifier.fillMaxWidth()) {
+            TextField(
+                value = quantity,
+                onValueChange = { newQuantity ->
+                    quantity = newQuantity
+                    quantityAsNum = newQuantity.toInt()
+                    onIngredientChange(
+                        IndividualIngredient(quantityAsNum, unit, ingredient)
+                    )
+                },
+                label = { Text("Quantity", style = TextStyle(fontSize = 12.sp, color = Color.Gray)) },
+                modifier = Modifier
+                    .weight(0.5f)
+                    .padding(4.dp),
+            )
+            TextField(
+                value = unit,
+                onValueChange = { newValue ->
+                    unit = newValue
+                    onIngredientChange(
+                        IndividualIngredient(quantityAsNum, newValue, ingredient)
+                    )
+                },
+                label = { Text("Unit", style = TextStyle(fontSize = 12.sp, color = Color.Gray)) },
+                modifier = Modifier
+                    .weight(0.5f)
+                    .padding(4.dp),
+            )
+        }
+    }
+}
+
+@Composable
+fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
+    val ingredients = remember { mutableStateListOf<IndividualIngredient>() }
+
+    if (openDialog.value) {
+        AlertDialog(
+            onDismissRequest = { onClose() },
+            confirmButton = {
+                Row {
+                    Button(
+                        onClick = { ingredients.add(IndividualIngredient(0, "", "")) }
+                    ) {
+                        Text("Add Ingredient")
+                    }
+                    Button(
+                        onClick = {
+                            var labelList = mutableStateListOf<String>()
+                            var unitList = mutableStateListOf<String>()
+                            var quantityList = mutableStateListOf<Number>()
+
+                            ingredients.forEach { ingredient ->
+                                labelList.add(ingredient.label)
+                                unitList.add(ingredient.unit)
+                                quantityList.add(ingredient.quantity)
+                            }
+
+                            val completedRecipe = IngredientsList(quantityList, unitList, labelList)
+                            onClose()
+                        }
+                    ) {
+                        Text("Confirm")
+                    }
+                }
+            },
+            dismissButton = {},
+            icon = {},
+            title = {
+                Text(text = "Upload Recipe")
+            },
+            text = {
+                Column(modifier = Modifier.height(400.dp), verticalArrangement = Arrangement.SpaceBetween) {
+                    Column(Modifier.verticalScroll(rememberScrollState())) {
+                        ingredients.forEachIndexed { index, ingredient ->
+                            Row(modifier = Modifier.padding(bottom = 8.dp)) {
+                                IngredientInput(
+                                    index + 1,
+                                    ingredientData = ingredient,
+                                    onIngredientChange = { updatedIngredient ->
+                                        ingredients[index] = updatedIngredient
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            shape = MaterialTheme.shapes.large,
+//            containerColor = MaterialTheme.colors.surface,
+            iconContentColor = Color.Black,
+            titleContentColor = Color.Black,
+            textContentColor = Color.Black,
+//            tonalElevation = AlertDialogDefaults.TonalElevation,
+//            properties = DialogProperties(usePlatformDefaultWidth = false)
+        )
+    }
+}
+
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserScreen(menuButton: @Composable () -> Unit) {
@@ -213,10 +369,20 @@ fun UserScreen(menuButton: @Composable () -> Unit) {
                 TitleLarge(text = "Your Recipes")
             }
             ImageGrid(3, modifier = Modifier.padding(16.dp))
+            var showDialog = remember { mutableStateOf(false) }
+            Button(
+                onClick = {
+                    showDialog.value = true
+                }
+            ) {
+                Text(text = "Upload Recipe")
+            }
+            RecipeModal(showDialog,  onClose = { showDialog.value = false })
             Box() {
                 TitleLarge(text = "Saved Shops near you")
             }
-            Box(modifier = Modifier.fillMaxWidth()
+            Box(modifier = Modifier
+                .fillMaxWidth()
                 .background(Color.White, shape = RoundedCornerShape(32.dp))
                 .padding(16.dp, 0.dp, 16.dp, 100.dp)) {
                 if (store1.saved) {
