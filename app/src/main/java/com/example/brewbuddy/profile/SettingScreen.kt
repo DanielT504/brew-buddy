@@ -1,5 +1,8 @@
 package com.example.brewbuddy.profile
 
+import android.content.Intent
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.brewbuddy.AccessScreens
+import com.example.brewbuddy.MainActivity
 import com.example.brewbuddy.ShopLocatorScreen
 import com.example.brewbuddy.ui.theme.TitleLarge
 import kotlin.math.roundToInt
@@ -47,7 +52,6 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
-    currentUserViewModel: CurrentUserViewModel,
     navController: NavController,
     menuButton: @Composable () -> Unit
 ) {
@@ -200,9 +204,16 @@ fun SettingScreen(
             Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
                 Button(
                     onClick = {
-                        // Logout the user and navigate back to the login screen
-                        currentUserViewModel.setUser(null)
-                        navController.navigate(AccessScreens.Login.route)
+                        // Logout the user and navigate back to the main activity
+                        // currentUserViewModel.setUser(null)
+
+                        // Start the MainActivity to simulate a restart
+                        val intent = Intent(navController.context, MainActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                        navController.context.startActivity(intent)
+
+                        // Finish the current activity to clear it from the back stack
+                        (navController.context as? ComponentActivity)?.finish()
                     },
                     shape = RoundedCornerShape(50.dp),
                     modifier = Modifier
@@ -211,6 +222,7 @@ fun SettingScreen(
                 ) {
                     Text(text = "Logout")
                 }
+
             }
         }
     }

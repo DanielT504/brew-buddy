@@ -164,7 +164,7 @@ fun ProfilePicture(@DrawableRes img: Int, size: Dp) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(currentUserViewModel: CurrentUserViewModel, navController: NavController) {
+fun ProfileScreen(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     var menuDrawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val localNavController = rememberNavController()
@@ -195,7 +195,7 @@ fun ProfileScreen(currentUserViewModel: CurrentUserViewModel, navController: Nav
                     }
 
                     composable(ProfileScreens.Settings.route) {
-                        SettingScreen(currentUserViewModel, navController, menuButton = {MenuButton(coroutineScope, menuDrawerState)})
+                        SettingScreen(navController, menuButton = {MenuButton(coroutineScope, menuDrawerState)})
                     }
                 }
             }

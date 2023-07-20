@@ -47,7 +47,7 @@ fun GreetingPreview() {
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(currentUserViewModel: CurrentUserViewModel, navController: NavHostController) {
+fun MainScreen() {
 
     val navController = rememberNavController()
     val bottomNavigationItems = listOf(
@@ -62,7 +62,7 @@ fun MainScreen(currentUserViewModel: CurrentUserViewModel, navController: NavHos
             BottomNavigation(navController, bottomNavigationItems)
         },
         content = { innerPadding ->
-            MainScreenNavigationConfigurations(navController, innerPadding, currentUserViewModel)
+            MainScreenNavigationConfigurations(navController, innerPadding)
         }
     )
 }
@@ -79,8 +79,7 @@ val LocalNavGraphViewModelStoreOwner =
 @Composable
 private fun MainScreenNavigationConfigurations(
     navController: NavHostController,
-    padding: PaddingValues,
-    currentUserViewModel: CurrentUserViewModel
+    padding: PaddingValues
 ) {
     // make sure that when you try to access the view model in the navhost children (the screens)
     // it is accessing the right scope, e.g. the scope of the main activity instead
@@ -91,7 +90,7 @@ private fun MainScreenNavigationConfigurations(
     ) {
         NavHost(navController, startDestination = BottomNavigationScreens.Profile.route) {
             composable(BottomNavigationScreens.Profile.route) {
-                ProfileScreen(currentUserViewModel, navController)
+                ProfileScreen(navController)
             }
             composable(BottomNavigationScreens.ShopLocator.route) {
                 ShopLocatorScreen()

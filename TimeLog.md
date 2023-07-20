@@ -58,3 +58,6 @@
 | 2023/07/13 |        |         |      |        |         | 3      | Register screen UX                                            |
 | 2023/07/13 |        |5        |      |        |         |        | Add recipe data source API endpoints & MVMM changes           |
 | 2023/07/13 |        |         |      |        |         | 4      | Fixed authentication blocker bug                              |
+| 2023/07/18 |        |         |      |        |         | 5      | Code refactoring for nav from logout button to access screen  |
+| 2023/07/18 |        |         |      |        |         | 2      | Working logout using a restart simulation screen              |
+
