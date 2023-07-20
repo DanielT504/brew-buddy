@@ -4,6 +4,7 @@ package com.example.brewbuddy
 
 import android.location.Geocoder
 import android.location.Location
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -46,6 +47,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
+import com.example.brewbuddy.profile.currGlutenFree
+import com.example.brewbuddy.profile.currHalal
+import com.example.brewbuddy.profile.currKeto
+import com.example.brewbuddy.profile.currKosher
+import com.example.brewbuddy.profile.currLactoseFree
+import com.example.brewbuddy.profile.currNutFree
+import com.example.brewbuddy.profile.currRadius
+import com.example.brewbuddy.profile.currVegan
+import com.example.brewbuddy.profile.currVegetarian
+import com.example.brewbuddy.profile.db
 import com.example.brewbuddy.shoplocator.LocationPermissionsAndSettingDialogs
 import com.example.brewbuddy.shoplocator.LocationUtils
 import com.example.brewbuddy.shoplocator.Store
@@ -211,7 +222,7 @@ fun StoreListSheet(currentLocation: Location) {
                             storeName = cafe.name,
                             address = cafe.address,
                             rating = cafe.rating,
-                            items = "Iced coffee"
+                            items = listOf("Iced coffee")
                         )
                     }
                 }
@@ -219,6 +230,60 @@ fun StoreListSheet(currentLocation: Location) {
         }
     }
 }
+
+fun updateSavedStores(savedStore: Store) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val storesRef = db.collection("saved_stores").document(userId)
+        val stores = hashMapOf(
+            "storeName" to savedStore.storeName,
+            "latitude" to savedStore.latitude,
+            "longitude" to savedStore.longitude,
+            "items" to savedStore.items,
+            "rating" to savedStore.rating,
+            "saved" to savedStore.saved,
+        )
+        storesRef.set(stores)
+            .addOnSuccessListener {
+                // Successfully updated the radius in Firestore
+                Log.d("SAVE_STORE", "Store saved")
+            }
+            .addOnFailureListener { exception ->
+                Log.d("SAVE_STORE", "Error saving store: $exception")
+            }
+    }
+}
+var savedStoreList = listOf<Store>()
+private fun retrieveSavedStores() {
+    val firestore = FirebaseFirestore.getInstance()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val storesRef = userId?.let { firestore.collection("saved_stores").document(it) }
+
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val snapshot = storesRef?.get()?.await()
+            if (snapshot != null) {
+                val savedStoresMap = snapshot.data
+                Log.d("saved_store", snapshot.data as String)
+
+                savedStoreList = savedStoresMap?.map { (_, storeData) ->
+                    // Assuming the field name in Firestore for storeName is "storeName"
+                    val storeName = storeData as? String
+
+                    if (storeName != null) {
+                        Log.d("saved_store", storeName)
+                    }
+                    // If storeName is not null, create a Store object with the storeName and return it
+                    storeName?.let { Store(it) }
+                }?.filterNotNull() ?: listOf()
+            }
+
+        } catch (e: Exception) {
+            // Handle exceptions, such as network errors or document retrieval failures
+        }
+    }
+}
+
 
 data class CafeMarker(val name: String, val position: LatLng)
 var radius = 0f;
@@ -260,6 +325,7 @@ fun MapWrapper(currentLocation: Location,
     val location = LatLng(latitude, longitude)
     var cafeList by remember { mutableStateOf<List<CafeMarker>>(emptyList()) }
     runBlocking {         retrieveRadiusFromFirestore()
+        retrieveSavedStores()
     }
 
     LaunchedEffect(Unit) {
@@ -313,7 +379,6 @@ fun MapWrapper(currentLocation: Location,
         position = CameraPosition.fromLatLngZoom(location, zoomLevel +.5f)
     }
 
-
         GoogleMap(
             modifier = Modifier
                 .fillMaxSize(),
@@ -328,7 +393,7 @@ fun MapWrapper(currentLocation: Location,
     }
 }
 @Composable
-fun StoreInfo(storeName: String, address: String, rating: Double, items: String, modifier: Modifier = Modifier) {
+fun StoreInfo(storeName: String, address: String, rating: Double, items: List<String>, modifier: Modifier = Modifier) {
     Box(
         modifier = Modifier
             .fillMaxWidth(),
@@ -354,6 +419,7 @@ fun StoreInfo(storeName: String, address: String, rating: Double, items: String,
                             onClick = {
                                 store1.saved = !store1.saved
                                 selected = !selected
+                                updateSavedStores(Store(storeName, address, 0.0, 0.0, items, rating, true))
                                       },
                             modifier=Modifier.padding(0.dp, 24.dp, 0.dp, 16.dp)
                         ) {
