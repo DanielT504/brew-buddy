@@ -92,6 +92,7 @@ import kotlinx.coroutines.CoroutineScope
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.*
 import androidx.navigation.compose.*
+import com.example.brewbuddy.profile.CurrentUserRepository
 
 val LocalNavController = compositionLocalOf<NavController> { error("No NavController provided") }
 
@@ -165,6 +166,8 @@ fun ProfilePicture(@DrawableRes img: Int, size: Dp) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(navController: NavController) {
+    val currentUserViewModel = viewModel<CurrentUserViewModel>() // Get the view model instance
+    val currentUserRepository = CurrentUserRepository()
     val coroutineScope = rememberCoroutineScope()
     var menuDrawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val localNavController = rememberNavController()
@@ -187,7 +190,7 @@ fun ProfileScreen(navController: NavController) {
         Surface() {
             CompositionLocalProvider(
                 LocalNavGraphViewModelStoreOwner provides vmStoreOwner,
-                LocalNavController provides localNavController // Provide LocalNavController
+                LocalNavController provides localNavController
             ) {
                 NavHost(localNavController, startDestination = ProfileScreens.User.route) {
                     composable(ProfileScreens.User.route) {
@@ -195,7 +198,12 @@ fun ProfileScreen(navController: NavController) {
                     }
 
                     composable(ProfileScreens.Settings.route) {
-                        SettingScreen(navController, menuButton = {MenuButton(coroutineScope, menuDrawerState)})
+                        SettingScreen(
+                            navController = navController,
+                            currentUserViewModel = currentUserViewModel,
+                            currentUserRepository = currentUserRepository,
+                            menuButton = { MenuButton(coroutineScope, menuDrawerState) }
+                        )
                     }
                 }
             }

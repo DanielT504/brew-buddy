@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,20 +42,60 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.brewbuddy.AccessScreens
+import com.example.brewbuddy.LocalViewModel
 import com.example.brewbuddy.MainActivity
 import com.example.brewbuddy.ShopLocatorScreen
 import com.example.brewbuddy.ui.theme.TitleLarge
+import kotlinx.coroutines.runBlocking
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
     navController: NavController,
+    currentUserViewModel: CurrentUserViewModel,
+    currentUserRepository: CurrentUserRepository,
     menuButton: @Composable () -> Unit
 ) {
+    val currentUserRepository = CurrentUserRepository()
+    val currentUserViewModel: CurrentUserViewModel = viewModel()
+
+    // Get the coroutine scope
+    val coroutineScope = rememberCoroutineScope()
+
+    // Function to handle account deletion
+    suspend fun handleAccountDeletion() {
+        val currentUser = currentUserRepository.getCurrentUser()
+        if (currentUser != null) {
+            coroutineScope.launch {
+                // Call the deleteAccount function in the repository passing the user's UID
+                val deleteResult = currentUserRepository.deleteAccount(currentUser.uid)
+
+                if (deleteResult) {
+                    // Deletion is successful
+                    // Set the current user to null to log out
+                    currentUserViewModel.setUser(null)
+
+                    // Start the MainActivity to simulate a restart
+                    val intent = Intent(navController.context, MainActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    navController.context.startActivity(intent)
+
+                    // Finish the current activity to clear it from the back stack
+                    (navController.context as? ComponentActivity)?.finish()
+                } else {
+                    // Show an error message or handle the failure case
+                    // You can display a Snackbar or Toast to inform the user that deletion failed.
+                }
+            }
+        }
+    }
+
     Surface(modifier= Modifier.fillMaxSize()) {
         Column {
             menuButton()
@@ -222,7 +263,24 @@ fun SettingScreen(
                 ) {
                     Text(text = "Logout")
                 }
+            }
 
+            val coroutineScope = rememberCoroutineScope()
+
+            Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            handleAccountDeletion()
+                        }
+                    },
+                    shape = RoundedCornerShape(50.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    Text(text = "Delete Account")
+                }
             }
         }
     }
