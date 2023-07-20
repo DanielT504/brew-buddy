@@ -29,10 +29,8 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -63,25 +61,18 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.recipes.IngredientSection
 import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.recipes.RecipesScreenViewModel
 import com.example.brewbuddy.recipes.RecipesState
-import com.example.brewbuddy.recipes.Screen
 import com.example.brewbuddy.recipes.TagType
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
-import com.example.brewbuddy.ui.theme.GreyLight
-import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.util.randomSampleImageUrl
-import com.google.firebase.functions.FirebaseFunctions
-import org.json.JSONArray
-import java.util.Objects
-import com.example.brewbuddy.util.formatTitle
+import kotlin.random.Random
 import com.example.brewbuddy.randomSizedPhotos as randomSizedPhotos
 
 @Composable
@@ -97,12 +88,12 @@ fun RecipesScreen(
                 .padding(
                     start = 0.dp,
                     top = 16.dp,
-                    bottom = 0.dp,
+                    bottom = 16.dp,
                     end = 0.dp
                 )
         ) {
             RecipeGridLayout(navController, state)
-        }
+       }
     }
     if(state.error.isNotBlank()) {
         Text(
@@ -117,7 +108,9 @@ fun RecipesScreen(
     if(state.isLoading){
         Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
                 Box() {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).size(34.dp))
+                    CircularProgressIndicator(modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(34.dp))
                 }
         }
     }
@@ -141,21 +134,31 @@ private fun Heading(text: String) {
     }
 }
 
+private fun getRandomCardHeight(): Int {
+    val cardHeights = listOf(235, 250, 265, 280, 295, 310, 325)
+    return cardHeights[Random.nextInt(0, cardHeights.size - 1)]
+}
+
 @Composable
-private fun CardTitle(text: String, fontSize: TextUnit) {
+private fun CardTitle(
+    text: String,
+    fontSize: TextUnit,
+    horizontalPadding: Int,
+    verticalPadding: Int
+) {
     Text(
         text,
         color = Color.White,
         fontSize = fontSize,
         fontWeight = FontWeight.Bold,
-        overflow = TextOverflow.Ellipsis
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(horizontal = horizontalPadding.dp, vertical = verticalPadding.dp)
     )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun RecipeGridLayout(navController: NavHostController, state: RecipesState) {
-    val height = ((state.recipes.size*200) + 70).dp
      LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
             verticalItemSpacing = 14.dp,
@@ -163,10 +166,7 @@ private fun RecipeGridLayout(navController: NavHostController, state: RecipesSta
             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .height(height)
         ) {
-
             item( span = StaggeredGridItemSpan.FullLine) {
                 Heading(text = "Popular")
             }
@@ -182,20 +182,25 @@ private fun RecipeGridLayout(navController: NavHostController, state: RecipesSta
             item(
               span = StaggeredGridItemSpan.FullLine
              ) {
-             Heading(text = "Picked for you")
-         }
+                Heading(text = "Picked for you")
+            }
              items(state.recipes) {
                  recipe ->
                     RecipeCard(
                         title = recipe.title ?: "",
                         photo = recipe.bannerUrl,
                         navController = navController,
-                        recipeId = recipe.id ?: ""
+                        recipeId = recipe.id ?: "",
+                        height = getRandomCardHeight()
                     )
+             }
+             item(
+                 span = StaggeredGridItemSpan.FullLine
+             ) {
+                 Spacer(modifier = Modifier.height(56.dp))
              }
      }
  }
-
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -222,12 +227,12 @@ private fun PopularCard(photo: Any) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.width(250.dp)
                 ) {
-                    Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                        CardTitle(
-                            text = "Card Title",
-                            fontSize = 22.sp
-                        )
-                    }
+                    CardTitle(
+                        text = "Card Title",
+                        fontSize = 22.sp,
+                        verticalPadding = 8,
+                        horizontalPadding = 12
+                    )
                     Box(modifier = Modifier.padding(start = 8.dp, end = 4.dp, top = 4.dp, bottom = 8.dp)) {
                         Icon(
                             painter = painterResource(id = R.drawable.icon_locator),
@@ -244,7 +249,13 @@ private fun PopularCard(photo: Any) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RecipeCard(recipeId: String, title: String, photo: Any, navController: NavHostController) {
+private fun RecipeCard(
+    recipeId: String,
+    title: String,
+    photo: Any,
+    navController: NavHostController,
+    height: Int
+) {
     Card(
         onClick = {
             navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + recipeId) },
@@ -252,75 +263,68 @@ private fun RecipeCard(recipeId: String, title: String, photo: Any, navControlle
         elevation = CardDefaults.cardElevation(
             defaultElevation = 15.dp
         ),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxSize()
+            .height(height.dp)
 
     ) {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .height(height.dp)
+            ) {
                 AsyncImage(
                     model = photo,
                     contentDescription = null,
                     contentScale = ContentScale.FillHeight,
                     modifier = Modifier
-                        .height(300.dp)
+                        .height(height.dp)
                         .fillMaxWidth()
                         .fillMaxHeight()
                         .wrapContentHeight()
                 )
-            Row() {
-                Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.icon_page),
-                        contentDescription = "Location Pin Icon",
-                        modifier = Modifier.size(36.dp),
-                        tint = Color.White
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .padding
-                        (
-                        start = 0.dp,
-                        top = 130.dp,
-                        end = 0.dp,
-                        bottom = 0.dp
-                    )
-            )
-            {
-                Box() {
-                    Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
-                        CardTitle(
-                        /*    formattedTitle,*/
-                            title,
-                            fontSize = 24.sp
+                Column(
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Row() {
+                        Icon(
+                            painter = painterResource(id = R.drawable.icon_page),
+                            contentDescription = "Location Pin Icon",
+                            modifier = Modifier.size(50.dp).padding(horizontal = 8.dp, vertical = 8.dp),
+                            tint = Color.White
                         )
                     }
-                    Row(
-                        modifier = Modifier
-                            .padding
-                                (
-                                start = 0.dp,
-                                top = 120.dp,
-                                end = 8.dp,
-                                bottom = 8.dp
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            CardTitle(
+                                title,
+                                fontSize = 24.sp,
+                                horizontalPadding = 12,
+                                verticalPadding = 8
                             )
-                            .align(Alignment.CenterEnd)
-                    ) {
-                        Text("John Doe", color = Color.White, fontSize = 18.sp)
-                        Box(
-                            Modifier
-                                .padding(horizontal = 6.dp, vertical = 0.dp)
-                                .size(30.dp), contentAlignment = Alignment.Center) {
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                drawCircle(SolidColor(Color.White))
+                            Row(
+                                modifier = Modifier.padding(end = 8.dp, bottom = 12.dp),
+                                verticalAlignment = Alignment.Bottom,
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                Text("John Doe", color = Color.White, fontSize = 18.sp)
+                                Box(modifier = Modifier.padding(horizontal = 6.dp, vertical = 0.dp)
+                                    .size(30.dp), contentAlignment = Alignment.Center
+                                ) {
+                                    Canvas(modifier = Modifier.fillMaxSize()) {
+                                        drawCircle(SolidColor(Color.White))
+                                    }
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.icon_user),
+                                        contentDescription = "User image placeholder"
+                                    )
+                                }
                             }
-                            Icon(
-                                painter = painterResource(id = R.drawable.icon_user),
-                                contentDescription = "User image placeholder"
-                            )
                         }
                     }
-                }
             }
         }
     }

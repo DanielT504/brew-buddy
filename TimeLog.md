@@ -55,6 +55,8 @@
 | 2023/07/11 |2       |         |      |        |         |        | Deliverable 5 Doc Work                                        |
 | 2023/07/11 |4       |         |      |        |         |        | Get current location, debug Places API                        |
 | 2023/07/12 |        |         |      |        | 4       |        | Initial firebase integration + d4 doc work                    |
+| 2023/07/12 |        |         |      |        |         | 1      | Fixed Firestore rules                                         |
+| 2023/07/13 |        |         |      |        |         | 3      | Register screen UX                                            |
 | 2023/07/13 |        |         |      |        | 1       |        | Slight refactor of recipe/ingredient classes                  |
 | 2023/07/13 |        |5        |      |        |         |        | Add recipe data source API endpoints & MVVM changes           |
 | 2023/07/13 |        |         |      |        |         | 4      | Fixed authentication blocker bug                              |
@@ -65,3 +67,16 @@
 | 2023/07/17 |        |         |      |        | 1       |        | Mass-import recipes into Firestore for use in app             |
 | 2023/07/17 |        |         |      |        | 2       |        | Connect endpoint to individual recipe/recipe page             |
 | 2023/07/17 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync meeting                                          |
+| 2023/07/17 |        |         | 2    |        |         |        | Adding upload recipe button + modal, reading firebase docs    |
+| 2023/07/18 |        |2        |      |        |         |        | Local firebase setup + refactoring Recipes UI with new API    |
+| 2023/07/18 |6       |         |      |        |         |        | Reading firebase docs, implemententing user settings in db    |
+| 2023/07/18 |5       |         |      |        |         |        | Start notif work, adding saved stores to db                   |
+| 2023/07/18 |        |         | 3    |        |         |        | Deliverable 5 Doc Work                                        |
+| 2023/07/18 |        |         |      |        |         | 5      | Code refactoring for nav from logout button to access screen  |
+| 2023/07/19 |        |1        |      |        |         |        | Featured page infinite scroll bug fix                         |
+| 2023/07/19 |        |1        |      |        |         |        | Favourite button bug fix and added state for unfavourited     |
+| 2023/07/19 |        |         | 1    |        |         |        | Firebase setup, node/npm issue fixes                          |
+| 2023/07/19 |        |         | 6    |        |         |        | Adding ui for recipe upload function                          |
+| 2023/07/19 |        |         |      |        |         | 2      | Working logout using a restart simulation screen              |
+| 2023/07/20 |        |         |      |        |         | 3      | Started delete account button and added user settings scroll  |
+| 2023/07/20 |        |1        |      |        |         |        | Fixed recipe card issues/bugs & added random heights for them |

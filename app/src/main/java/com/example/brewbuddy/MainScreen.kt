@@ -23,6 +23,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.example.brewbuddy.recipes.IndividualRecipeScreen
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.recipes.RecipesScreenViewModel
@@ -58,7 +59,7 @@ fun MainScreen() {
         bottomBar = {
             BottomNavigation(navController, bottomNavigationItems)
         },
-        content = {innerPadding ->
+        content = { innerPadding ->
             MainScreenNavigationConfigurations(navController, innerPadding)
         }
     )
@@ -91,7 +92,7 @@ private fun MainScreenNavigationConfigurations(
     ) {
         NavHost(navController, startDestination = BottomNavigationScreens.Profile.route) {
             composable(BottomNavigationScreens.Profile.route) {
-                ProfileScreen()
+                ProfileScreen(navController)
             }
             composable(BottomNavigationScreens.ShopLocator.route) {
                 ShopLocatorScreen(fusedLocationProviderClient)
