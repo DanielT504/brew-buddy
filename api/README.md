@@ -20,7 +20,7 @@ You will need access to the Firebase app to run it locally. When you run it loca
 
 If you downloaded the Firestore DB and wanted to run your function against that, use the following:
 
-```firebase emulators:start --import ./local_firestore --only functions,firebase```
+```firebase emulators:start --import ./local_firestore --only functions,firestore```
 
 If you just want to run without importing the local DB, just use
 

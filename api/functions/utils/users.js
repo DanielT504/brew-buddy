@@ -1,6 +1,6 @@
 const { HttpsError } = require("firebase-functions/v2/https");
 
-const getUserById = (userId, db) => {
+exports.getUserById = (userId, db) => {
   if (!userId) {
     throw new HttpsError("failed-precondition", "No user ID provided");
   }
@@ -22,4 +22,12 @@ const getUserById = (userId, db) => {
     });
 };
 
-exports.getUserById = getUserById;
+exports.updatePinnedRecipes = (userId, recipes, db) => {
+  if (!userId) {
+    throw new HttpsError(
+      "failed-precondition",
+      "updatePinnedRecipes: No user ID provided"
+    );
+  }
+  return db.collection("users").doc(userId).update({ pinnedRecipes: recipes });
+};
