@@ -141,3 +141,52 @@ exports.createRecipe = onRequest(async ({ body }, response) => {
   // const res = await db.collection("recipes").doc().set(body);
   response.status(200).send();
 });
+
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+
+exports.notifyUserOnNewItem = functions.firestore
+  .document('saved_stores/{userId}')
+  .onUpdate((change, context) => {
+    // Get the updated data from the snapshot
+    const updatedData = change.after.data();
+    const previousData = change.before.data();
+
+    // Compare the previous items array with the updated items array
+    const previousItems = previousData.items;
+    const updatedItems = updatedData.items;
+
+    if (!previousItems || !updatedItems) {
+      // Items array does not exist, nothing to compare, exit
+      return null;
+    }
+
+    if (previousItems.length === updatedItems.length) {
+      // The array length is the same, no new item added, exit
+      return null;
+    }
+
+    // Find the new item added to the array
+    const newItem = updatedItems.filter(item => !previousItems.includes(item))[0];
+
+    if (!newItem) {
+      // New item not found, exit
+      return null;
+    }
+
+    // Get the user ID from the context (document ID is the user ID)
+    const userId = context.params.userId;
+
+    // Create a notification payload
+    const payload = {
+      notification: {
+        title: 'New Item Added!',
+        body: `A new item "${newItem}" is added to your saved stores.`,
+        click_action: 'MAIN_ACTIVITY' // Adjust this to the activity you want to open when the notification is clicked
+      }
+    };
+
+    // Send the notification to the user
+    return admin.messaging().sendToDevice(userId, payload);
+  });
+

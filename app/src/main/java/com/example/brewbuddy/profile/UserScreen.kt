@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.BoxWithConstraints
 import android.provider.CalendarContract
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollableDefaults
@@ -83,10 +84,18 @@ import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.store1
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import org.json.JSONException
+import org.json.JSONObject
 
 private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
     val diff = currentIndex - startIndex;
@@ -353,6 +362,72 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
 }
 
 
+fun parseData(jsonData: JSONObject): List<Store> {
+    val parsedList = mutableListOf<Store>()
+
+    try {
+        val longitudeObj = jsonData.getJSONObject("longitude")
+        val ratingObj = jsonData.getJSONObject("rating")
+        val itemsObj = jsonData.getJSONObject("items")
+        val savedObj = jsonData.getJSONObject("saved")
+        val storeNameObj = jsonData.getJSONObject("storeName")
+        val latitudeObj = jsonData.getJSONObject("latitude")
+        Log.d("parsed", longitudeObj.toString())
+        val length = maxOf(
+            longitudeObj.length(),
+            ratingObj.length(),
+            itemsObj.length(),
+            savedObj.length(),
+            storeNameObj.length(),
+            latitudeObj.length()
+        )
+
+        for (i in 0 until length) {
+            val parsedData = Store(
+                storeNameObj.getString(i.toString()),
+                "",
+                latitudeObj.getDouble(i.toString()),
+
+                longitudeObj.getDouble(i.toString()),
+                listOf(itemsObj.getString(0.toString())),
+                ratingObj.getDouble(i.toString()),
+                savedObj.getBoolean(i.toString()),
+            )
+            parsedList.add(parsedData)
+        }
+
+    } catch (e: JSONException) {
+        e.printStackTrace()
+    }
+
+    return parsedList
+}
+var storesOnProfile = listOf<Store>()
+private fun retrieveSavedStores() {
+    val firestore = FirebaseFirestore.getInstance()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val storesRef = userId?.let { firestore.collection("saved_stores").document(it) }
+
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val snapshot = storesRef?.get()?.await()
+            if (snapshot != null) {
+                if (snapshot.exists()) {
+                    val savedStoresMap = snapshot.data
+                    Log.d("GET_STORE", savedStoresMap.toString())
+                    if (savedStoresMap != null) {
+                        storesOnProfile = parseData(JSONObject(savedStoresMap))
+                        }
+                        Log.d("PROFILE_STORES", storesOnProfile.toString())
+                    }
+                } else {
+                    Log.d("GET_STORE", "Document not found")
+                }
+            }
+         catch (e: Exception) {
+        }
+    }
+}
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserScreen(menuButton: @Composable () -> Unit) {
@@ -385,8 +460,9 @@ fun UserScreen(menuButton: @Composable () -> Unit) {
                 .fillMaxWidth()
                 .background(Color.White, shape = RoundedCornerShape(32.dp))
                 .padding(16.dp, 0.dp, 16.dp, 100.dp)) {
-                if (store1.saved) {
-                    MapWrapper(stores = arrayOf(store1))
+                retrieveSavedStores()
+                if (!storesOnProfile.isNullOrEmpty()) {
+                    MapWrapper(stores = storesOnProfile)
                 }
                 else {
                     Text(
@@ -402,26 +478,25 @@ fun UserScreen(menuButton: @Composable () -> Unit) {
 
     }
 
-
 @Composable
-fun MapWrapper(stores: Array<Store>) {
+fun MapWrapper(stores: List<Store>) {
     val savedStore = LatLng(stores[0].latitude, stores[0].longitude)
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(savedStore, 15f)
     }
 
-
     GoogleMap(
         modifier = Modifier
             .height(300.dp),
         cameraPositionState = cameraPositionState
     ) {
-        Marker(
-            state = MarkerState(position = savedStore),
-            title = stores[0].storeName,
-            snippet = "Marker in Waterloo"
-        )
+        for (store in stores) {
+            Marker(
+                state = MarkerState(position = LatLng(store.latitude, store.longitude)),
+                title = store.storeName
+            )
+        }
     }
 }
 
