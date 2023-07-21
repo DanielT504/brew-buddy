@@ -6,6 +6,8 @@ import com.example.brewbuddy.data.remote.dto.RecipeMetadataDto
 import com.example.brewbuddy.domain.repository.RecipeRepository
 import com.example.brewbuddy.requests.getFunctions
 import com.example.brewbuddy.domain.model.Author
+import com.example.brewbuddy.domain.model.Recipe
+import com.example.brewbuddy.domain.model.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.tasks.await
@@ -64,5 +66,4 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             return@withContext data.map{RecipeMetadataDto.from(it)}
         }
     }
-
 }
