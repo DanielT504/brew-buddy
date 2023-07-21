@@ -80,3 +80,7 @@
 | 2023/07/19 |        |         |      |        |         | 2      | Working logout using a restart simulation screen              |
 | 2023/07/20 |        |         |      |        |         | 3      | Started delete account button and added user settings scroll  |
 | 2023/07/20 |        |1        |      |        |         |        | Fixed recipe card issues/bugs & added random heights for them |
+| 2023/07/20 |        |         | 2    |        |         |        | Adding fields to recipe upload modal                          |
+| 2023/07/20 |        |         | 4    |        |         |        | Sending recipes to db, adding functionality to new fields     |
+| 2023/07/20 |        |         | 1    |        |         |        | Adding image upload                                           |
+| 2023/07/20 |        |         | 3    |        |         |        | Debugging + UI fixes                                          |
