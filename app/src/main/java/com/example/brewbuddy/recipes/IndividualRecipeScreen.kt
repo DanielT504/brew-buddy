@@ -22,8 +22,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,11 +36,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -44,6 +55,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -103,7 +115,7 @@ fun IndividualRecipeScreen(
                         state.recipe!!.bannerUrl!!,
                         state.recipe!!.title!!,
                         navController,
-                        state.recipe!!.author!!
+                        state.recipe!!.author!!,
                     )
                 }
                 Box(
@@ -131,11 +143,12 @@ private fun RecipeBanner(
 ) {
     val contextForToast = LocalContext.current.applicationContext
     var isFavourite = viewModel.isFavourite.value
+    var exploreExpanded by remember { mutableStateOf(false) }
+    var moreInfoDialogState by remember { mutableStateOf(false) }
 
     LaunchedEffect(id) {
         viewModel.checkFavouriteFromDatabase(id)
     }
-
 
     Box(modifier = Modifier
         .height(230.dp)
@@ -208,45 +221,86 @@ private fun RecipeBanner(
                             )
                         }
                     }
-/*                    IconButton(onClick = { *//*TODO*//* }) {
-                        Icon(
-                            tint = Cream,
-                            painter = painterResource(id = R.drawable.icon_more_vertical),
-                            contentDescription = "Explore more",
-                            modifier = Modifier.size(42.dp),
+                    Box(modifier = Modifier.padding(end = 4.dp),) {
+                        IconButton(onClick = { exploreExpanded = !exploreExpanded }) {
+                            Icon(
+                                tint = Cream,
+                                painter = painterResource(id = R.drawable.icon_explore_more_large),
+                                contentDescription = "Explore more",
+                                modifier = Modifier
+                                    .size(150.dp)
+                                    .rotate(90F)
+                            )
+                        }
+                    }
+                    DropdownMenu(
+                        expanded = exploreExpanded,
+                        onDismissRequest = { exploreExpanded = !exploreExpanded }
+                    ) {
+                        DropdownMenuItem(
+                            leadingIcon = {
+                                Icon(painter = painterResource(id = R.drawable.icon_info_outline), contentDescription = "More Info")
+                                          } ,
+                            text = { Text("More Info")},
+                            onClick = {
+                                moreInfoDialogState = !moreInfoDialogState
+                                exploreExpanded = false
+                            }
                         )
-                    }*/
+                    }
+                }
+            }
+        }
+    }
+    MoreInfoDialog(moreInfoDialogState = moreInfoDialogState, onDialogDismissed = { moreInfoDialogState = false })
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MoreInfoDialog(
+    moreInfoDialogState: Boolean,
+    onDialogDismissed: () -> Unit,
+    viewModel: IndividualRecipeScreenViewModel = hiltViewModel()
+) {
+    if(moreInfoDialogState) {
+        AlertDialog(onDismissRequest = { onDialogDismissed() },) {
+            Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                viewModel.state.value.recipe?.summary?.let {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Summary",
+                                fontSize = 30.sp,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            IconButton(onClick = { onDialogDismissed()  }) {
+                                Icon(
+                                    painterResource(id = R.drawable.icon_close),
+                                    contentDescription = "Close Dialog",
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                        }
+                        Row() {
+                            Text(
+                                text = it,
+                                fontSize = 16.sp,
+                                lineHeight = 1.5.em,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-private fun updateUserLikedRecipes(recipeId: String, liked: Boolean) {
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-    userId?.let {
-        val userRef = db.collection("users").document(userId)
-        if (liked) {
-            /*TODO: Update likes on Recipe*/
-            userRef.update("likedRecipeIds", FieldValue.arrayUnion(recipeId))
-                .addOnSuccessListener {
-                    Log.d("LIKED_RECIPE", "User liked recipe $recipeId")
-                }
-                .addOnFailureListener { exception ->
-                    Log.d("LIKED_RECIPE", "Error liking recipe $recipeId: $exception")
-                }
-        }
-        if (!liked) {
-            userRef.update("likedRecipeIds", FieldValue.arrayRemove(recipeId))
-                .addOnSuccessListener {
-                    Log.d("UNLIKED_RECIPE", "User unliked recipe $recipeId")
-                }
-                .addOnFailureListener { exception ->
-                    Log.d("UNLIKED_RECIPE", "Error unliking recipe $recipeId: $exception")
-                }
-        }
-    }
-}
 
 @Composable
 private fun RecipeSection(recipe: Recipe?) {
@@ -431,7 +485,6 @@ private fun IngredientsSection(ingredients: List<IngredientList>) {
 
 @Composable
 private fun SectionHeading(heading: String, preparationHeading: Boolean) {
-    val headingString = if (preparationHeading) "For the $heading" else heading
     Text(
         modifier = Modifier
             .padding(top = 4.dp, bottom = 4.dp),
