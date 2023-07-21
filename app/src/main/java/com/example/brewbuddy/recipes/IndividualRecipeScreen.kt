@@ -450,6 +450,7 @@ private fun IngredientBullet(quantity: Number, unit: String, subIngredientDetail
     ) {
         displayQuantity = displayQuantity.substring(0, displayQuantity.indexOf(".") + 2)
     }
+    var width = 80
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -459,7 +460,7 @@ private fun IngredientBullet(quantity: Number, unit: String, subIngredientDetail
         Column(
             modifier = Modifier
                 .align(Alignment.CenterVertically)
-                .width(70.dp)
+                .width(width.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Canvas(modifier = Modifier.size(6.dp),) {
