@@ -88,4 +88,4 @@
 | 2023/07/20 |        |4        |      |        |         |        | Adding LikedRecipeIds to Users, added liking function in UI, start recommendation engine |
 | 2023/07/20 |        |1        |      |        |         |        | Debugging and fixing ViewModel state to sync with DB to show proper like button state on page load |
 | 2023/07/21 |        |2        |      |        |         |        | More info modal + explore more dropdown on individual recipe screen |
-
+| 2023/07/21 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync meeting                                          |
