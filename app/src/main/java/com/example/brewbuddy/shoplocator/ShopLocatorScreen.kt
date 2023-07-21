@@ -57,6 +57,7 @@ import com.example.brewbuddy.profile.currRadius
 import com.example.brewbuddy.profile.currVegan
 import com.example.brewbuddy.profile.currVegetarian
 import com.example.brewbuddy.profile.db
+import com.example.brewbuddy.profile.parseData
 import com.example.brewbuddy.shoplocator.LocationPermissionsAndSettingDialogs
 import com.example.brewbuddy.shoplocator.LocationUtils
 import com.example.brewbuddy.shoplocator.Store
@@ -121,7 +122,8 @@ fun ShopLocatorScreen(fusedLocationProviderClient: FusedLocationProviderClient) 
         }
     }
 }
-data class Cafe(val name: String, val address: String, val rating: Double)
+data class Cafe(val name: String, val latitude: Double, val longitude: Double, val address: String, val rating: Double)
+var storesOnProfile = listOf<Store>()
 
 @Composable
 @ExperimentalMaterial3Api
@@ -163,8 +165,11 @@ fun StoreListSheet(currentLocation: Location) {
                     val name = placeObj.getString("name")
                     val address = placeObj.getString("vicinity").substringBefore(",")
                     val rating = placeObj.optDouble("rating", 0.0)
+                    val locationObject: JSONObject = placeObj.getJSONObject("geometry").getJSONObject("location")
+                    val latitude: Double = locationObject.getDouble("lat")
+                    val longitude: Double = locationObject.getDouble("lng")
 
-                    val cafe = Cafe(name, address, rating)
+                    val cafe = Cafe(name, latitude, longitude, address, rating)
                     if (name != "Starbucks" && name!="Tim Hortons" && name!= "McDonald's"&& name!= "Williams Fresh Cafe") {
                         cafes.add(cafe)
                     }
@@ -221,8 +226,11 @@ fun StoreListSheet(currentLocation: Location) {
                         StoreInfo(
                             storeName = cafe.name,
                             address = cafe.address,
+                            latitude = cafe.latitude,
+                            longitude = cafe.longitude,
                             rating = cafe.rating,
-                            items = listOf("Iced coffee")
+                            items = listOf("Iced coffee"),
+                            saved = storesOnProfile.any { store -> store.storeName == cafe.name }
                         )
                     }
                 }
@@ -232,28 +240,43 @@ fun StoreListSheet(currentLocation: Location) {
 }
 
 fun updateSavedStores(savedStore: Store) {
+    val firestore = FirebaseFirestore.getInstance()
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     userId?.let {
-        val storesRef = db.collection("saved_stores").document(userId)
+        val storesRef = userId?.let { firestore.collection("saved_stores").document(it) }
         val stores = hashMapOf(
-            "storeName" to savedStore.storeName,
-            "latitude" to savedStore.latitude,
-            "longitude" to savedStore.longitude,
-            "items" to savedStore.items,
-            "rating" to savedStore.rating,
-            "saved" to savedStore.saved,
+            "storeName.${storesOnProfile.size}" to savedStore.storeName,
+            "latitude.${storesOnProfile.size}" to savedStore.latitude,
+            "longitude.${storesOnProfile.size}" to savedStore.longitude,
+            "items.${storesOnProfile.size}" to savedStore.items[0],
+            "rating.${storesOnProfile.size}" to savedStore.rating,
+            "saved.${storesOnProfile.size}" to savedStore.saved,
         )
-        storesRef.set(stores)
-            .addOnSuccessListener {
-                // Successfully updated the radius in Firestore
-                Log.d("SAVE_STORE", "Store saved")
+        Log.d("lats", savedStore.latitude.toString())
+        storesRef?.get()?.addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                // If the document already exists, update the array field "cafes" to add the new cafe
+                storesRef.update(                "storeName.${storesOnProfile.size}", savedStore.storeName,
+                    "latitude.${storesOnProfile.size}", savedStore.latitude,
+                    "longitude.${storesOnProfile.size}", savedStore.longitude,
+                    "items.${storesOnProfile.size}", savedStore.items[0],
+                    "rating.${storesOnProfile.size}", savedStore.rating,
+                    "saved.${storesOnProfile.size}", savedStore.saved)
+
+
+            } else {
+                // If the document doesn't exist, create it and set the "cafes" field with the new cafe
+                storesRef.set(stores)
+                    .addOnSuccessListener {
+                    }
+                    .addOnFailureListener { e ->
+                    }
             }
-            .addOnFailureListener { exception ->
-                Log.d("SAVE_STORE", "Error saving store: $exception")
-            }
+        }
+
+
     }
 }
-var savedStoreList = listOf<Store>()
 private fun retrieveSavedStores() {
     val firestore = FirebaseFirestore.getInstance()
     val userId = FirebaseAuth.getInstance().currentUser?.uid
@@ -263,23 +286,19 @@ private fun retrieveSavedStores() {
         try {
             val snapshot = storesRef?.get()?.await()
             if (snapshot != null) {
-                val savedStoresMap = snapshot.data
-                Log.d("saved_store", snapshot.data as String)
-
-                savedStoreList = savedStoresMap?.map { (_, storeData) ->
-                    // Assuming the field name in Firestore for storeName is "storeName"
-                    val storeName = storeData as? String
-
-                    if (storeName != null) {
-                        Log.d("saved_store", storeName)
+                if (snapshot.exists()) {
+                    val savedStoresMap = snapshot.data
+                    Log.d("GET_STORE", savedStoresMap.toString())
+                    if (savedStoresMap != null) {
+                        storesOnProfile = parseData(JSONObject(savedStoresMap))
                     }
-                    // If storeName is not null, create a Store object with the storeName and return it
-                    storeName?.let { Store(it) }
-                }?.filterNotNull() ?: listOf()
+                    Log.d("PROFILE_STORES", storesOnProfile.toString())
+                }
+            } else {
+                Log.d("GET_STORE", "Document not found")
             }
-
-        } catch (e: Exception) {
-            // Handle exceptions, such as network errors or document retrieval failures
+        }
+        catch (e: Exception) {
         }
     }
 }
@@ -298,16 +317,12 @@ private suspend fun retrieveRadiusFromFirestore() {
             val snapshot = preferencesRef?.get()?.await()
             val getRadius = snapshot?.getDouble("radius")
 
-            // Update the UI or do further processing with the retrieved radius value
             getRadius?.let {
-                // Use the retrieved radius value
-                // For example, update a mutable state or call a function to update the UI
                 getRadius?.let {
                     radius = getRadius.toFloat()
                 }
             }
         } catch (e: Exception) {
-            // Handle exceptions, such as network errors or document retrieval failures
         }
     }
 }
@@ -393,7 +408,7 @@ fun MapWrapper(currentLocation: Location,
     }
 }
 @Composable
-fun StoreInfo(storeName: String, address: String, rating: Double, items: List<String>, modifier: Modifier = Modifier) {
+fun StoreInfo(storeName: String, address: String, latitude: Double, longitude: Double, rating: Double, items: List<String>, saved: Boolean, modifier: Modifier = Modifier) {
     Box(
         modifier = Modifier
             .fillMaxWidth(),
@@ -414,12 +429,13 @@ fun StoreInfo(storeName: String, address: String, rating: Double, items: List<St
                     Column(
 
                     ) {
-                        var selected by remember { mutableStateOf(false) }
+                        var selected by remember { mutableStateOf(saved) }
                         IconButton(
                             onClick = {
-                                store1.saved = !store1.saved
                                 selected = !selected
-                                updateSavedStores(Store(storeName, address, 0.0, 0.0, items, rating, true))
+                                retrieveSavedStores()
+                                Log.d("storeinfo", latitude.toString())
+                                updateSavedStores(Store(storeName, address, latitude, longitude, items, rating, selected))
                                       },
                             modifier=Modifier.padding(0.dp, 24.dp, 0.dp, 16.dp)
                         ) {

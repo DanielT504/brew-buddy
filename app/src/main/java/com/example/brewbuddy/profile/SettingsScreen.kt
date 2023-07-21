@@ -50,7 +50,7 @@ import kotlinx.coroutines.tasks.await
 
 val db = FirebaseFirestore.getInstance()
 data class UserPreferences(var radius: Float, var vegan: Boolean, var vegetarian: Boolean, var lactoseFree: Boolean, var kosher: Boolean, var halal: Boolean, var glutenFree: Boolean, var nutFree: Boolean)
-var currRadius: Float = 0f;
+var currRadius: Float = 10f;
 var currVegan: Boolean = false;
 var currVegetarian: Boolean = false;
 var currLactoseFree: Boolean = false;
