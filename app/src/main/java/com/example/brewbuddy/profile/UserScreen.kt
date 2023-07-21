@@ -257,14 +257,6 @@ fun StepInput(stepNumber: Number, inputStep: String? = null, onStepChange: (Indi
     }
 
     Column() {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(4.dp)) {
-            Text(
-                text = "Step $stepNumber"
-            )
-        }
         Row(Modifier.fillMaxWidth()) {
             TextField(
                 value = step,
@@ -285,28 +277,20 @@ fun StepInput(stepNumber: Number, inputStep: String? = null, onStepChange: (Indi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun IngredientInput(ingredientNumber: Number, ingredientData: IndividualIngredient? = null, onIngredientChange: (IndividualIngredient) -> Unit)  {
+fun IngredientInput(ingredientData: IndividualIngredient? = null, onIngredientChange: (IndividualIngredient) -> Unit)  {
     var ingredient by remember { mutableStateOf("")}
     var quantity by remember { mutableStateOf("")}
-    var quantityAsNum by remember { mutableStateOf(0)}
+    var quantityAsNum by remember { mutableStateOf<Number>(0)}
     var unit by remember { mutableStateOf("")}
 
     if (ingredientData != null) {
         ingredient = ingredientData.label
         quantity = ingredientData.quantity.toString()
-        quantityAsNum = ingredientData.quantity.toInt()
+        quantityAsNum = ingredientData.quantity
         unit = ingredientData.unit
     }
 
     Column() {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(4.dp)) {
-            Text(
-                text = "Ingredient $ingredientNumber"
-            )
-        }
         Row(Modifier.fillMaxWidth()) {
             TextField(
                 value = ingredient,
@@ -327,7 +311,7 @@ fun IngredientInput(ingredientNumber: Number, ingredientData: IndividualIngredie
                 value = quantity,
                 onValueChange = { newQuantity ->
                     quantity = newQuantity
-                    quantityAsNum = newQuantity.toInt()
+                    quantityAsNum = newQuantity.toFloatOrNull() ?: 0.0
                     onIngredientChange(
                         IndividualIngredient(quantityAsNum, unit, ingredient)
                     )
@@ -356,6 +340,8 @@ fun IngredientInput(ingredientNumber: Number, ingredientData: IndividualIngredie
 
 @Composable
 fun ImageUpload(returnImageUri: (Uri?) -> Unit) {
+    // credit to Kiran Bahalaskar for image upload demo code used for most of this function
+    // https://www.youtube.com/watch?v=ec8YymnjQSE&ab_channel=KBCODER
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
     val bitmap = remember { mutableStateOf<Bitmap?>(null) }
@@ -462,6 +448,21 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                         ) {
                             Text("Confirm")
                         }
+                        Button(
+                            onClick = {
+                                ingredients.clear()
+                                ingredients.add(IndividualIngredient(0, "", ""))
+                                instructions.clear()
+                                instructions.add(IndividualStep(0, ""))
+                                title = ""
+                                description = ""
+                                uri = null
+
+                                onClose()
+                            }
+                        ) {
+                            Text("Exit")
+                        }
                     }
                 }
             },
@@ -502,9 +503,27 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                             )
                         }
                         ingredients.forEachIndexed { index, ingredient ->
+                            val temp = index + 1
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(4.dp))
+                            {
+                                Text(
+                                    text = "Ingredient $temp"
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .clickable(onClick = { ingredients.removeAt(index) })
+                                        .padding(horizontal = 8.dp, vertical = 0.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(text = "Remove", color = Color.Gray)
+                                }
+
+                            }
                             Row(modifier = Modifier.padding(bottom = 8.dp)) {
                                 IngredientInput(
-                                    index + 1,
                                     ingredientData = ingredient,
                                     onIngredientChange = { updatedIngredient ->
                                         ingredients[index] = updatedIngredient
@@ -522,6 +541,25 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                             )
                         }
                         instructions.forEachIndexed { index, instruction ->
+                            val temp = index + 1
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(4.dp))
+                            {
+                                Text(
+                                    text = "Step $temp"
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .clickable(onClick = { instructions.removeAt(index) })
+                                        .padding(horizontal = 8.dp, vertical = 0.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(text = "Remove", color = Color.Gray)
+                                }
+
+                            }
                             Row(modifier = Modifier.padding(bottom = 8.dp)) {
                                 StepInput(
                                     index + 1,
