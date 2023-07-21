@@ -26,7 +26,6 @@ import androidx.navigation.navArgument
 import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.example.brewbuddy.recipes.IndividualRecipeScreen
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
-import com.example.brewbuddy.recipes.RecipesScreenViewModel
 import com.example.brewbuddy.recipes.Screen
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -101,10 +100,10 @@ private fun MainScreenNavigationConfigurations(
                 MarketplaceScreen("marketplace")
             }
             composable(BottomNavigationScreens.Featured.route) {
-                FeaturedScreen("featured")
+                FeaturedScreen(navController)
             }
             composable(BottomNavigationScreens.Recipes.route) {
-                RecipesScreen(navController)
+                RecipesScreen("recipes")
             }
 /*           composable(
                 RecipeNavigationScreens.IndividualRecipe.route,

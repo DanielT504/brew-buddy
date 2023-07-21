@@ -6,7 +6,7 @@ import com.example.brewbuddy.data.remote.dto.Step
 
 data class Author(
     var id:  String? = null,
-    var username: String? = "Unknown",
+    var username: String = "Unknown",
     var avatarUrl: String? = Constants.DEFAULT_AVATAR_URL
 ) {
     companion object {
