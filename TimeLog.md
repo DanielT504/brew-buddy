@@ -80,3 +80,12 @@
 | 2023/07/19 |        |         |      |        |         | 2      | Working logout using a restart simulation screen              |
 | 2023/07/20 |        |         |      |        |         | 3      | Started delete account button and added user settings scroll  |
 | 2023/07/20 |        |1        |      |        |         |        | Fixed recipe card issues/bugs & added random heights for them |
+| 2023/07/20 |        |         | 2    |        |         |        | Adding fields to recipe upload modal                          |
+| 2023/07/20 |        |         | 4    |        |         |        | Sending recipes to db, adding functionality to new fields     |
+| 2023/07/20 |        |         | 1    |        |         |        | Adding image upload                                           |
+| 2023/07/20 |        |         | 3    |        |         |        | Debugging + UI fixes                                          |
+| 2023/07/20 |6       |         |      |        |         |        | Finish one option for notifs, implement saved shops fxns      |
+| 2023/07/20 |        |4        |      |        |         |        | Adding LikedRecipeIds to Users, added liking function in UI, start recommendation engine |
+| 2023/07/20 |        |1        |      |        |         |        | Debugging and fixing ViewModel state to sync with DB to show proper like button state on page load |
+| 2023/07/21 |        |2        |      |        |         |        | More info modal + explore more dropdown on individual recipe screen |
+| 2023/07/21 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync meeting                                          |

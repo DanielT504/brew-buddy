@@ -16,14 +16,21 @@ import javax.inject.Inject
 
 class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
 
-    override suspend fun getRecipes(): List<RecipeMetadataDto> {
+    override suspend fun getRecipes(query: String?): List<RecipeMetadataDto> {
         Log.d("GET_RECIPES", "Running")
 
         return withContext(Dispatchers.IO) {
             val dataDeferred = async {
-                getFunctions()
-                    .getHttpsCallable("getRecipesMetadata")
-                    .call().await()
+                if(query != null) {
+                    getFunctions()
+                        .getHttpsCallable("getRecipesMetadata")
+                        .call(hashMapOf("query" to query)).await()
+
+                } else {
+                    getFunctions()
+                        .getHttpsCallable("getRecipesMetadata")
+                        .call().await()
+                }
             }
             val task = dataDeferred.await()
             val data = task.data as List<HashMap<String, Object>>
@@ -43,6 +50,20 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             val task = dataDeferred.await()
             val data = task.data as HashMap<String, Object>
             return@withContext RecipeDto.from(data)
+        }
+    }
+    override suspend fun getPopular(): List<RecipeMetadataDto> {
+        Log.d("GET_POPULAR", "Running")
+
+        return withContext(Dispatchers.IO) {
+            val dataDeferred = async {
+                getFunctions()
+                    .getHttpsCallable("getPopularRecipes")
+                    .call().await()
+            }
+            val task = dataDeferred.await()
+            val data = task.data as List<HashMap<String, Object>>
+            return@withContext data.map{RecipeMetadataDto.from(it)}
         }
     }
 

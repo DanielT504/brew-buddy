@@ -13,14 +13,14 @@ import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
-class GetRecipesUseCase @Inject constructor(
+class GetPopularUseCase @Inject constructor(
     private val repository: RecipeRepository
 ) {
     operator fun invoke(): Flow<Resource<List<RecipeMetadata>>> = flow {
         try {
             emit(Resource.Loading())
-            val recipes = repository.getRecipes(null).map { it.toRecipeMetadata() }
-            emit(Resource.Success(recipes))
+            val popular = repository.getPopular().map { it.toRecipeMetadata() }
+            emit(Resource.Success(popular))
         } catch(e: HttpException) {
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred."))
         } catch (e: IOException) {

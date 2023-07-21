@@ -440,14 +440,14 @@ private fun MarketplaceCard(
     }
 }
 
-private val marketplaceItems = listOf(
+val marketplaceItems = listOf(
     MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe"),
     MarketplaceItem(postTitle = "20lbs of fresh-grounded black tea", price = "$150", city = "Cambridge", province = "ON", userName = "Jane Doe"),
     MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe"),
     MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe")
 )
 
-private val filters = mutableListOf<Filter>(
+val filters = mutableListOf<Filter>(
     Filter(filterLabel = "Equipment", enabled = false),
     Filter(filterLabel = "Ingredients", enabled = false),
     Filter(filterLabel = "Newest to Oldest", enabled = false),

@@ -7,11 +7,9 @@ import com.example.brewbuddy.domain.model.User
 
 interface RecipeRepository {
 
-    suspend fun getRecipes(): List<RecipeMetadataDto>
+    suspend fun getRecipes(query: String?): List<RecipeMetadataDto>
 
     suspend fun getRecipeById(recipeId: String): RecipeDto
 
-    suspend fun getAllRecipes(): List<Recipe>
-
-    suspend fun getUserMetaData(userId: String): User
+    suspend fun getPopular(): List<RecipeMetadataDto>
 }
