@@ -44,4 +44,19 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
         }
     }
 
+    override suspend fun getRecipesByUserId(user_id: String): List<RecipeMetadataDto> {
+        Log.d("GET_RECIPE_BY_USER_ID", user_id)
+
+        return withContext(Dispatchers.IO) {
+            val dataDeferred = async {
+                getFunctions()
+                    .getHttpsCallable("getRecipeByUserId")
+                    .call(hashMapOf("authorId" to user_id)).await()
+            }
+            val task = dataDeferred.await()
+            val data = task.data as List<HashMap<String, Object>>
+            return@withContext data.map{RecipeMetadataDto.from(it)}
+        }
+    }
+
 }
