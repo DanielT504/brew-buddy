@@ -85,4 +85,5 @@
 | 2023/07/20 |        |         | 1    |        |         |        | Adding image upload                                           |
 | 2023/07/20 |        |         | 3    |        |         |        | Debugging + UI fixes                                          |
 | 2023/07/20 |6       |         |      |        |         |        | Finish one option for notifs, implement saved shops fxns      |
+| 2023/07/20 |        |4        |      |        |         |        | Adding LikedRecipeIds to Users, added liking function in UI, start recommendation engine |
 
