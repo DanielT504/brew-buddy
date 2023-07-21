@@ -53,6 +53,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextField
@@ -92,6 +93,10 @@ import com.example.brewbuddy.recipes.IndividualStep
 import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.store1
+import com.example.brewbuddy.ui.theme.GreenDark
+import com.example.brewbuddy.ui.theme.GreenLight
+import com.example.brewbuddy.ui.theme.GreenMedium
+import com.example.brewbuddy.ui.theme.SlateLight
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
@@ -383,16 +388,21 @@ fun ImageUpload(returnImageUri: (Uri?) -> Unit) {
         Spacer(modifier = Modifier.height(12.dp))
 
         if (imageUri == null){
-            Button(onClick = {
-                launcher.launch("image/*") }
+            Button(
+                colors = ButtonDefaults.buttonColors(containerColor = GreenLight),
+                onClick = {
+                launcher.launch("image/*")
+                }
             ) {
                 Text(text = "Select Image")
             }
         } else {
-            Button(onClick = {
-                imageUri = null
-                returnImageUri(imageUri)
-            }
+            Button(
+                colors = ButtonDefaults.buttonColors(containerColor = GreenLight),
+                onClick = {
+                    imageUri = null
+                    returnImageUri(imageUri)
+                }
             ) {
                 Text(text = "Remove Image")
             }
@@ -415,20 +425,43 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
             onDismissRequest = { onClose() },
             confirmButton = {
                 Column() {
-                    Row {
+                    Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
                         Button(
+                            modifier = Modifier.padding(end = 4.dp).weight(0.5f),
+                            colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
                             onClick = { ingredients.add(IndividualIngredient(0, "", "")) }
                         ) {
                             Text("Add Ingredient")
                         }
                         Button(
+                            modifier = Modifier.weight(0.4f),
+                            colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
                             onClick = { instructions.add(IndividualStep(0, "")) }
                         ) {
                             Text("Add Step")
                         }
                     }
-                    Row {
+                    Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                         Button(
+                            modifier = Modifier.padding(end = 4.dp).weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = GreenDark),
+                            onClick = {
+                                ingredients.clear()
+                                ingredients.add(IndividualIngredient(0, "", ""))
+                                instructions.clear()
+                                instructions.add(IndividualStep(0, ""))
+                                title = ""
+                                description = ""
+                                uri = null
+
+                                onClose()
+                            }
+                        ) {
+                            Text("Exit")
+                        }
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = GreenDark),
                             onClick = {
                                 var labelList = mutableStateListOf<String>()
                                 var unitList = mutableStateListOf<String>()
@@ -447,21 +480,6 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                             }
                         ) {
                             Text("Confirm")
-                        }
-                        Button(
-                            onClick = {
-                                ingredients.clear()
-                                ingredients.add(IndividualIngredient(0, "", ""))
-                                instructions.clear()
-                                instructions.add(IndividualStep(0, ""))
-                                title = ""
-                                description = ""
-                                uri = null
-
-                                onClose()
-                            }
-                        ) {
-                            Text("Exit")
                         }
                     }
                 }
@@ -596,12 +614,9 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                 }
             },
             shape = MaterialTheme.shapes.large,
-//            containerColor = MaterialTheme.colors.surface,
             iconContentColor = Color.Black,
             titleContentColor = Color.Black,
             textContentColor = Color.Black,
-//            tonalElevation = AlertDialogDefaults.TonalElevation,
-//            properties = DialogProperties(usePlatformDefaultWidth = false)
         )
     }
 }
@@ -625,6 +640,7 @@ fun UserScreen(menuButton: @Composable () -> Unit) {
             ImageGrid(3, modifier = Modifier.padding(16.dp))
             var showDialog = remember { mutableStateOf(false) }
             Button(
+                modifier = Modifier.padding(16.dp),
                 onClick = {
                     showDialog.value = true
                 }
