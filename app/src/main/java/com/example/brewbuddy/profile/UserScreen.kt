@@ -1,5 +1,9 @@
 package com.example.brewbuddy.profile
 
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
@@ -17,7 +21,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.BoxWithConstraints
 import android.provider.CalendarContract
+import android.provider.MediaStore
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollableDefaults
@@ -61,7 +68,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -98,12 +107,12 @@ private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
     }
     return diff % pageCount
 }
-fun postRecipe(recipe: IngredientsList?, title: String?, summary: String?) {
+fun postRecipe(recipe: IngredientsList?, title: String?, summary: String?, imageUri: Uri?) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     userId?.let {
         val recipesRef = db.collection("recipes").document(userId)
         val recipeInfo = hashMapOf(
-            "bannerUrl" to "temp",
+            "bannerUrl" to imageUri?.toString(),
             "ingredientLists" to recipe,
             "title" to title,
             "summary" to summary,
@@ -112,10 +121,10 @@ fun postRecipe(recipe: IngredientsList?, title: String?, summary: String?) {
         recipesRef.set(recipeInfo)
         .addOnSuccessListener {
             // Successfully updated the radius in Firestore
-            Log.d("EDIT_PREFS", "User prefs changed in user pref")
+            Log.d("EDIT_PREFS", "Recipe uploaded to Firestore")
         }
         .addOnFailureListener { exception ->
-            Log.d("EDIT_PREFS", "Error changing user prefs: $exception")
+            Log.d("EDIT_PREFS", "Error uploading recipe: $exception")
         }
     }
 }
@@ -345,16 +354,75 @@ fun IngredientInput(ingredientNumber: Number, ingredientData: IndividualIngredie
     }
 }
 
+@Composable
+fun ImageUpload(returnImageUri: (Uri?) -> Unit) {
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    val context = LocalContext.current
+    val bitmap = remember { mutableStateOf<Bitmap?>(null) }
+
+    val launcher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+            imageUri = uri
+            if (uri != null) {
+                returnImageUri(uri)
+            }
+        }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        imageUri?.let {
+            if (Build.VERSION.SDK_INT < 28) {
+                bitmap.value = MediaStore.Images
+                    .Media.getBitmap(context.contentResolver, it)
+            } else {
+                val source = ImageDecoder.createSource(context.contentResolver, it)
+                bitmap.value = ImageDecoder.decodeBitmap(source)
+            }
+
+            bitmap.value?.let { btm ->
+                Image(
+                    bitmap = btm.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(400.dp)
+                        .padding(20.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if (imageUri == null){
+            Button(onClick = {
+                launcher.launch("image/*") }
+            ) {
+                Text(text = "Select Image")
+            }
+        } else {
+            Button(onClick = {
+                imageUri = null
+                returnImageUri(imageUri)
+            }
+            ) {
+                Text(text = "Remove Image")
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
-    val ingredients = remember { mutableStateListOf<IndividualIngredient>() }
-    val instructions = remember { mutableStateListOf<IndividualStep>() }
+    val ingredients = remember { mutableStateListOf<IndividualIngredient>(IndividualIngredient(0, "", "")) }
+    val instructions = remember { mutableStateListOf<IndividualStep>(IndividualStep(0, "")) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var uri by remember { mutableStateOf<Uri?>(null) }
 
-    ingredients.add(IndividualIngredient(0, "", ""))
-    instructions.add(IndividualStep(0, ""))
 
     if (openDialog.value) {
         AlertDialog(
@@ -388,7 +456,7 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
 
                                 val completedRecipe = IngredientsList(quantityList, unitList, labelList)
 
-                                postRecipe(completedRecipe, title, description)
+                                postRecipe(completedRecipe, title, description, uri)
                                 onClose()
                             }
                         ) {
@@ -482,6 +550,9 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                 onValueChange = { newValue: String -> description = newValue },
                                 label = { Text(text = "Description") },
                             )
+                        }
+                        Row() {
+                            ImageUpload(returnImageUri = {newUri -> uri = newUri})
                         }
                     }
                 }
