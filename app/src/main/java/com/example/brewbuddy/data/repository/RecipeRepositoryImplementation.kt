@@ -6,6 +6,8 @@ import com.example.brewbuddy.data.remote.dto.RecipeMetadataDto
 import com.example.brewbuddy.domain.repository.RecipeRepository
 import com.example.brewbuddy.requests.getFunctions
 import com.example.brewbuddy.domain.model.Author
+import com.example.brewbuddy.domain.model.Recipe
+import com.example.brewbuddy.domain.model.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.tasks.await
@@ -42,6 +44,14 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             val data = task.data as HashMap<String, Object>
             return@withContext RecipeDto.from(data)
         }
+    }
+
+    override suspend fun getAllRecipes(): List<Recipe> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getUserMetaData(userId: String): User {
+        TODO("Not yet implemented")
     }
 
 }

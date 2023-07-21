@@ -1,5 +1,6 @@
 package com.example.brewbuddy.recipes
 
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
@@ -30,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,10 +57,27 @@ import com.example.brewbuddy.R
 import com.example.brewbuddy.data.remote.dto.IngredientList
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.Recipe
+import com.example.brewbuddy.profile.currGlutenFree
+import com.example.brewbuddy.profile.currHalal
+import com.example.brewbuddy.profile.currKeto
+import com.example.brewbuddy.profile.currKosher
+import com.example.brewbuddy.profile.currLactoseFree
+import com.example.brewbuddy.profile.currNutFree
+import com.example.brewbuddy.profile.currRadius
+import com.example.brewbuddy.profile.currVegan
+import com.example.brewbuddy.profile.currVegetarian
+import com.example.brewbuddy.profile.db
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.TitleLarge
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 
 sealed class RecipeNavigationScreens(val route: String) {
@@ -99,6 +118,7 @@ fun IndividualRecipeScreen(
             ) {
                 Box() {
                     RecipeBanner(
+                        state.recipe!!.id!!,
                         state.recipe!!.bannerUrl!!,
                         state.recipe!!.title!!,
                         navController,
@@ -120,9 +140,23 @@ fun IndividualRecipeScreen(
 }
 
 @Composable
-private fun RecipeBanner(img: String, title: String, navController: NavHostController, author: Author) {
+private fun RecipeBanner(
+    id: String,
+    img: String,
+    title: String,
+    navController: NavHostController,
+    author: Author,
+    viewModel: IndividualRecipeScreenViewModel = hiltViewModel()
+) {
     val contextForToast = LocalContext.current.applicationContext
     var favourited by remember { mutableStateOf(false)}
+    var previouslyLiked by remember { mutableStateOf(viewModel.previouslyLiked.value)}
+
+    var icon = R.drawable.icon_favourite_border
+    if (previouslyLiked or favourited) {
+        icon = R.drawable.icon_favourite_heart
+    }
+
     Box(modifier = Modifier
         .height(230.dp)
         .fillMaxWidth(),
@@ -153,7 +187,9 @@ private fun RecipeBanner(img: String, title: String, navController: NavHostContr
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween)
         {
-            Column(modifier = Modifier.padding(start = 12.dp, top = 24.dp, bottom = 24.dp).width(300.dp)) {
+            Column(modifier = Modifier
+                .padding(start = 12.dp, top = 24.dp, bottom = 24.dp)
+                .width(300.dp)) {
                 Row(horizontalArrangement = Arrangement.Start) {
                     Text(style = MaterialTheme.typography.titleLarge, text =  title, color =  Cream)
                 }
@@ -169,16 +205,19 @@ private fun RecipeBanner(img: String, title: String, navController: NavHostContr
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    Box(modifier = Modifier.align(Alignment.CenterVertically).padding(end = 4.dp)) {
+                    Box(modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .padding(end = 4.dp)) {
                         IconButton(
                             onClick = {
                                 favourited = !favourited
+                                updateUserLikedRecipes(recipeId = id, liked = favourited)
                                 Toast.makeText(
                                     contextForToast,
                                     if (favourited) { "Added to Favourites" } else { "Removed from Favourites" },
                                     Toast.LENGTH_SHORT
                                 ).show()
-                            }
+                            },
                         ) {
                             Canvas(modifier = Modifier.size(38.dp)) {
                                 drawCircle(color = Cream)
@@ -186,7 +225,8 @@ private fun RecipeBanner(img: String, title: String, navController: NavHostContr
                             Icon(
                                 tint = Brown,
                                 painter = painterResource(
-                                    id = if (favourited) { R.drawable.icon_favourite_heart } else { R.drawable.icon_favourite_border}
+                                    /*id = if (favourited) { R.drawable.icon_favourite_heart } else { R.drawable.icon_favourite_border}*/
+                                id = icon
                                 ),
                                 contentDescription = "Favourite Recipe",
                                 modifier = Modifier
@@ -205,6 +245,32 @@ private fun RecipeBanner(img: String, title: String, navController: NavHostContr
                     }*/
                 }
             }
+        }
+    }
+}
+
+private fun updateUserLikedRecipes(recipeId: String, liked: Boolean) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val userRef = db.collection("users").document(userId)
+        if (liked) {
+            /*TODO: Update likes on Recipe*/
+            userRef.update("likedRecipeIds", FieldValue.arrayUnion(recipeId))
+                .addOnSuccessListener {
+                    Log.d("LIKED_RECIPE", "User liked recipe $recipeId")
+                }
+                .addOnFailureListener { exception ->
+                    Log.d("LIKED_RECIPE", "Error liking recipe $recipeId: $exception")
+                }
+        }
+        if (!liked) {
+            userRef.update("likedRecipeIds", FieldValue.arrayRemove(recipeId))
+                .addOnSuccessListener {
+                    Log.d("UNLIKED_RECIPE", "User unliked recipe $recipeId")
+                }
+                .addOnFailureListener { exception ->
+                    Log.d("UNLIKED_RECIPE", "Error unliking recipe $recipeId: $exception")
+                }
         }
     }
 }
