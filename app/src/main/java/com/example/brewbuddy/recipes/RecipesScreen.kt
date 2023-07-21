@@ -79,6 +79,7 @@ import coil.compose.AsyncImage
 import com.example.brewbuddy.recipes.IngredientSection
 import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
+import com.example.brewbuddy.recipes.TagList
 //import com.example.brewbuddy.recipes.TagType
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
@@ -256,11 +257,14 @@ private fun RecipeFilters(state: Boolean, onDismissRequest: () -> Unit) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Column() {
                 Text("Filters")
-                CheckboxFilter(text = "Gluten-Free", checked = false)
+                TagList.forEach { tagInfo ->
+                    CheckboxFilter(text = tagInfo.label, checked = false)
+                }
+//                CheckboxFilter(text = "Gluten-Free", checked = false)
             }
             Column() {
                 Text("Sort by")
-                CheckboxFilter(text = "Gluten-Free", checked = false)
+                CheckboxFilter(text = "Date", checked = false)
             }
         }
     }
