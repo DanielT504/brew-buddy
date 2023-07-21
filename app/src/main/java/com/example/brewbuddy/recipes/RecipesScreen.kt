@@ -394,13 +394,13 @@ private fun ResultCard(
             .height(160.dp)
             .fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
-        elevation =  CardDefaults.cardElevation(
+        elevation = CardDefaults.cardElevation(
             defaultElevation = 8.dp
         ),
         colors = CardDefaults.cardColors(
             containerColor = Color.White,
         ),
-        onClick = {/*TODO*/}
+        onClick = {/*TODO*/ }
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(modifier = Modifier.width(135.dp)) {
@@ -418,7 +418,11 @@ private fun ResultCard(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Row() {
-                    Text(text = title, style = MaterialTheme.typography.titleMedium, fontSize = 20.sp)
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 20.sp
+                    )
                 }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(28.dp),
@@ -468,27 +472,3 @@ private fun ResultCard(
         }
     }
 }
-
-private val marketplaceItems = listOf(
-    MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe"),
-    MarketplaceItem(postTitle = "20lbs of fresh-grounded black tea", price = "$150", city = "Cambridge", province = "ON", userName = "Jane Doe"),
-    MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe"),
-    MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe")
-)
-
-private val filters = mutableListOf<Filter>(
-    Filter(filterLabel = "Newest to Oldest", enabled = false),
-    Filter(filterLabel = "Oldest to Newest", enabled = false),
-    Filter(filterLabel = "Popularity (Low to High)", enabled = false),
-    Filter(filterLabel = "Popularity (High to Low)", enabled = false),
-)
-
-private val tagFilters = mutableListOf<Filter>(
-    Filter(filterLabel = "Equipment", enabled = false),
-    Filter(filterLabel = "Ingredients", enabled = false),
-    Filter(filterLabel = "Newest to Oldest", enabled = false),
-    Filter(filterLabel = "Oldest to Newest", enabled = false),
-    Filter(filterLabel = "Price (Low to High)", enabled = false),
-    Filter(filterLabel = "Price (High to Low)", enabled = false),
-    Filter(filterLabel = "Range (10km-25km)", enabled = false),
-)

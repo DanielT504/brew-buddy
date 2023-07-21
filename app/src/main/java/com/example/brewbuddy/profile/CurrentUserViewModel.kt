@@ -30,6 +30,10 @@ class CurrentUserViewModel : ViewModel() {
         setUser(user)
     }
 
+    fun removeUser() {
+        setUser(null)
+    }
+
     fun registerUser(username: String, email: String): Boolean {
         val user = User(username, email, null, null);
         setUser(user);

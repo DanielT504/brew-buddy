@@ -13,6 +13,12 @@ data class IngredientSection (
     val ingredientsList: IngredientsList
 )
 
+data class IndividualIngredient (
+    val quantity: Number,
+    val unit: String,
+    val label: String,
+)
+
 fun createIngredientsFromJSON(ingredients: List<HashMap<String, Object>>): List<IngredientSection> {
     var recipeIngredients = ArrayList<IngredientSection>()
 

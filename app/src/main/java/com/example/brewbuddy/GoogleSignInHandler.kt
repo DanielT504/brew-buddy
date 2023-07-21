@@ -61,7 +61,7 @@ fun GoogleSignInButton(onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit) {
                 .width(270.dp)
                 .padding(vertical = 0.dp)
         ) {
-            Text(text = "Sign in with saved Google account")
+            Text(text = "Sign in with device Google account")
         }
     }
 
