@@ -188,7 +188,7 @@ private fun RecipeGridLayout(navController: NavHostController, state: RecipesSta
                  recipe ->
                     RecipeCard(
                         title = recipe.title ?: "",
-                        photo = recipe.bannerUrl,
+                        photo = recipe.bannerUrl ?: "",
                         navController = navController,
                         recipeId = recipe.id ?: "",
                         height = getRandomCardHeight()
