@@ -86,18 +86,21 @@ exports.getRecipes = (db) => {
     });
 };
 
+const extractMetadata = (doc) => ({
+  id: doc.id,
+  bannerUrl: doc.data().bannerUrl,
+  title: doc.data().title,
+  likes: doc.data().likes,
+  authorId: doc.data().authorId,
+  tags: doc.data().tags,
+});
+
 exports.getRecipesMetadata = (db) => {
   return db
     .collection("recipes")
     .get()
     .then((snapshot) => {
-      return snapshot.docs.map((doc) => ({
-        id: doc.id,
-        bannerUrl: doc.data().bannerUrl,
-        title: doc.data().title,
-        likes: doc.data().likes,
-        authorId: doc.data().authorId,
-      }));
+      return snapshot.docs.map((doc) => extractMetadata(doc));
     });
 };
 
@@ -114,12 +117,6 @@ exports.getRecipesMetadataByQuery = (keywords, filters, db) => {
   }
 
   return queryRef.get().then((snapshot) => {
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      bannerUrl: doc.data().bannerUrl,
-      title: doc.data().title,
-      likes: doc.data().likes,
-      authorId: doc.data().authorId,
-    }));
+    return snapshot.docs.map((doc) => extractMetadata(doc));
   });
 };

@@ -137,6 +137,7 @@ const getRecipesMetadataWithAuthor = async (metadatas, db) => {
       bannerUrl: metadata.bannerUrl,
       likes: metadata.likes,
       title: metadata.title,
+      tags: metadata.tags,
       author,
     });
   }
@@ -183,6 +184,10 @@ exports.getFeaturedRecipes = onCall(async ({ data }, context) => {
   const metadatas = await getRecipesMetadata(db);
 });
 
+exports.getUserPreferences = onCall(async ({ data }, context) => {
+  const metadatas = await getRecipesMetadata(db);
+});
+
 // exports.createRecipe = onRequest(async ({ body }, response) => {
 //   console.log(body);
 //   const { recipes, users } = body;
@@ -197,36 +202,47 @@ exports.getFeaturedRecipes = onCall(async ({ data }, context) => {
 //   response.status(200).send();
 // });
 
-// exports.updateRecipes = onRequest(async ({ body }, response) => {
-//   const blacklistWords = [
-//     "as",
-//     "the",
-//     "is",
-//     "at",
-//     "in",
-//     "with",
-//     "a",
-//     "&",
-//     "and",
-//     "to",
-//     "how",
-//     "you",
-//     "all",
-//   ];
-//   return db
-//     .collection("recipes")
-//     .get()
-//     .then((snapshot) => {
-//       snapshot.forEach((doc) => {
-//         const titleWords = doc.data().title.toLowerCase().split(" ");
-//         const keywords = titleWords.filter(
-//           (w) => !blacklistWords.includes(w.toLowerCase())
-//         );
-//         console.log(keywords);
-//         db.collection("recipes").doc(doc.id).update({ keywords });
-//       });
-//     });
-// });
+exports.updateRecipes = onRequest(async ({ body }, response) => {
+  const blacklistWords = [
+    "as",
+    "the",
+    "is",
+    "at",
+    "in",
+    "with",
+    "a",
+    "&",
+    "and",
+    "to",
+    "how",
+    "you",
+    "all",
+  ];
+  return db
+    .collection("recipes")
+    .get()
+    .then((snapshot) => {
+      snapshot.forEach((doc) => {
+        // const titleWords = doc.data().title.toLowerCase().split(" ");
+        const preferences = {
+          glutenFree: doc.data().glutenFree,
+          vegetarian: doc.data().vegetarian,
+          vegan: doc.data().vegan,
+          dairyFree: doc.data().dairyFree,
+          keto: doc.data().keto,
+        };
+
+        const preferenceArray = Object.keys(preferences).filter(
+          (a) => preferences[a] === true
+        );
+        // const keywords = titleWords.filter(
+        //   (w) => !blacklistWords.includes(w.toLowerCase())
+        // );
+        console.log(preferenceArray);
+        db.collection("recipes").doc(doc.id).update({ tags: preferenceArray });
+      });
+    });
+});
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 

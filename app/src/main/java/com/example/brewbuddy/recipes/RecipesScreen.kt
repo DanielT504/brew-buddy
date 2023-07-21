@@ -39,6 +39,7 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -78,7 +79,7 @@ import coil.compose.AsyncImage
 import com.example.brewbuddy.recipes.IngredientSection
 import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
-import com.example.brewbuddy.recipes.TagType
+//import com.example.brewbuddy.recipes.TagType
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenLight
@@ -158,7 +159,7 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
                     ),
 
                 modifier = Modifier
-                    .width(352.dp)
+                    .width(302.dp)
                     .padding(start = 16.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
@@ -171,7 +172,6 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
                 })
             )
 
-            Column(modifier = Modifier.background(color = Color.White)) {
                 Row(
                     modifier = Modifier.padding(top = 4.dp, end = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(1.dp)
@@ -204,25 +204,25 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
                             }
                         }
                     }
-                    DropdownMenu(
-                        expanded = filtersExpanded,
-                        onDismissRequest = { filtersExpanded = false },
-                        modifier = Modifier.background(color = Color.White)
-                    ) {
-                        for (filter in filters) {
-                            DropdownMenuItem(
-                                text = { Text(filter.filterLabel) },
-                                onClick = {
-                                    canAddToActiveFilters(
-                                        filter,
-                                        activeFilters
-                                    ) && activeFilters.add(filter)
-                                }
-                            )
-                        }
-                    }
+                    RecipeFilters(state=filtersExpanded, onDismissRequest = { filtersExpanded = false })
+//                    DropdownMenu(
+//                        expanded = filtersExpanded,
+//                        onDismissRequest = { filtersExpanded = false },
+//                        modifier = Modifier.background(color = Color.White)
+//                    ) {
+//                        for (filter in filters) {
+//                            DropdownMenuItem(
+//                                text = { Text(filter.filterLabel) },
+//                                onClick = {
+//                                    canAddToActiveFilters(
+//                                        filter,
+//                                        activeFilters
+//                                    ) && activeFilters.add(filter)
+//                                }
+//                            )
+//                        }
+//                    }
                 }
-            }
         }
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -235,13 +235,13 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
     }
 }
 
-//@Composable
-//private fun RecipeFilters(state: MutableState<Boolean>) {
-//    DropdownMenu(
-//        expanded = state,
-//        onDismissRequest = { state = false },
-//        modifier = Modifier.background(color = Color.White)
-//    ) {
+@Composable
+private fun RecipeFilters(state: Boolean, onDismissRequest: () -> Unit) {
+    DropdownMenu(
+        expanded = state,
+        onDismissRequest = onDismissRequest,
+        modifier = Modifier.background(color = Color.White).fillMaxWidth()
+    ) {
 //        for (filter in filters) {
 //            DropdownMenuItem(
 //                text = { Text(filter.filterLabel) },
@@ -253,9 +253,28 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
 //                }
 //            )
 //        }
-//    }
-//
-//}
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Column() {
+                Text("Filters")
+                CheckboxFilter(text = "Gluten-Free", checked = false)
+            }
+            Column() {
+                Text("Sort by")
+                CheckboxFilter(text = "Gluten-Free", checked = false)
+            }
+        }
+    }
+
+}
+
+@Composable
+private fun CheckboxFilter(text: String, checked: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(checked = checked, onCheckedChange = {})
+        Text(text)
+    }
+
+}
 private fun canAddToActiveFilters(
     filterToAdd: Filter,
     activeFilters: SnapshotStateList<Filter>
@@ -472,3 +491,9 @@ private fun ResultCard(
         }
     }
 }
+//
+//private val PreferenceFilters = listOf(
+//
+//)
+//
+//data class PreferenceFilter

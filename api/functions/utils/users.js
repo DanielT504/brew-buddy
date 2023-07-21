@@ -31,3 +31,27 @@ exports.updatePinnedRecipes = (userId, recipes, db) => {
   }
   return db.collection("users").doc(userId).update({ pinnedRecipes: recipes });
 };
+
+exports.getUserPreferences = (userId, db) => {
+  if (!userId) {
+    throw new HttpsError(
+      "failed-precondition",
+      "getUserPreferences: No user ID provided"
+    );
+  }
+  return db
+    .collection("user_preferences")
+    .doc(userId)
+    .then((doc) => {
+      if (!doc) {
+        throw new HttpsError(
+          "failed-precondition",
+          `No user with ID ${userId} found`
+        );
+      }
+      return {
+        id: doc.id,
+        ...doc.data(),
+      };
+    });
+};

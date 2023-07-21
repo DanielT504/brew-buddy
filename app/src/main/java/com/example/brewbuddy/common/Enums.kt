@@ -23,3 +23,8 @@ enum class Allergens(val label: String) {
     SOY("Soy"),
     DAIRY("Dairy")
 }
+
+enum class TagType {
+    ALLERGEN,
+    DIET
+}
