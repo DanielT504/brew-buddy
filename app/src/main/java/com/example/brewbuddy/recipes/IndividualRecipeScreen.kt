@@ -1,7 +1,6 @@
 package com.example.brewbuddy.recipes
 
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -32,10 +31,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,15 +52,6 @@ import com.example.brewbuddy.R
 import com.example.brewbuddy.data.remote.dto.IngredientList
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.Recipe
-import com.example.brewbuddy.profile.currGlutenFree
-import com.example.brewbuddy.profile.currHalal
-import com.example.brewbuddy.profile.currKeto
-import com.example.brewbuddy.profile.currKosher
-import com.example.brewbuddy.profile.currLactoseFree
-import com.example.brewbuddy.profile.currNutFree
-import com.example.brewbuddy.profile.currRadius
-import com.example.brewbuddy.profile.currVegan
-import com.example.brewbuddy.profile.currVegetarian
 import com.example.brewbuddy.profile.db
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
@@ -73,11 +59,6 @@ import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.TitleLarge
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 
 sealed class RecipeNavigationScreens(val route: String) {
@@ -149,13 +130,12 @@ private fun RecipeBanner(
     viewModel: IndividualRecipeScreenViewModel = hiltViewModel()
 ) {
     val contextForToast = LocalContext.current.applicationContext
-    var favourited by remember { mutableStateOf(false)}
-    var previouslyLiked by remember { mutableStateOf(viewModel.previouslyLiked.value)}
+    var isFavourite = viewModel.isFavourite.value
 
-    var icon = R.drawable.icon_favourite_border
-    if (previouslyLiked or favourited) {
-        icon = R.drawable.icon_favourite_heart
+    LaunchedEffect(id) {
+        viewModel.checkFavouriteFromDatabase(id)
     }
+
 
     Box(modifier = Modifier
         .height(230.dp)
@@ -210,13 +190,7 @@ private fun RecipeBanner(
                         .padding(end = 4.dp)) {
                         IconButton(
                             onClick = {
-                                favourited = !favourited
-                                updateUserLikedRecipes(recipeId = id, liked = favourited)
-                                Toast.makeText(
-                                    contextForToast,
-                                    if (favourited) { "Added to Favourites" } else { "Removed from Favourites" },
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                viewModel.toggleFavourite(id, contextForToast)
                             },
                         ) {
                             Canvas(modifier = Modifier.size(38.dp)) {
@@ -225,8 +199,7 @@ private fun RecipeBanner(
                             Icon(
                                 tint = Brown,
                                 painter = painterResource(
-                                    /*id = if (favourited) { R.drawable.icon_favourite_heart } else { R.drawable.icon_favourite_border}*/
-                                id = icon
+                                id = if (isFavourite) { R.drawable.icon_favourite_heart } else { R.drawable.icon_favourite_border }
                                 ),
                                 contentDescription = "Favourite Recipe",
                                 modifier = Modifier
