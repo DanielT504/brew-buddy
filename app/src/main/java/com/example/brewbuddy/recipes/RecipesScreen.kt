@@ -137,40 +137,40 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column() {
-                TextField(
-                    value = searchQuery.value,
-                    onValueChange = { searchQuery.value = it },
-                    label = { Text("Search") },
-                    colors = TextFieldDefaults
-                        .textFieldColors(
-                            containerColor = Color.White,
-                            textColor = Color.DarkGray,
-                            unfocusedIndicatorColor = Color.LightGray,
-                            focusedIndicatorColor = Color.Gray,
-                            disabledLeadingIconColor = Color.DarkGray,
-                            disabledIndicatorColor = Color.DarkGray
-                        ),
-                    leadingIcon = {
-                        Icon(
-                            painterResource(id = R.drawable.icon_search),
-                            contentDescription = null
-                        )
-                    },
-                    modifier = Modifier
-                        .width(352.dp)
-                        .padding(start = 16.dp),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = {
-                        /*onSearch(text)*/
-                        // Hide the keyboard after submitting the search
-                        keyboardController?.hide()
-                        //or hide keyboard
-                        focusManager.clearFocus()
-
-                    })
+            IconButton(onClick = { /*TODO*/ }) {
+                Icon(
+                    painterResource(id = R.drawable.icon_search),
+                    contentDescription = null
                 )
             }
+            TextField(
+                value = searchQuery.value,
+                onValueChange = { searchQuery.value = it },
+                label = { Text("Search") },
+                colors = TextFieldDefaults
+                    .textFieldColors(
+                        containerColor = Color.White,
+                        textColor = Color.DarkGray,
+                        unfocusedIndicatorColor = Color.LightGray,
+                        focusedIndicatorColor = Color.Gray,
+                        disabledLeadingIconColor = Color.DarkGray,
+                        disabledIndicatorColor = Color.DarkGray
+                    ),
+
+                modifier = Modifier
+                    .width(352.dp)
+                    .padding(start = 16.dp),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = {
+                    /*onSearch(text)*/
+                    // Hide the keyboard after submitting the search
+                    keyboardController?.hide()
+                    //or hide keyboard
+                    focusManager.clearFocus()
+
+                })
+            )
+
             Column(modifier = Modifier.background(color = Color.White)) {
                 Row(
                     modifier = Modifier.padding(top = 4.dp, end = 8.dp),
@@ -235,6 +235,27 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
     }
 }
 
+//@Composable
+//private fun RecipeFilters(state: MutableState<Boolean>) {
+//    DropdownMenu(
+//        expanded = state,
+//        onDismissRequest = { state = false },
+//        modifier = Modifier.background(color = Color.White)
+//    ) {
+//        for (filter in filters) {
+//            DropdownMenuItem(
+//                text = { Text(filter.filterLabel) },
+//                onClick = {
+//                    canAddToActiveFilters(
+//                        filter,
+//                        activeFilters
+//                    ) && activeFilters.add(filter)
+//                }
+//            )
+//        }
+//    }
+//
+//}
 private fun canAddToActiveFilters(
     filterToAdd: Filter,
     activeFilters: SnapshotStateList<Filter>
@@ -456,6 +477,13 @@ private val marketplaceItems = listOf(
 )
 
 private val filters = mutableListOf<Filter>(
+    Filter(filterLabel = "Newest to Oldest", enabled = false),
+    Filter(filterLabel = "Oldest to Newest", enabled = false),
+    Filter(filterLabel = "Popularity (Low to High)", enabled = false),
+    Filter(filterLabel = "Popularity (High to Low)", enabled = false),
+)
+
+private val tagFilters = mutableListOf<Filter>(
     Filter(filterLabel = "Equipment", enabled = false),
     Filter(filterLabel = "Ingredients", enabled = false),
     Filter(filterLabel = "Newest to Oldest", enabled = false),

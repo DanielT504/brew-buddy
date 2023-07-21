@@ -9,3 +9,12 @@ data class TagType (
     val tagColor: Color,
     @DrawableRes val  img: Int,
 )
+
+data class Tag (
+    val tag: Color,
+    val label: String,
+)
+
+val GlutenFreeTag = Tag(
+
+)

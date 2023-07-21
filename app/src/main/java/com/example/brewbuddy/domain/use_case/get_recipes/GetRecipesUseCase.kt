@@ -19,7 +19,7 @@ class GetRecipesUseCase @Inject constructor(
     operator fun invoke(): Flow<Resource<List<RecipeMetadata>>> = flow {
         try {
             emit(Resource.Loading())
-            val recipes = repository.getRecipes().map { it.toRecipeMetadata() }
+            val recipes = repository.getRecipes(null).map { it.toRecipeMetadata() }
             emit(Resource.Success(recipes))
         } catch(e: HttpException) {
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred."))

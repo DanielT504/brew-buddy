@@ -31,6 +31,7 @@ const {
   getRecipes,
   getRecipesMetadata,
   getRecipeMetadataById,
+  getRecipesMetadataByQuery,
 } = require("./utils/recipes.js");
 const { getUserById, updatePinnedRecipes } = require("./utils/users.js");
 
@@ -126,8 +127,7 @@ exports.pinRecipe = onCall(async ({ data }, context) => {
   }
 });
 
-const getRecipesMetadataWithAuthor = async (db) => {
-  const metadatas = await getRecipesMetadata(db);
+const getRecipesMetadataWithAuthor = async (metadatas, db) => {
   const res = [];
   for (let i = 0; i < metadatas.length; i++) {
     const metadata = metadatas[i];
@@ -142,17 +142,37 @@ const getRecipesMetadataWithAuthor = async (db) => {
   }
   return res;
 };
-exports.getRecipesMetadata = onCall(async ({ data }, context) => {
-  const { query } = data;
-  if (query) {
-  }
-  const res = await getRecipesMetadataWithAuthor(db);
 
-  return res;
+const getQueryParams = (string) => {
+  const arr = string.split("&");
+
+  const query = { keywords: [], filters: {} };
+
+  arr.forEach((el) => {
+    const entry = el.split("=");
+    if (entry[0] === "keywords") {
+      query["keywords"] = entry[1].toLowerCase().split(" ");
+    } else {
+      query["filters"][entry[0]] = entry[1];
+    }
+  });
+  return query;
+};
+exports.getRecipesMetadata = onCall(async ({ data }, context) => {
+  const { query } = data || {};
+  if (query) {
+    const queryParams = getQueryParams(query);
+    const metadatas = getRecipesMetadataByQuery({ queryParams }, db);
+    return await getRecipesMetadataWithAuthor(metadatas, db);
+  }
+  const metadatas = await getRecipesMetadata(db);
+  return await getRecipesMetadataWithAuthor(metadatas, db);
 });
 
 exports.getPopularRecipes = onCall(async ({ data }, context) => {
-  const popularRecipes = await getRecipesMetadataWithAuthor(db);
+  const metadatas = await getRecipesMetadata(db);
+
+  const popularRecipes = await getRecipesMetadataWithAuthor(metadatas, db);
 
   popularRecipes.sort((a, b) => b.likes - a.likes);
   console.log("Popular Recipes: ", popularRecipes);
@@ -162,3 +182,48 @@ exports.getPopularRecipes = onCall(async ({ data }, context) => {
 exports.getFeaturedRecipes = onCall(async ({ data }, context) => {
   const metadatas = await getRecipesMetadata(db);
 });
+
+// exports.createRecipe = onRequest(async ({ body }, response) => {
+//   console.log(body);
+//   const { recipes, users } = body;
+//   recipes.forEach((recipe) => {
+//     db.collection("recipes").doc().set(recipe);
+//   });
+
+//   users.forEach((user) => {
+//     db.collection("users").doc(user["uid"]).set(user);
+//   });
+//   // const res = await db.collection("recipes").doc().set(body);
+//   response.status(200).send();
+// });
+
+// exports.updateRecipes = onRequest(async ({ body }, response) => {
+//   const blacklistWords = [
+//     "as",
+//     "the",
+//     "is",
+//     "at",
+//     "in",
+//     "with",
+//     "a",
+//     "&",
+//     "and",
+//     "to",
+//     "how",
+//     "you",
+//     "all",
+//   ];
+//   return db
+//     .collection("recipes")
+//     .get()
+//     .then((snapshot) => {
+//       snapshot.forEach((doc) => {
+//         const titleWords = doc.data().title.toLowerCase().split(" ");
+//         const keywords = titleWords.filter(
+//           (w) => !blacklistWords.includes(w.toLowerCase())
+//         );
+//         console.log(keywords);
+//         db.collection("recipes").doc(doc.id).update({ keywords });
+//       });
+//     });
+// });

@@ -101,17 +101,25 @@ exports.getRecipesMetadata = (db) => {
     });
 };
 
-exports.getRecipesMetadataByQuery = (db) => {
-  return db
+exports.getRecipesMetadataByQuery = (keywords, filters, db) => {
+  const queryRef = db
     .collection("recipes")
-    .get()
-    .then((snapshot) => {
-      return snapshot.docs.map((doc) => ({
-        id: doc.id,
-        bannerUrl: doc.data().bannerUrl,
-        title: doc.data().title,
-        likes: doc.data().likes,
-        authorId: doc.data().authorId,
-      }));
-    });
+    .where("keywords", "array-contains-any", keywords);
+
+  for (const [key, value] of Object.entries(filters)) {
+    // if filter is not true, then don't need to filter it
+    if (value) {
+      queryRef.where(key, "==", value);
+    }
+  }
+
+  return queryRef.get().then((snapshot) => {
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      bannerUrl: doc.data().bannerUrl,
+      title: doc.data().title,
+      likes: doc.data().likes,
+      authorId: doc.data().authorId,
+    }));
+  });
 };
