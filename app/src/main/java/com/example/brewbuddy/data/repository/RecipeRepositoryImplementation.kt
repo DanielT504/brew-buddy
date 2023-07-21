@@ -66,13 +66,4 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             return@withContext data.map{RecipeMetadataDto.from(it)}
         }
     }
-
-    override suspend fun getAllRecipes(): List<Recipe> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getUserMetaData(userId: String): User {
-        TODO("Not yet implemented")
-    }
-
 }

@@ -8,16 +8,5 @@ import javax.inject.Inject
 class GetContentBasedRecommendations @Inject constructor(
     private val repository: RecipeRepository
 ) {
-    suspend operator fun invoke(user: User): List<Recipe> {
-        val allRecipes = repository.getAllRecipes()
-        val likedRecipeIds = user.likedRecipeIds
-
-        val recipeAttributes = allRecipes.filter { it.id in likedRecipeIds }
-            .flatMap { it.diets  }
-            .toSet()
-
-        return allRecipes.filter { recipe ->
-            recipe.id !in likedRecipeIds && recipe.diets.any { it in recipeAttributes}
-        }
-    }
+    /*TODO */
 }
