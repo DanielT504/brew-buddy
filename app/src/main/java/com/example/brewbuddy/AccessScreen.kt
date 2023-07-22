@@ -88,6 +88,7 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
 
 //TODO: logout button from profile screen, email confirmation, prevent reuse of emails
 //TODO: invalid email check, auth error bug, bad login error handling, disallow redundant accounts
+//TODO: clicking away from google sign in crashes app, logging into a registered account crashes app
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
