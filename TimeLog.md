@@ -91,4 +91,7 @@
 | 2023/07/21 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync meeting                                          |
 | 2023/07/21 |        |1        |      |        |         |        | Debug & fix featured page crashing app bug                    |
 | 2023/07/21 |        |8        |      |        |         |        | Recommendation Engine part 1 - Similarity cosine calc etc.    |
-
+| 2023/07/21 |        |         | 1    |        |         |        | Merging + starting refactor                                   |
+| 2023/07/21 |        |         | 2    |        |         |        | Code review                                                   |
+| 2023/07/21 |        |         | 4    |        |         |        | Get user recipe data from firestore, update imagegrid         |
+| 2023/07/21 |        |         | 2    |        |         |        | Debug attempt                                                 |
