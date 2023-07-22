@@ -54,6 +54,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextField
@@ -78,6 +79,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.brewbuddy.AccessScreens
 import com.example.brewbuddy.PinnedCard
 import com.example.brewbuddy.ProfilePicture
@@ -88,11 +90,19 @@ import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.recipes.IndividualIngredient
+import com.example.brewbuddy.recipes.IndividualRecipeScreenViewModel
 import com.example.brewbuddy.recipes.IndividualStep
 import com.example.brewbuddy.recipes.IngredientsList
+//import com.example.brewbuddy.recipes.RecipeBanner
+//import com.example.brewbuddy.recipes.RecipeSection
+import com.example.brewbuddy.recipes.UserScreenViewModel
 import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.store1
+import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
@@ -201,19 +211,24 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
 fun ImageGrid(
     columns: Int,
     modifier: Modifier = Modifier,
+    recipes: List<RecipeMetadata> = emptyList(),
 ) {
-    val images = listOf(
-        R.drawable.x_recipe1,
-        R.drawable.x_recipe2,
-        R.drawable.x_recipe3,
-        R.drawable.x_recipe4,
-        R.drawable.x_recipe5,
-        R.drawable.x_recipe6,
-        R.drawable.x_recipe7,
-        R.drawable.x_recipe8,
-        R.drawable.x_recipe9,
-    )
-    var itemCount = images.size
+//    val images = listOf(
+//        R.drawable.x_recipe1,
+//        R.drawable.x_recipe2,
+//        R.drawable.x_recipe3,
+//        R.drawable.x_recipe4,
+//        R.drawable.x_recipe5,
+//        R.drawable.x_recipe6,
+//        R.drawable.x_recipe7,
+//        R.drawable.x_recipe8,
+//        R.drawable.x_recipe9,
+//    )
+//    var itemCount = images.size
+
+    val imageUrls = recipes.map { it.bannerUrl }
+    var itemCount = imageUrls.size
+
     Column(modifier = modifier) {
         var rows = (itemCount / columns)
         if (itemCount.mod(columns) > 0) {
@@ -242,8 +257,11 @@ fun ImageGrid(
                                     .padding(4.dp)
 //                                    .clickable( onClick = { navController.navigate(AccessScreens.Login.route)} )
                             ) {
+                                val imageUrl = imageUrls[index]
+                                val painter = rememberAsyncImagePainter(imageUrl)
+
                                 Image(
-                                    painter = painterResource(images[index]),
+                                    painter = painter,
                                     contentDescription = "Recipe Image",
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -434,7 +452,9 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                 Column() {
                     Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
                         Button(
-                            modifier = Modifier.padding(end = 4.dp).weight(0.5f),
+                            modifier = Modifier
+                                .padding(end = 4.dp)
+                                .weight(0.5f),
                             colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
                             onClick = { ingredients.add(IndividualIngredient(0, "", "")) }
                         ) {
@@ -450,7 +470,9 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                     }
                     Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                         Button(
-                            modifier = Modifier.padding(end = 4.dp).weight(1f),
+                            modifier = Modifier
+                                .padding(end = 4.dp)
+                                .weight(1f),
                             colors = ButtonDefaults.buttonColors(containerColor = GreenDark),
                             onClick = {
                                 ingredients.clear()
@@ -698,7 +720,11 @@ private fun retrieveSavedStores() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun UserScreen(menuButton: @Composable () -> Unit) {
+fun UserScreen(
+    menuButton: @Composable () -> Unit,
+//    viewModel: UserScreenViewModel = hiltViewModel()
+) {
+//    var state = viewModel.state.value
     val user = getUser()
     // todo: change to lazycolumn
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -711,7 +737,46 @@ fun UserScreen(menuButton: @Composable () -> Unit) {
             Box(modifier = Modifier.padding(top = 35.dp)) {
                 TitleLarge(text = "Your Recipes")
             }
+
+
+
+
+
+
+
+//            if(state.error.isNotBlank()) {
+//                Text(
+//                    text = state.error,
+//                    color = MaterialTheme.colorScheme.error,
+//                    textAlign = TextAlign.Center,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(horizontal = 20.dp)
+//                )
+//            } else if(state.isLoading){
+//                Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+//                    Box() {
+//                        CircularProgressIndicator(modifier = Modifier
+//                            .align(Alignment.Center)
+//                            .size(34.dp))
+//                    }
+//                }
+//            } else {
+//
+//                    ImageGrid(columns = 3, modifier = Modifier.padding(16.dp), state.data)
+//                }
+
+
+
+
+
+
+
+
+
             ImageGrid(3, modifier = Modifier.padding(16.dp))
+
+
             var showDialog = remember { mutableStateOf(false) }
             Button(
                 modifier = Modifier.padding(16.dp),

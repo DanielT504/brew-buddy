@@ -95,6 +95,8 @@ import androidx.compose.runtime.*
 import androidx.navigation.compose.*
 import com.example.brewbuddy.profile.CurrentUserRepository
 import com.example.brewbuddy.profile.SettingScreen
+import com.example.brewbuddy.recipes.IndividualRecipeScreen
+import com.example.brewbuddy.recipes.Screen
 
 val LocalNavController = compositionLocalOf<NavController> { error("No NavController provided") }
 
@@ -196,10 +198,9 @@ fun ProfileScreen(navController: NavController) {
                 LocalNavController provides localNavController
             ) {
                 NavHost(localNavController, startDestination = ProfileScreens.User.route) {
-                    composable(ProfileScreens.User.route) {
+                    composable(ProfileScreens.User.route + "/{userId}") {
                         UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.White) })
                     }
-
                     composable(ProfileScreens.Settings.route) {
                         SettingScreen(
                             navController = navController,
