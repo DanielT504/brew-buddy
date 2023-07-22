@@ -61,5 +61,5 @@
 | 2023/07/18 |        |         |      |        |         | 5      | Code refactoring for nav from logout button to access screen  |
 | 2023/07/19 |        |         |      |        |         | 2      | Working logout using a restart simulation screen              |
 | 2023/07/20 |        |         |      |        |         | 3      | Started delete account button and added user settings scroll  |
-| 2023/07/21 |        |         |      |        |         | 3      | Fixed new Firebase rules after account migration              |
+| 2023/07/21 |        |         |      |        |         | 1      | Fixed new Firebase rules after account migration              |
 

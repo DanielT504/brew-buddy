@@ -83,7 +83,7 @@ fun SettingScreen(
     Surface(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(0.dp, 0.dp, 0.dp, 24.dp),
+            contentPadding = PaddingValues(0.dp, 0.dp, 0.dp, 128.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             item {
@@ -242,7 +242,7 @@ fun SettingScreen(
             }
 
             item {
-                Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
+                Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 32.dp)) {
                     Button(
                         onClick = {},
                         shape = RoundedCornerShape(50.dp),
@@ -256,7 +256,7 @@ fun SettingScreen(
             }
 
             item {
-                Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
+                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
                     Button(
                         onClick = {
                             // Logout the user and navigate back to the main activity
@@ -282,7 +282,7 @@ fun SettingScreen(
             }
 
             item {
-                Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
+                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
                     Button(
                         onClick = {
                             coroutineScope.launch {
