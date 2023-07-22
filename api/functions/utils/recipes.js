@@ -105,9 +105,11 @@ exports.getRecipesMetadata = (db) => {
 };
 
 exports.getRecipesMetadataByQuery = (keywords, filters, db) => {
-  const queryRef = db
-    .collection("recipes")
-    .where("keywords", "array-contains-any", keywords);
+  const queryRef = db.collection("recipes");
+
+  if (keywords.length > 0) {
+    queryRef.where("keywords", "array-contains-any", keywords);
+  }
 
   for (const [key, value] of Object.entries(filters)) {
     // if filter is not true, then don't need to filter it

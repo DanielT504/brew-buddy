@@ -61,9 +61,6 @@ import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.TitleLarge
 import com.example.brewbuddy.recipes.Tag
 
-sealed class RecipeNavigationScreens(val route: String) {
-    object IndividualRecipe : RecipeNavigationScreens("Recipes/{recipeId}")
-}
 
 @Composable
 fun IndividualRecipeScreen(

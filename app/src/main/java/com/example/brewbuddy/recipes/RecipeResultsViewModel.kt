@@ -16,35 +16,35 @@ import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 @HiltViewModel
-class RecipeResultsVeiwModel  @Inject constructor(
+class RecipeResultsViewModel  @Inject constructor(
     private val getRecipeResultsUseCase: GetRecipeResultsUseCase,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
-    private val _state = mutableStateOf(RecipeResultsState())
-    val state: State<RecipeResultsState> = _state
-
-    init {
-        savedStateHandle.get<String>(Constants.PARAM_RECIPE_ID)?.let { query ->
-            Log.d("RecipeResultsVeiwModel", query)
-            val id = query.substringAfter("}")
-            getResults(id)
-        }
-    }
-
-    private fun getResults(query: String) {
-        getRecipeResultsUseCase(query).onEach { result ->
-            when(result) {
-                is Resource.Success -> {
-                    _state.value = RecipeResultsState(results = result.data)
-                }
-                is Resource.Error -> {
-                    _state.value = RecipeResultsState(error = result.message ?: "An unexpected error occurred.")
-                }
-                is Resource.Loading -> {
-                    _state.value = RecipeResultsState(isLoading = true)
-                }
-            }
-        }.launchIn(viewModelScope)
-    }
+//    private val _state = mutableStateOf(RecipeResultsState())
+//    val state: State<RecipeResultsState> = _state
+//
+//    init {
+//        savedStateHandle.get<String>(Constants.PARAM_QUERY)?.let { query ->
+//            Log.d("RecipeResultsViewModel", query)
+//            val id = query.substringAfter("}")
+//            getResults(id)
+//        }
+//    }
+//
+//    private fun getResults(query: String) {
+//        getRecipeResultsUseCase(query).onEach { result ->
+//            when(result) {
+//                is Resource.Success -> {
+//                    _state.value = RecipeResultsState(results = result.data)
+//                }
+//                is Resource.Error -> {
+//                    _state.value = RecipeResultsState(error = result.message ?: "An unexpected error occurred.")
+//                }
+//                is Resource.Loading -> {
+//                    _state.value = RecipeResultsState(isLoading = true)
+//                }
+//            }
+//        }.launchIn(viewModelScope)
+//    }
 
 }

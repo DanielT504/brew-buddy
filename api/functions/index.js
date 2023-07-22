@@ -173,7 +173,7 @@ const getQueryParams = (string) => {
     if (entry[0] === "keywords") {
       query["keywords"] = entry[1].toLowerCase().split(" ");
     } else {
-      query["filters"][entry[0]] = entry[1];
+      query["filters"][entry[0]] = entry[1] === "true" ? true : false;
     }
   });
   return query;
@@ -182,7 +182,12 @@ exports.getRecipesMetadata = onCall(async ({ data }, context) => {
   const { query } = data || {};
   if (query) {
     const queryParams = getQueryParams(query);
-    const metadatas = getRecipesMetadataByQuery({ queryParams }, db);
+    console.log(queryParams);
+    const metadatas = await getRecipesMetadataByQuery(
+      queryParams.keywords,
+      queryParams.filters,
+      db
+    );
     return await getRecipesMetadataWithAuthor(metadatas, db);
   }
   const metadatas = await getRecipesMetadata(db);
