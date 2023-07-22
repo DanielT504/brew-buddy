@@ -57,16 +57,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import com.example.brewbuddy.featured.FeaturedViewModel
 import com.example.brewbuddy.marketplace.Filter
 import com.example.brewbuddy.marketplace.MarketplaceItem
+import com.example.brewbuddy.marketplace.MarketplaceViewModel
+import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
 import com.example.brewbuddy.ui.theme.SlateLight
 
+
+sealed class MarketplaceNavigationScreens(val route: String) {
+    object IndividualItem : MarketplaceNavigationScreens("items/")
+}
+
+private fun navigateToItem(itemId: String, navController: NavHostController) {
+    navController.navigate(route = MarketplaceNavigationScreens.IndividualItem.route + itemId)
+}
+
 @Composable
 fun MarketplaceScreen (
-    name: String
+    navController: NavHostController,
+    viewModel: MarketplaceViewModel = hiltViewModel()
 ) {
     var activeFilters =  remember { mutableStateListOf<Filter>() }
     var marketplaceSectionOffset = 20.dp
@@ -84,7 +99,7 @@ fun MarketplaceScreen (
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
             ) {
-                Marketplace()
+                Marketplace(navController)
             }
         }
     }
@@ -103,10 +118,10 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
-        Column() {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+    Column() {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
             ) {
                 Column() {
                     TextField(
@@ -197,20 +212,20 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>) {
                                 .align(Alignment.CenterVertically)
                         ) {
                             IconButton(onClick = { /*TODO*/ }) {
-                                BadgedBox(
+/*                                BadgedBox(
                                     badge = {
                                         Badge(containerColor = GreenMedium) {
                                             Text("2", color = Color.White)
                                         }
                                     }
-                                ) {
+                                ) {*/
                                     Icon(
-                                        painterResource(id = R.drawable.icon_shopping_cart),
+                                        painterResource(id = R.drawable.icon_add_outline),
                                         contentDescription = null,
-                                        modifier = Modifier.size(28.dp),
+                                        modifier = Modifier.size(36.dp),
                                         tint = Color.Gray,
                                     )
-                                }
+                                /*}*/
                             }
                         }
                     }
@@ -327,7 +342,7 @@ private fun ActiveFilters() {
 }
 
 @Composable
-private fun Marketplace() {
+private fun Marketplace(navController: NavHostController) {
     Surface(shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -345,7 +360,8 @@ private fun Marketplace() {
                     price = marketplaceItem.price,
                     city = marketplaceItem.city,
                     province = marketplaceItem.province,
-                    userName = marketplaceItem.userName
+                    userName = marketplaceItem.userName,
+                    navController = navController
                 )
             }
         }
@@ -359,6 +375,7 @@ private fun MarketplaceCard(
     city: String,
     province: String,
     userName: String,
+    navController: NavHostController
 ) {
     Card(
         modifier = Modifier
@@ -371,7 +388,7 @@ private fun MarketplaceCard(
         colors = CardDefaults.cardColors(
             containerColor = Color.White,
         ),
-        onClick = {/*TODO*/}
+        onClick = { navigateToItem("123", navController)}
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(modifier = Modifier.width(135.dp)) {
