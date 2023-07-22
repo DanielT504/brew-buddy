@@ -1,5 +1,6 @@
 package com.example.brewbuddy
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -79,7 +80,9 @@ import coil.compose.AsyncImage
 import com.example.brewbuddy.recipes.IngredientSection
 import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
+import com.example.brewbuddy.recipes.TagDto
 import com.example.brewbuddy.recipes.TagList
+import com.example.brewbuddy.recipes.createTag
 //import com.example.brewbuddy.recipes.TagType
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
@@ -103,11 +106,9 @@ fun RecipesScreen (
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(modifier = Modifier
             .fillMaxSize()) {
-            Box() {
-                SearchBarWrapper(activeFilters, searchQuery)
-            }
+            SearchBarWrapper(activeFilters, searchQuery)
             Box(modifier = Modifier
-                .offset(y = -(marketplaceSectionOffset))
+//                .offset(y = -(marketplaceSectionOffset))
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
             ) {
@@ -205,26 +206,14 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
                             }
                         }
                     }
-                    RecipeFilters(state=filtersExpanded, onDismissRequest = { filtersExpanded = false })
-//                    DropdownMenu(
-//                        expanded = filtersExpanded,
-//                        onDismissRequest = { filtersExpanded = false },
-//                        modifier = Modifier.background(color = Color.White)
-//                    ) {
-//                        for (filter in filters) {
-//                            DropdownMenuItem(
-//                                text = { Text(filter.filterLabel) },
-//                                onClick = {
-//                                    canAddToActiveFilters(
-//                                        filter,
-//                                        activeFilters
-//                                    ) && activeFilters.add(filter)
-//                                }
-//                            )
-//                        }
-//                    }
+                    RecipeFilters(
+                        state=filtersExpanded,
+                        onDismissRequest = { filtersExpanded = false },
+                        activeFilters=activeFilters
+                    )
                 }
         }
+        Spacer(modifier = Modifier.height(8.dp))
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.padding(start = 12.dp, end = 12.dp)
@@ -233,38 +222,43 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
                 FilterTag(filter = filter, activeFilters = activeFilters)
             }
         }
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
 @Composable
-private fun RecipeFilters(state: Boolean, onDismissRequest: () -> Unit) {
+private fun RecipeFilters(state: Boolean, onDismissRequest: () -> Unit, activeFilters: SnapshotStateList<Filter>) {
     DropdownMenu(
         expanded = state,
         onDismissRequest = onDismissRequest,
-        modifier = Modifier.background(color = Color.White).fillMaxWidth()
+        modifier = Modifier
+            .background(color = Color.White)
+            .fillMaxWidth()
     ) {
-//        for (filter in filters) {
-//            DropdownMenuItem(
-//                text = { Text(filter.filterLabel) },
-//                onClick = {
-//                    canAddToActiveFilters(
-//                        filter,
-//                        activeFilters
-//                    ) && activeFilters.add(filter)
-//                }
-//            )
-//        }
         Row(modifier = Modifier.fillMaxWidth()) {
             Column() {
                 Text("Filters")
                 TagList.forEach { tagInfo ->
-                    CheckboxFilter(text = tagInfo.label, checked = false)
+                    val filter = Filter(name=tagInfo.name, filterLabel = tagInfo.label, enabled=true)
+                    CheckboxFilter(
+                        text = tagInfo.label,
+                        checked = activeFilters.contains(filter),
+                        onCheckChanged = {
+                            updateActiveFilters(filter, activeFilters)
+                        }
+                    )
                 }
-//                CheckboxFilter(text = "Gluten-Free", checked = false)
             }
             Column() {
                 Text("Sort by")
-                CheckboxFilter(text = "Date", checked = false)
+                SortFilters.forEach { filter ->
+                    DropdownMenuItem(
+                        text = { Text(filter.filterLabel) },
+                        onClick = {
+                            updateActiveFilters(filter, activeFilters)
+                        }
+                    )
+                }
             }
         }
     }
@@ -272,45 +266,59 @@ private fun RecipeFilters(state: Boolean, onDismissRequest: () -> Unit) {
 }
 
 @Composable
-private fun CheckboxFilter(text: String, checked: Boolean) {
+private fun CheckboxFilter(text: String, checked: Boolean, onCheckChanged: (Boolean) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Checkbox(checked = checked, onCheckedChange = {})
+        Checkbox(checked = checked, onCheckedChange = onCheckChanged)
         Text(text)
     }
 
 }
-private fun canAddToActiveFilters(
+private fun updateActiveFilters(
     filterToAdd: Filter,
     activeFilters: SnapshotStateList<Filter>
-): Boolean {
-    val oldestToNewest = filters.last { filter: Filter -> filter.filterLabel == "Oldest to Newest" }
-    val newestToOldest = filters.last { filter: Filter -> filter.filterLabel == "Newest to Oldest" }
-    val priceLowToHigh = filters.last { filter: Filter -> filter.filterLabel == "Price (Low to High)" }
-    val priceHighToLow = filters.last { filter: Filter -> filter.filterLabel == "Price (High to Low)" }
+): SnapshotStateList<Filter> {
+    val oldestToNewest = filters.last { filter: Filter -> filter.name == "date_asce" }
+    val newestToOldest = filters.last { filter: Filter -> filter.name == "date_desc" }
+    val priceLowToHigh = filters.last { filter: Filter -> filter.name == "price_asce"}
+    val priceHighToLow = filters.last { filter: Filter -> filter.name == "price_desc" }
     if (activeFilters.contains(filterToAdd)) {
-        return false
+        Log.d("FILTERS", "Removing")
+        activeFilters.remove(filterToAdd)
+        return activeFilters
     }
-    if (filterToAdd.filterLabel == "Newest to Oldest"
+    if (filterToAdd.name == "date_desc"
         && activeFilters.contains(oldestToNewest))
     {
-        return false
+        activeFilters.remove(oldestToNewest)
+        activeFilters.add(filterToAdd)
+        return activeFilters
     }
-    if (filterToAdd.filterLabel == "Oldest to Newest"
+    if (filterToAdd.name == "date_asce"
         && activeFilters.contains(newestToOldest))
     {
-        return false
+        activeFilters.remove(newestToOldest)
+        activeFilters.add(filterToAdd)
+
+        return activeFilters
     }
-    if (filterToAdd.filterLabel == "Price (Low to High)"
+    if (filterToAdd.name == "price_asce"
         && activeFilters.contains(priceHighToLow))
     {
-        return false
+        activeFilters.remove(priceHighToLow)
+        activeFilters.add(filterToAdd)
+
+        return activeFilters
     }
-    if (filterToAdd.filterLabel == "Price (High to Low)"
+    if (filterToAdd.name == "price_desc"
         && activeFilters.contains(priceLowToHigh))
     {
-        return false
+        activeFilters.remove(priceLowToHigh)
+        activeFilters.add(filterToAdd)
+
+        return activeFilters
     }
-    return true
+    activeFilters.add(filterToAdd)
+    return activeFilters
 }
 
 @Composable
@@ -355,13 +363,7 @@ private fun FilterTag(filter: Filter, activeFilters: SnapshotStateList<Filter>) 
 
 @Composable
 private fun SearchBarWrapper(activeFilters: SnapshotStateList<Filter>, searchQuery: MutableState<String>) {
-    /*Modify this height based on number of applied filters*/
-    var searchbarHeight = 120.dp
-    if (activeFilters.size > 3) {
-        searchbarHeight = 140.dp
-    }
     Box(modifier = Modifier
-        .height(searchbarHeight)
         .background(color = Color.White)) {
         SearchBar(activeFilters, searchQuery)
     }
@@ -496,8 +498,17 @@ private fun ResultCard(
     }
 }
 //
-//private val PreferenceFilters = listOf(
-//
-//)
+private val PreferenceFilters = listOf(
+    TagList.forEach {tagInfo ->
+        Filter(tagInfo.name, tagInfo.label, false);
+    }
+)
+
+private val SortFilters = listOf(
+    Filter("date_asce", "Oldest to Newest", false),
+    Filter("date_desc", "Newest to Oldest", false),
+    Filter("likes_asce", "Popularity (Low to High)", false),
+    Filter("likes_desc", "Popularity (High to Low)", false)
+)
 //
 //data class PreferenceFilter

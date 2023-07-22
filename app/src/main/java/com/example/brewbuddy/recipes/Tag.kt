@@ -8,19 +8,12 @@ import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
 
-//data class TagInfo (
-//    val iconTint: Color,
-//    val tagText: String,
-//    val tagColor: Color,
-//    @DrawableRes val  img: Int,
-//)
-
 data class TagConfig (
     val iconTint: Color,
     val tagColor: Color
 )
 
-val TagConfigs = hashMapOf<TagType, TagConfig>(
+val TagConfigs = hashMapOf(
     TagType.ALLERGEN to TagConfig(tagColor = GreenMedium, iconTint = Color.White),
     TagType.DIET to TagConfig(tagColor = Brown, iconTint = Color.White),
 )
@@ -50,3 +43,8 @@ val TagList = listOf(
     TagInfo(TagType.DIET, "halal", "Halal", R.drawable.icon_info),
     TagInfo(TagType.DIET, "kosher", "Kosher", R.drawable.icon_info)
 )
+
+fun createTag(tagInfo: TagInfo): TagDto {
+    val tagConfig = TagConfigs[tagInfo.type]
+    return TagDto(tagConfig!!.iconTint, tagInfo.label, tagInfo.name, tagConfig!!.tagColor, tagInfo.icon)
+}

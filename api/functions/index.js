@@ -38,6 +38,17 @@ const { getUserById, updatePinnedRecipes } = require("./utils/users.js");
 initializeApp();
 const db = getFirestore();
 
+const DEFAULT_BANNER_URL =
+  "https://firebasestorage.googleapis.com/v0/b/brew-buddy-ece452.appspot.com/o/placeholder_banner.png?alt=media&token=49e30f3c-cc2d-44f4-a91a-a1295f558a6a";
+const DEFAULT_AVATAR_URL =
+  "https://firebasestorage.googleapis.com/v0/b/brew-buddy-ece452.appspot.com/o/placeholder_avatar.jpg?alt=media&token=38f93e98-58d1-4076-8262-1dc5c340cac7";
+
+const PLACEHOLDER_USER = {
+  uid: "1",
+  username: "Unknown",
+  bannerUrl: DEFAULT_BANNER_URL,
+  avatarUrl: DEFAULT_AVATAR_URL,
+};
 exports.getRecipesByAuthor = onCall(async ({ data }, context) => {
   // Get all recipes from specified author ID.
   var recipes = [];
@@ -80,7 +91,7 @@ exports.getRecipeById = onCall(async ({ data }, context) => {
   try {
     author = await getUserById(recipe.authorId, db);
   } catch (e) {
-    author = null;
+    author = PLACEHOLDER_USER;
   }
 
   console.log("Author of GetRecipeById: ", author);
@@ -97,7 +108,10 @@ exports.getUserById = onCall(async ({ data }, context) => {
 
   if (userId === undefined) {
     // Throwing an HttpsError so that the client gets the error details.
-    throw new HttpsError("failed-precondition", "No user ID provided");
+    throw new HttpsError(
+      "failed-precondition",
+      "getUserById: No user ID provided"
+    );
   }
   return await getUserById(userId, db);
 });
@@ -131,7 +145,12 @@ const getRecipesMetadataWithAuthor = async (metadatas, db) => {
   const res = [];
   for (let i = 0; i < metadatas.length; i++) {
     const metadata = metadatas[i];
-    const author = await getUserById(metadata.authorId, db);
+    var author = null;
+    try {
+      author = await getUserById(recipe.authorId, db);
+    } catch (e) {
+      author = PLACEHOLDER_USER;
+    }
     res.push({
       id: metadata.id,
       bannerUrl: metadata.bannerUrl,
@@ -218,7 +237,7 @@ exports.updateRecipes = onRequest(async ({ body }, response) => {
     "you",
     "all",
   ];
-  return db
+  await db
     .collection("recipes")
     .get()
     .then((snapshot) => {
@@ -242,6 +261,8 @@ exports.updateRecipes = onRequest(async ({ body }, response) => {
         db.collection("recipes").doc(doc.id).update({ tags: preferenceArray });
       });
     });
+
+  response.status(200).json({ data: "yay" });
 });
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");

@@ -301,8 +301,7 @@ private fun generateTags(recipe: Recipe?): List<TagDto> {
 
     TagList.forEach { tagInfo ->
         if(recipe!!.tags.contains(tagInfo.name)) {
-            val tagConfig = TagConfigs[tagInfo.type]
-            val tag = TagDto(tagConfig!!.iconTint, tagInfo.label, tagInfo.name, tagConfig!!.tagColor, tagInfo.icon)
+            val tag = createTag(tagInfo)
             recipeTags.add(tag);
         }
     }
