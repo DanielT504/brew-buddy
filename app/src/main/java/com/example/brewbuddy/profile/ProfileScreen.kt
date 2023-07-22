@@ -1,6 +1,7 @@
 package com.example.brewbuddy
 
 import android.graphics.Paint.Align
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
@@ -198,7 +199,10 @@ fun ProfileScreen(navController: NavController) {
                 LocalNavController provides localNavController
             ) {
                 NavHost(localNavController, startDestination = ProfileScreens.User.route) {
-                    composable(ProfileScreens.User.route + "/{userId}") {
+//                    composable(ProfileScreens.User.route + "/{userId}") {
+//                        UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.White) })
+//                    }
+                    composable(ProfileScreens.User.route) {
                         UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.White) })
                     }
                     composable(ProfileScreens.Settings.route) {

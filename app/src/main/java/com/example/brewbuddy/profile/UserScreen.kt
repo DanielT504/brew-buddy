@@ -722,9 +722,10 @@ private fun retrieveSavedStores() {
 @Composable
 fun UserScreen(
     menuButton: @Composable () -> Unit,
-//    viewModel: UserScreenViewModel = hiltViewModel()
+    viewModel: UserScreenViewModel = hiltViewModel()
 ) {
-//    var state = viewModel.state.value
+    var state = viewModel.state.value
+    Log.d("ADD_USER", "hi")
     val user = getUser()
     // todo: change to lazycolumn
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -744,37 +745,35 @@ fun UserScreen(
 
 
 
-//            if(state.error.isNotBlank()) {
-//                Text(
-//                    text = state.error,
-//                    color = MaterialTheme.colorScheme.error,
-//                    textAlign = TextAlign.Center,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(horizontal = 20.dp)
-//                )
-//            } else if(state.isLoading){
-//                Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-//                    Box() {
-//                        CircularProgressIndicator(modifier = Modifier
-//                            .align(Alignment.Center)
-//                            .size(34.dp))
-//                    }
-//                }
-//            } else {
-//
-//                    ImageGrid(columns = 3, modifier = Modifier.padding(16.dp), state.data)
-//                }
+            if(state.error.isNotBlank()) {
+                Text(
+                    text = state.error,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                )
+            } else if(state.isLoading){
+                Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+                    Box() {
+                        CircularProgressIndicator(modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(34.dp))
+                    }
+                }
+            } else {
+                if (state.data != null) {
+
+                    ImageGrid(columns = 3, modifier = Modifier.padding(16.dp), state.data)
+                }
+                else {
+                    Text( text = "You have not uploaded any recipes" )
+                }
+            }
 
 
-
-
-
-
-
-
-
-            ImageGrid(3, modifier = Modifier.padding(16.dp))
+//            ImageGrid(3, modifier = Modifier.padding(16.dp))
 
 
             var showDialog = remember { mutableStateOf(false) }

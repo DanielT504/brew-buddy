@@ -19,7 +19,7 @@ import javax.inject.Inject
 class UserScreenViewModel  @Inject constructor(
     private val getUserRecipesUseCase: GetUserRecipesUseCase,
     savedStateHandle: SavedStateHandle
-): ViewModel() {
+): ViewModel(){
     private val _state = mutableStateOf(UserScreenState())
     val state: State<UserScreenState> = _state
 
@@ -34,16 +34,15 @@ class UserScreenViewModel  @Inject constructor(
 
     fun getRecipesByUserId(userId: String) {
         getUserRecipesUseCase(userId).onEach { result ->
-            when (result) {
+            when(result) {
                 is Resource.Success -> {
-                    if (result.data != null) {
+                    if (result.data != null){
                         _state.value = UserScreenState(data = result.data)
                     }
                 }
 
                 is Resource.Error -> {
-                    _state.value =
-                        UserScreenState(error = result.message ?: "An unexpected error occurred.")
+                    _state.value = UserScreenState(error = result.message ?: "An unexpected error occurred.")
                 }
 
                 is Resource.Loading -> {
