@@ -82,10 +82,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.brewbuddy.profile.SettingScreen
+import coil.compose.AsyncImage
+import com.example.brewbuddy.domain.model.Recipe
+import com.example.brewbuddy.profile.SettingsScreen
 import com.example.brewbuddy.profile.User
 import com.example.brewbuddy.profile.UserScreen
-import com.example.brewbuddy.recipes.Recipe
 import com.example.brewbuddy.ui.theme.OrangeBrownMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import com.example.brewbuddy.ui.theme.currentRoute
@@ -94,6 +95,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.*
 import androidx.navigation.compose.*
 import com.example.brewbuddy.profile.CurrentUserRepository
+import com.example.brewbuddy.profile.SettingScreen
 
 val LocalNavController = compositionLocalOf<NavController> { error("No NavController provided") }
 
@@ -101,6 +103,7 @@ sealed class ProfileScreens(val route: String, val label: String) {
     object User : ProfileScreens("profile/user", "Profile")
     object PinnedRecipes : ProfileScreens("profile/pinned_recipes", "Pinned Recipes")
     object Settings : ProfileScreens("profile/settings", "Settings")
+
 }
 
 @Composable
@@ -119,18 +122,18 @@ fun PinnedCard(modifier: Modifier, recipe: Recipe) {
                 )
             )
         )) {
-            Image(
-                painter = painterResource(id = recipe.getThumbNail()),
+            AsyncImage(
+                model = recipe.bannerUrl,
                 contentDescription = "Recipe Thumbnail",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize() ,
                 alpha = 0.6F
-
             )
+
             Row(modifier = Modifier.padding(16.dp).background(Color.Transparent), verticalAlignment = Alignment.Bottom) {
                 Column(modifier = Modifier.weight(1f).background(Color.Transparent)){
                     Text(
-                        text = recipe.getName(),
+                        text = recipe.title,
                         color= Color.White,
                         modifier = Modifier.align(alignment = Alignment.Start)
                     )
@@ -151,9 +154,9 @@ fun PinnedCard(modifier: Modifier, recipe: Recipe) {
 }
 
 @Composable
-fun ProfilePicture(@DrawableRes img: Int, size: Dp) {
-    Image(
-        painter = painterResource(id = img),
+fun ProfilePicture(avatarUrl: String, size: Dp) {
+    AsyncImage(
+        model = avatarUrl,
         contentDescription = "Profile Picture",
         contentScale = ContentScale.Crop,
         modifier = Modifier
@@ -282,7 +285,7 @@ private fun ProfileMenu(
                 modifier = Modifier.padding(top=20.dp, bottom=20.dp).fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start
             ) {
-                ProfilePicture(user!!.getAvatar(), 64.dp)
+                ProfilePicture(user.getAvatarUrl(), 64.dp)
                 Text(
                     text=username,
                     style=MaterialTheme.typography.titleSmall,
