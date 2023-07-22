@@ -69,13 +69,10 @@ import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.TitleLarge
+import com.example.brewbuddy.recipes.Tag
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 
-
-sealed class RecipeNavigationScreens(val route: String) {
-    object IndividualRecipe : RecipeNavigationScreens("Recipes/{recipeId}")
-}
 
 @Composable
 fun IndividualRecipeScreen(
@@ -385,56 +382,62 @@ private fun LabelledIcon(@DrawableRes img: Int, label: String) {
     }
 }
 
-private fun generateTags(recipe: Recipe?): List<TagType> {
-    var recipeTags = mutableListOf<TagType>()
+private fun generateTags(recipe: Recipe?): List<TagDto> {
+    var recipeTags = mutableListOf<TagDto>()
     var isDairyFree = recipe?.dairyFree
     var isGlutenFree = recipe?.glutenFree
     var isVegan = recipe?.vegan
     var isVegetarian = recipe?.vegetarian
 
-    if (!isDairyFree!!) {
-        recipeTags.add(
-            TagType(
-                tagColor = GreenLight,
-                iconTint = Color.White,
-                tagText = "Dairy",
-                img = R.drawable.icon_info
-            )
-        )
+    TagList.forEach { tagInfo ->
+        if(recipe!!.tags.contains(tagInfo.name)) {
+            val tag = createTag(tagInfo)
+            recipeTags.add(tag);
+        }
     }
-
-    if (isGlutenFree!!) {
-        recipeTags.add(
-            TagType(
-                tagColor = GreenLight,
-                iconTint = Color.White,
-                tagText = "Gluten Free",
-                img = R.drawable.icon_custom_gluten_free
-            )
-        )
-    }
-
-    if (isVegan!!) {
-        recipeTags.add(
-            TagType(
-                tagColor = Brown,
-                iconTint = Color.White,
-                tagText = "Vegan",
-                img = R.drawable.icon_custom_vegan
-            )
-        )
-    }
-
-    if (isVegetarian!!) {
-        recipeTags.add(
-            TagType(
-                tagColor = Brown,
-                iconTint = Color.White,
-                tagText = "Vegetarian",
-                img = R.drawable.icon_custom_vegetarian
-            )
-        )
-    }
+//    if (!isDairyFree!!) {
+//        recipeTags.add(
+//            TagType(
+//                tagColor = GreenLight,
+//                iconTint = Color.White,
+//                tagText = "Dairy",
+//                img = R.drawable.icon_info
+//            )
+//        )
+//    }
+//
+//    if (isGlutenFree!!) {
+//        recipeTags.add(
+//            TagType(
+//                tagColor = GreenLight,
+//                iconTint = Color.White,
+//                tagText = "Gluten Free",
+//                img = R.drawable.icon_custom_gluten_free
+//            )
+//        )
+//    }
+//
+//    if (isVegan!!) {
+//        recipeTags.add(
+//            TagType(
+//                tagColor = Brown,
+//                iconTint = Color.White,
+//                tagText = "Vegan",
+//                img = R.drawable.icon_custom_vegan
+//            )
+//        )
+//    }
+//
+//    if (isVegetarian!!) {
+//        recipeTags.add(
+//            TagType(
+//                tagColor = Brown,
+//                iconTint = Color.White,
+//                tagText = "Vegetarian",
+//                img = R.drawable.icon_custom_vegetarian
+//            )
+//        )
+//    }
     return recipeTags
 }
 

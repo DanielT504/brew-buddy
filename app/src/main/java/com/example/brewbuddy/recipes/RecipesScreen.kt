@@ -1,5 +1,7 @@
 package com.example.brewbuddy
 
+//import com.example.brewbuddy.recipes.TagType
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,20 +26,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,11 +41,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -68,45 +62,46 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.marketplace.Filter
-import com.example.brewbuddy.recipes.RecipeResultsVeiwModel
+import com.example.brewbuddy.recipes.RecipeResultsViewModel
+import com.example.brewbuddy.recipes.RecipeScreenViewModel
+import com.example.brewbuddy.recipes.TagList
+import com.example.brewbuddy.ui.theme.AuthorCardDisplay
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
 import com.example.brewbuddy.ui.theme.SlateLight
 import com.example.brewbuddy.ui.theme.TitleLarge
 
+sealed class RecipeNavigationScreens(val route: String) {
+    object IndividualRecipe : RecipeNavigationScreens("Recipes/{recipeId}")
+    object RecipeResults : RecipeNavigationScreens("Recipes/{queryParams}")
+}
+
+
 @Composable
 fun RecipesScreen (
-    name: String
+    navController: NavHostController,
+    viewModel: RecipeScreenViewModel = hiltViewModel()
 ) {
-    var activeFilters =  remember { mutableStateListOf<Filter>() }
 
-    var searchQuery = remember { mutableStateOf("") }
-    var marketplaceSectionOffset = 20.dp
-    if (activeFilters.size >= 3) {
-        marketplaceSectionOffset = -(5.dp)
-    }
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(modifier = Modifier
             .fillMaxSize()) {
-            Box() {
-                SearchBarWrapper(activeFilters, searchQuery)
-            }
+            SearchBarWrapper(viewModel)
             Box(modifier = Modifier
-                .offset(y = -(marketplaceSectionOffset))
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
             ) {
-                if(searchQuery.value.length === 0) {
-                    TitleLarge(text = "Search for your next recipe.")
-                } else {
-                    RecipeSearchResults()
-
-                }
+                RecipeSearchResults(navController, viewModel)
             }
         }
     }
@@ -119,8 +114,10 @@ fun RecipesScreen (
     ExperimentalLayoutApi::class
 )
 @Composable
-private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: MutableState<String>) {
+private fun SearchBar(viewModel: RecipeScreenViewModel) {
     var filtersExpanded by remember { mutableStateOf(false) }
+    var searchQuery = viewModel.search.value
+    Log.d("SEARCH BAR", "RECOMPOSE")
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -129,15 +126,18 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { /*todo*/ }) {
                 Icon(
                     painterResource(id = R.drawable.icon_search),
                     contentDescription = null
                 )
             }
             TextField(
-                value = searchQuery.value,
-                onValueChange = { searchQuery.value = it },
+                value = searchQuery,
+                onValueChange = {
+                    viewModel.setKeywords(it);
+                    viewModel.search();
+                },
                 label = { Text("Search") },
                 colors = TextFieldDefaults
                     .textFieldColors(
@@ -150,7 +150,7 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
                     ),
 
                 modifier = Modifier
-                    .width(352.dp)
+                    .width(302.dp)
                     .padding(start = 16.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
@@ -163,7 +163,6 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
                 })
             )
 
-            Column(modifier = Modifier.background(color = Color.White)) {
                 Row(
                     modifier = Modifier.padding(top = 4.dp, end = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(1.dp)
@@ -181,7 +180,7 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
                                 badge = {
                                     Badge(containerColor = GreenMedium) {
                                         Text(
-                                            text = activeFilters.size.toString(),
+                                            text = viewModel.filters.size.toString(),
                                             color = Color.White
                                         )
                                     }
@@ -196,94 +195,125 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>, searchQuery: Mut
                             }
                         }
                     }
-                    DropdownMenu(
-                        expanded = filtersExpanded,
+                    RecipeFilters(
+                        state=filtersExpanded,
                         onDismissRequest = { filtersExpanded = false },
-                        modifier = Modifier.background(color = Color.White)
-                    ) {
-                        for (filter in filters) {
-                            DropdownMenuItem(
-                                text = { Text(filter.filterLabel) },
-                                onClick = {
-                                    canAddToActiveFilters(
-                                        filter,
-                                        activeFilters
-                                    ) && activeFilters.add(filter)
-                                }
-                            )
-                        }
-                    }
+                        viewModel = viewModel
+                    )
                 }
-            }
         }
+        Spacer(modifier = Modifier.height(8.dp))
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.padding(start = 12.dp, end = 12.dp)
         ) {
-            for (filter in activeFilters) {
-                FilterTag(filter = filter, activeFilters = activeFilters)
+            for (filter in viewModel.filters) {
+                FilterTag(filter = filter, viewModel = viewModel)
             }
         }
+        Spacer(modifier = Modifier.height(8.dp))
     }
-}
-
-//@Composable
-//private fun RecipeFilters(state: MutableState<Boolean>) {
-//    DropdownMenu(
-//        expanded = state,
-//        onDismissRequest = { state = false },
-//        modifier = Modifier.background(color = Color.White)
-//    ) {
-//        for (filter in filters) {
-//            DropdownMenuItem(
-//                text = { Text(filter.filterLabel) },
-//                onClick = {
-//                    canAddToActiveFilters(
-//                        filter,
-//                        activeFilters
-//                    ) && activeFilters.add(filter)
-//                }
-//            )
-//        }
-//    }
-//
-//}
-private fun canAddToActiveFilters(
-    filterToAdd: Filter,
-    activeFilters: SnapshotStateList<Filter>
-): Boolean {
-    val oldestToNewest = filters.last { filter: Filter -> filter.filterLabel == "Oldest to Newest" }
-    val newestToOldest = filters.last { filter: Filter -> filter.filterLabel == "Newest to Oldest" }
-    val priceLowToHigh = filters.last { filter: Filter -> filter.filterLabel == "Price (Low to High)" }
-    val priceHighToLow = filters.last { filter: Filter -> filter.filterLabel == "Price (High to Low)" }
-    if (activeFilters.contains(filterToAdd)) {
-        return false
-    }
-    if (filterToAdd.filterLabel == "Newest to Oldest"
-        && activeFilters.contains(oldestToNewest))
-    {
-        return false
-    }
-    if (filterToAdd.filterLabel == "Oldest to Newest"
-        && activeFilters.contains(newestToOldest))
-    {
-        return false
-    }
-    if (filterToAdd.filterLabel == "Price (Low to High)"
-        && activeFilters.contains(priceHighToLow))
-    {
-        return false
-    }
-    if (filterToAdd.filterLabel == "Price (High to Low)"
-        && activeFilters.contains(priceLowToHigh))
-    {
-        return false
-    }
-    return true
 }
 
 @Composable
-private fun FilterTag(filter: Filter, activeFilters: SnapshotStateList<Filter>) {
+private fun RecipeFilters(state: Boolean, onDismissRequest: () -> Unit, viewModel: RecipeScreenViewModel) {
+    DropdownMenu(
+        expanded = state,
+        onDismissRequest = onDismissRequest,
+        modifier = Modifier
+            .background(color = Color.White)
+            .fillMaxWidth()
+    ) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Column() {
+                Text("Filters")
+                TagList.forEach { tagInfo ->
+                    val filter = Filter(name=tagInfo.name, filterLabel = tagInfo.label, enabled=true)
+                    CheckboxFilter(
+                        text = tagInfo.label,
+                        checked = viewModel.filters.contains(filter),
+                        onCheckChanged = {
+                            updateActiveFilters(filter, viewModel)
+                            viewModel.search()
+                        }
+                    )
+                }
+            }
+            Column() {
+                Text("Sort by")
+                SortFilters.forEach { filter ->
+                    DropdownMenuItem(
+                        text = { Text(filter.filterLabel) },
+                        onClick = {
+                            updateActiveFilters(filter, viewModel)
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+}
+
+@Composable
+private fun CheckboxFilter(text: String, checked: Boolean, onCheckChanged: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(checked = checked, onCheckedChange = onCheckChanged)
+        Text(text)
+    }
+
+}
+private fun updateActiveFilters(
+    filterToAdd: Filter,
+    viewModel: RecipeScreenViewModel
+) {
+
+    val oldestToNewest = filters.last { filter: Filter -> filter.name == "dateAsce" }
+    val newestToOldest = filters.last { filter: Filter -> filter.name == "dateDesc" }
+    val priceLowToHigh = filters.last { filter: Filter -> filter.name == "priceAsce"}
+    val priceHighToLow = filters.last { filter: Filter -> filter.name == "priceDesc" }
+    if (viewModel.filters.contains(filterToAdd)) {
+        Log.d("FILTERS", "Removing")
+        viewModel.removeFilter(filterToAdd)
+        return
+    }
+    if (filterToAdd.name == "dateDesc"
+        && viewModel.filters.contains(oldestToNewest))
+    {
+        viewModel.removeFilter(oldestToNewest)
+        viewModel.addFilter(filterToAdd)
+        return
+    }
+    if (filterToAdd.name == "dateAsce"
+        && viewModel.filters.contains(newestToOldest))
+    {
+        viewModel.removeFilter(newestToOldest)
+        viewModel.addFilter(filterToAdd)
+
+        return
+    }
+    if (filterToAdd.name == "priceAsce"
+        && viewModel.filters.contains(priceHighToLow))
+    {
+        viewModel.removeFilter(priceHighToLow)
+        viewModel.addFilter(filterToAdd)
+
+        return
+    }
+    if (filterToAdd.name == "priceDesc"
+        && viewModel.filters.contains(priceLowToHigh))
+    {
+        viewModel.removeFilter(priceLowToHigh)
+        viewModel.addFilter(filterToAdd)
+
+        return
+    }
+    viewModel.addFilter(filterToAdd)
+    return
+}
+
+@Composable
+private fun FilterTag(filter: Filter, viewModel: RecipeScreenViewModel) {
     Box(modifier = Modifier.padding(top = 6.dp)) {
         Box(
             modifier =
@@ -299,7 +329,7 @@ private fun FilterTag(filter: Filter, activeFilters: SnapshotStateList<Filter>) 
                 modifier = Modifier.padding(vertical = 2.dp, horizontal = 8.dp)
             ) {
                 Box(modifier = Modifier.align(Alignment.CenterVertically)) {
-                    IconButton(onClick = { activeFilters.remove(filter) }, modifier = Modifier.size(16.dp)) {
+                    IconButton(onClick = { viewModel.filters.remove(filter) }, modifier = Modifier.size(16.dp)) {
                         Canvas(modifier = Modifier.size(16.dp)) {
                             drawCircle(color = SlateLight)
                         }
@@ -323,51 +353,57 @@ private fun FilterTag(filter: Filter, activeFilters: SnapshotStateList<Filter>) 
 }
 
 @Composable
-private fun SearchBarWrapper(activeFilters: SnapshotStateList<Filter>, searchQuery: MutableState<String>) {
-    /*Modify this height based on number of applied filters*/
-    var searchbarHeight = 120.dp
-    if (activeFilters.size > 3) {
-        searchbarHeight = 140.dp
-    }
+private fun SearchBarWrapper(viewModel: RecipeScreenViewModel) {
     Box(modifier = Modifier
-        .height(searchbarHeight)
         .background(color = Color.White)) {
-        SearchBar(activeFilters, searchQuery)
+        SearchBar(viewModel)
     }
 }
 
 @Composable
-private fun ActiveFilters() {
-    Row() {
-        for (filter in filters) {
-            if (filter.enabled){
-                Text(text = filter.filterLabel)
+private fun RecipeSearchResults(navController: NavHostController, viewModel: RecipeScreenViewModel) {
+    val state = viewModel.state.value
+    if(state.error.isNotBlank()) {
+        Text(
+            text = state.error,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+    } else if(state.isLoading){
+        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+            Box() {
+                CircularProgressIndicator(modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(34.dp))
             }
         }
-    }
-}
-
-@Composable
-private fun RecipeSearchResults(viewStateModel: RecipeResultsVeiwModel = hiltViewModel()) {
-    Surface(shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .background(color = Color.Transparent))
-    {
-        Column(
+    } else {
+        Surface(
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
             modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, top = 34.dp, bottom = 94.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            for (marketplaceItem in marketplaceItems) {
-                ResultCard(
-                    title = marketplaceItem.postTitle,
-                    price = marketplaceItem.price,
-                    city = marketplaceItem.city,
-                    province = marketplaceItem.province,
-                    userName = marketplaceItem.userName
-                )
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .background(color = Color.Transparent)
+        )
+        {
+
+            Column(
+                modifier = Modifier
+                    .padding(start = 16.dp, end = 16.dp, top = 34.dp, bottom = 94.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                for (el in state.results) {
+                    ResultCard(
+                        title = el.title,
+                        bannerUrl = el.bannerUrl,
+                        recipeId = el.id,
+                        author = el.author,
+                        navController = navController
+                    )
+                }
             }
         }
     }
@@ -376,10 +412,10 @@ private fun RecipeSearchResults(viewStateModel: RecipeResultsVeiwModel = hiltVie
 @Composable
 private fun ResultCard(
     title: String,
-    price: String,
-    city: String,
-    province: String,
-    userName: String,
+    bannerUrl: String,
+    recipeId: String,
+    author: Author,
+    navController: NavHostController
 ) {
     Card(
         modifier = Modifier
@@ -392,16 +428,17 @@ private fun ResultCard(
         colors = CardDefaults.cardColors(
             containerColor = Color.White,
         ),
-        onClick = {/*TODO*/ }
+        onClick = { navigateToRecipe(recipeId, navController) }
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(modifier = Modifier.width(135.dp)) {
-                Image(
-                    painterResource(id = R.drawable.coffee_image_1),
+                AsyncImage(
+                    model = bannerUrl,
                     contentDescription = "Recipe Banner",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
+
             }
             Column(
                 modifier = Modifier
@@ -423,44 +460,39 @@ private fun ResultCard(
                         .fillMaxHeight()
                         .padding(bottom = 8.dp)
                 ) {
-                    Column() {
-                        Row(modifier = Modifier.padding(bottom = 16.dp)) {
-                            Text(text = price, fontSize = 20.sp)
-                        }
-                        Row() {
-                            Text(
-                                text = "$city, $province",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Light,
-                                color = Color.DarkGray
-                            )
-                        }
-                    }
+//                    Column() {
+//                        Row(modifier = Modifier.padding(bottom = 16.dp)) {
+//                            Text(text = price, fontSize = 20.sp)
+//                        }
+//                        Row() {
+//                            Text(
+//                                text = "$city, $province",
+//                                fontSize = 12.sp,
+//                                fontWeight = FontWeight.Light,
+//                                color = Color.DarkGray
+//                            )
+//                        }
+//                    }
                     Column(horizontalAlignment = Alignment.End) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = userName,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Light,
-                                color = Color.DarkGray
-                            )
-                            Box(contentAlignment = Alignment.Center) {
-                                Canvas(modifier = Modifier.size(22.dp)) {
-                                    drawCircle(color = Color.Gray)
-                                }
-                                Icon(
-                                    painterResource(id = R.drawable.icon_user),
-                                    contentDescription = "User image placeholder",
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
+                        AuthorCardDisplay(author, textColor=Color.Black)
                     }
                 }
             }
         }
     }
 }
+//
+private val PreferenceFilters = listOf(
+    TagList.forEach {tagInfo ->
+        Filter(tagInfo.name, tagInfo.label, false);
+    }
+)
+
+private val SortFilters = listOf(
+    Filter("dateAsce", "Oldest to Newest", false),
+    Filter("dateDesc", "Newest to Oldest", false),
+    Filter("likesAsce", "Popularity (Low to High)", false),
+    Filter("likesDesc", "Popularity (High to Low)", false)
+)
+//
+//data class PreferenceFilter

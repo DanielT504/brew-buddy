@@ -86,25 +86,30 @@ exports.getRecipes = (db) => {
     });
 };
 
+const extractMetadata = (doc) => ({
+  id: doc.id,
+  bannerUrl: doc.data().bannerUrl,
+  title: doc.data().title,
+  likes: doc.data().likes,
+  authorId: doc.data().authorId,
+  tags: doc.data().tags,
+});
+
 exports.getRecipesMetadata = (db) => {
   return db
     .collection("recipes")
     .get()
     .then((snapshot) => {
-      return snapshot.docs.map((doc) => ({
-        id: doc.id,
-        bannerUrl: doc.data().bannerUrl,
-        title: doc.data().title,
-        likes: doc.data().likes,
-        authorId: doc.data().authorId,
-      }));
+      return snapshot.docs.map((doc) => extractMetadata(doc));
     });
 };
 
 exports.getRecipesMetadataByQuery = (keywords, filters, db) => {
-  const queryRef = db
-    .collection("recipes")
-    .where("keywords", "array-contains-any", keywords);
+  const queryRef = db.collection("recipes");
+  console.log("keywords: ", keywords);
+  if (keywords.length > 0) {
+    queryRef.where("keywords", "array-contains-any", keywords);
+  }
 
   for (const [key, value] of Object.entries(filters)) {
     // if filter is not true, then don't need to filter it
@@ -114,12 +119,6 @@ exports.getRecipesMetadataByQuery = (keywords, filters, db) => {
   }
 
   return queryRef.get().then((snapshot) => {
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      bannerUrl: doc.data().bannerUrl,
-      title: doc.data().title,
-      likes: doc.data().likes,
-      authorId: doc.data().authorId,
-    }));
+    return snapshot.docs.map((doc) => extractMetadata(doc));
   });
 };

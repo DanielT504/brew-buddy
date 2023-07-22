@@ -465,11 +465,11 @@ val marketplaceItems = listOf(
 )
 
 val filters = mutableListOf<Filter>(
-    Filter(filterLabel = "Equipment", enabled = false),
-    Filter(filterLabel = "Ingredients", enabled = false),
-    Filter(filterLabel = "Newest to Oldest", enabled = false),
-    Filter(filterLabel = "Oldest to Newest", enabled = false),
-    Filter(filterLabel = "Price (Low to High)", enabled = false),
-    Filter(filterLabel = "Price (High to Low)", enabled = false),
-    Filter(filterLabel = "Range (10km-25km)", enabled = false),
+    Filter(filterLabel = "Equipment", enabled = false, name="equipment"),
+    Filter(filterLabel = "Ingredients", enabled = false, name="ingredients"),
+    Filter(filterLabel = "Newest to Oldest", enabled = false, name="dateDesc"),
+    Filter(filterLabel = "Oldest to Newest", enabled = false, name="dateAsce"),
+    Filter(filterLabel = "Price (Low to High)", enabled = false, name="priceAsce"),
+    Filter(filterLabel = "Price (High to Low)", enabled = false, name="priceDesc"),
+    Filter(filterLabel = "Range (10km-25km)", enabled = false, name="range"),
 )

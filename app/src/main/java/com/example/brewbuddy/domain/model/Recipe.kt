@@ -20,5 +20,6 @@ data class Recipe(
     var instructions: List<Instructions> = emptyList(),
     var bannerUrl: String = Constants.DEFAULT_BANNER_URL,
     val ingredientLists: List<IngredientList> = emptyList(),
-    val author: Author? = null
+    val author: Author? = null,
+    val tags: List<String> = emptyList()
     )

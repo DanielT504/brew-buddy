@@ -67,7 +67,6 @@ import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.brewbuddy.domain.model.RecipeMetadata
-import com.example.brewbuddy.recipes.RecipeNavigationScreens
 import com.example.brewbuddy.featured.FeaturedViewModel
 import com.example.brewbuddy.featured.FeaturedState
 import com.example.brewbuddy.ui.theme.Cream
@@ -257,7 +256,7 @@ private fun PopularCard(recipe: RecipeMetadata, navController: NavHostController
     }
 }
 
-private fun navigateToRecipe(recipeId: String, navController: NavHostController) {
+fun navigateToRecipe(recipeId: String, navController: NavHostController) {
     navController.navigate(route = RecipeNavigationScreens.IndividualRecipe.route + recipeId)
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -310,19 +309,6 @@ private fun RecipeCard(recipe: RecipeMetadata, navController: NavHostController)
                             .size(30.dp)
                             .border(4.dp, Color.White, shape = CircleShape)
                     )
-
-//                    Box(
-//                        Modifier
-//                            .padding(horizontal = 6.dp, vertical = 0.dp)
-//                            .size(30.dp), contentAlignment = Alignment.Center) {
-//                        Canvas(modifier = Modifier.fillMaxSize()) {
-//                            drawCircle(SolidColor(Color.White))
-//                        }
-//                        Icon(
-//                            painter = painterResource(id = R.drawable.icon_user),
-//                            contentDescription = "User image placeholder"
-//                        )
-//                    }
                 }
 
             }
