@@ -31,13 +31,13 @@ fun TitleLarge(text: String) {
 }
 
 @Composable
-fun AuthorCardDisplay(author: Author) {
+fun AuthorCardDisplay(author: Author, textColor: Color = Color.White) {
     Row(
         modifier=Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Spacer(modifier = Modifier.weight(1f))
-        Text(author.username, color = Color.White, fontSize = 18.sp)
+        Text(author.username, color=textColor, fontSize = 18.sp)
         AsyncImage(
             model = author.avatarUrl,
             contentDescription = "Profile Picture",

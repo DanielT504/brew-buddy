@@ -147,7 +147,7 @@ const getRecipesMetadataWithAuthor = async (metadatas, db) => {
     const metadata = metadatas[i];
     var author = null;
     try {
-      author = await getUserById(recipe.authorId, db);
+      author = await getUserById(metadata.authorId, db);
     } catch (e) {
       author = PLACEHOLDER_USER;
     }

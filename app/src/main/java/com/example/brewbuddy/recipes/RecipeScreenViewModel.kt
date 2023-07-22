@@ -22,7 +22,6 @@ class RecipeScreenViewModel  @Inject constructor(
     private val getRecipeResultsUseCase: GetRecipeResultsUseCase,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
-//    private val _filters = mutableStateOf(emptyList<Filter>())
     private val _filters = mutableStateListOf<Filter>()
     val filters: SnapshotStateList<Filter> = _filters
 
@@ -31,6 +30,10 @@ class RecipeScreenViewModel  @Inject constructor(
 
     private val _state = mutableStateOf(RecipeResultsState())
     val state: State<RecipeResultsState> = _state
+
+    init {
+        getResults("")
+    }
     fun setKeywords(str: String) {
         _search.value = str
     }

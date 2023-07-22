@@ -101,12 +101,7 @@ fun RecipesScreen (
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
             ) {
-
-                if(viewModel.query.value.isEmpty()) {
-                    TitleLarge(text = "Search for your next recipe.")
-                } else {
-                    RecipeSearchResults(navController, viewModel)
-                }
+                RecipeSearchResults(navController, viewModel)
             }
         }
     }
@@ -479,28 +474,7 @@ private fun ResultCard(
 //                        }
 //                    }
                     Column(horizontalAlignment = Alignment.End) {
-                        AuthorCardDisplay(author)
-//                        Row(
-//                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-//                            verticalAlignment = Alignment.CenterVertically
-//                        ) {
-//                            Text(
-//                                text = userName,
-//                                fontSize = 12.sp,
-//                                fontWeight = FontWeight.Light,
-//                                color = Color.DarkGray
-//                            )
-//                            Box(contentAlignment = Alignment.Center) {
-//                                Canvas(modifier = Modifier.size(22.dp)) {
-//                                    drawCircle(color = Color.Gray)
-//                                }
-//                                Icon(
-//                                    painterResource(id = R.drawable.icon_user),
-//                                    contentDescription = "User image placeholder",
-//                                    modifier = Modifier.size(20.dp)
-//                                )
-//                            }
-//                        }
+                        AuthorCardDisplay(author, textColor=Color.Black)
                     }
                 }
             }

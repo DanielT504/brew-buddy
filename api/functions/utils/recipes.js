@@ -106,7 +106,7 @@ exports.getRecipesMetadata = (db) => {
 
 exports.getRecipesMetadataByQuery = (keywords, filters, db) => {
   const queryRef = db.collection("recipes");
-
+  console.log("keywords: ", keywords);
   if (keywords.length > 0) {
     queryRef.where("keywords", "array-contains-any", keywords);
   }

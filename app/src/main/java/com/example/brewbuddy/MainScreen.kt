@@ -120,12 +120,7 @@ private fun MainScreenNavigationConfigurations(
             ){
                 IndividualRecipeScreen(navController)
             }
-            composable(
-                route = Screen.IndividualRecipeScreen.route + "/{queryParams}"
-            ) {
-                Log.d("RECIPE RESULTS", "Nav")
-                RecipesScreen(navController)
-            }
+
 
         }
 
