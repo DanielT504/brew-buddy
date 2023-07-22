@@ -95,3 +95,4 @@
 | 2023/07/21 |        |         | 2    |        |         |        | Code review                                                   |
 | 2023/07/21 |        |         | 4    |        |         |        | Get user recipe data from firestore, update imagegrid         |
 | 2023/07/21 |        |         | 2    |        |         |        | Debug attempt                                                 |
+| 2023/07/22 |        |2        |      |        |         |        |MarketplaceItemScreen, viewmodel scaffold, routing             |
