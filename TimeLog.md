@@ -89,3 +89,5 @@
 | 2023/07/20 |        |1        |      |        |         |        | Debugging and fixing ViewModel state to sync with DB to show proper like button state on page load |
 | 2023/07/21 |        |2        |      |        |         |        | More info modal + explore more dropdown on individual recipe screen |
 | 2023/07/21 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync meeting                                          |
+| 2023/07/21 |        |1        |      |        |         |        | Debug & fix featured page crashing app bug                    |
+
