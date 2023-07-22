@@ -23,6 +23,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.example.brewbuddy.marketplace.MarketplaceItemScreen
 import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.example.brewbuddy.recipes.IndividualRecipeScreen
 import com.example.brewbuddy.recipes.RecipeNavigationScreens
@@ -97,7 +98,7 @@ private fun MainScreenNavigationConfigurations(
                 ShopLocatorScreen(fusedLocationProviderClient)
             }
             composable(BottomNavigationScreens.Marketplace.route) {
-                MarketplaceScreen("marketplace")
+                MarketplaceScreen(navController)
             }
             composable(BottomNavigationScreens.Featured.route) {
                 FeaturedScreen(navController)
@@ -105,24 +106,17 @@ private fun MainScreenNavigationConfigurations(
             composable(BottomNavigationScreens.Recipes.route) {
                 RecipesScreen("recipes")
             }
-/*           composable(
-                RecipeNavigationScreens.IndividualRecipe.route,
-                arguments = listOf(
-                    navArgument("recipeId") {
-                        type = NavType.StringType
-                    }
-                )
-            ) {
-                val param = it.arguments?.getString("recipeId") ?: ""
-                IndividualRecipeScreen(navController, param = param)
-            }*/
             composable(
                 route = Screen.IndividualRecipeScreen.route + "/{recipeId}"
             ){
                 IndividualRecipeScreen(navController)
-//                IndividualRecipeScreen(navController)
             }
-
+            composable(
+                route = Screen.MarketplaceItemScreen.route + "/{itemId}"
+            )
+            {
+                MarketplaceItemScreen(navController)
+            }
         }
 
     }

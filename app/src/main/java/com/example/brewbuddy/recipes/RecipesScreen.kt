@@ -72,20 +72,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.brewbuddy.marketplace.Filter
-import com.example.brewbuddy.marketplace.MarketplaceItem
 import com.example.brewbuddy.recipes.RecipeResultsVeiwModel
-import coil.compose.AsyncImage
-import com.example.brewbuddy.recipes.IngredientSection
-import com.example.brewbuddy.recipes.IngredientsList
-import com.example.brewbuddy.recipes.RecipeNavigationScreens
-import com.example.brewbuddy.recipes.TagType
-import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
 import com.example.brewbuddy.ui.theme.SlateLight
 import com.example.brewbuddy.ui.theme.TitleLarge
-import com.example.brewbuddy.util.randomSampleImageUrl
 
 @Composable
 fun RecipesScreen (
