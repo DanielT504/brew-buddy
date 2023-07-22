@@ -228,7 +228,7 @@ fun ImageGrid(
 
     val imageUrls = recipes.map { it.bannerUrl }
     var itemCount = imageUrls.size
-
+    Log.d("TEST", itemCount.toString())
     Column(modifier = modifier) {
         var rows = (itemCount / columns)
         if (itemCount.mod(columns) > 0) {
@@ -725,7 +725,6 @@ fun UserScreen(
     viewModel: UserScreenViewModel = hiltViewModel()
 ) {
     var state = viewModel.state.value
-    Log.d("ADD_USER", "hi")
     val user = getUser()
     // todo: change to lazycolumn
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -746,6 +745,7 @@ fun UserScreen(
 
 
             if(state.error.isNotBlank()) {
+                Log.d("ADFIFAHEIDFHADIFH", state.data.size.toString())
                 Text(
                     text = state.error,
                     color = MaterialTheme.colorScheme.error,
@@ -764,10 +764,11 @@ fun UserScreen(
                 }
             } else {
                 if (state.data != null) {
-
+                    Log.d("!!!!!!!!!!!!!!!", state.data.size.toString())
                     ImageGrid(columns = 3, modifier = Modifier.padding(16.dp), state.data)
                 }
                 else {
+                    Log.d("BOOOOOOOO", state.data.size.toString())
                     Text( text = "You have not uploaded any recipes" )
                 }
             }
