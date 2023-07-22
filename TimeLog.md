@@ -90,4 +90,5 @@
 | 2023/07/21 |        |2        |      |        |         |        | More info modal + explore more dropdown on individual recipe screen |
 | 2023/07/21 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync meeting                                          |
 | 2023/07/21 |        |1        |      |        |         |        | Debug & fix featured page crashing app bug                    |
+| 2023/07/21 |        |8        |      |        |         |        | Recommendation Engine part 1 - Similarity cosine calc etc.    |
 
