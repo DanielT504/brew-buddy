@@ -26,7 +26,7 @@ class UserScreenViewModel  @Inject constructor(
     init {
         Log.d("UserScreenViewModel", savedStateHandle.toString())
         savedStateHandle.get<String>(Constants.PARAM_USER_ID)?.let { userId ->
-            Log.d("IndividualRecipeScreenViewModel", userId)
+            Log.d("UserScreenViewModel Value", userId.substringAfter("}"))
             val userId = userId.substringAfter("}")
             getRecipesByUserId(userId)
         }

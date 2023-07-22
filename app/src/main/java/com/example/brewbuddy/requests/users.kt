@@ -27,7 +27,8 @@ suspend fun getUserById(id: String): User {
             username=data["username"] as String,
             email=data["email"] as String,
             bannerUrl = data["bannerUrl"] as String?,
-            avatarUrl = data["avatarUrl"] as String?
+            avatarUrl = data["avatarUrl"] as String?,
+            userId=data["uid"] as String
 //            avatarUrl=data["avatarUrl"] as String,
 
 //            name = data["title"] as String,

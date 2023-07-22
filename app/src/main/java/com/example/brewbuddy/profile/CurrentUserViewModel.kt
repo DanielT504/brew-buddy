@@ -26,7 +26,7 @@ class CurrentUserViewModel : ViewModel() {
     }
 
     fun loginUser(username: String, email: String) {
-        val user = User(username, email, null, null)
+        val user = User(username, email, null, null, "")
         setUser(user)
     }
 
@@ -35,13 +35,13 @@ class CurrentUserViewModel : ViewModel() {
     }
 
     fun registerUser(username: String, email: String): Boolean {
-        val user = User(username, email, null, null);
+        val user = User(username, email, null, null, "");
         setUser(user);
         return true;
     }
 
     fun registerUserWithGoogle(username: String, email: String): Boolean {
-        val user = User(username, email, null, null);
+        val user = User(username, email, null, null, "");
         setUser(user);
         return true;
     }

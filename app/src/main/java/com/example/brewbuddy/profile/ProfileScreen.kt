@@ -93,7 +93,9 @@ import com.example.brewbuddy.ui.theme.currentRoute
 import kotlinx.coroutines.CoroutineScope
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.*
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.example.brewbuddy.profile.CurrentUserRepository
 import com.example.brewbuddy.profile.SettingScreen
 import com.example.brewbuddy.recipes.IndividualRecipeScreen
@@ -102,7 +104,7 @@ import com.example.brewbuddy.recipes.Screen
 val LocalNavController = compositionLocalOf<NavController> { error("No NavController provided") }
 
 sealed class ProfileScreens(val route: String, val label: String) {
-    object User : ProfileScreens("profile/user", "Profile")
+    object User : ProfileScreens("profile/user/", "Profile")
     object PinnedRecipes : ProfileScreens("profile/pinned_recipes", "Pinned Recipes")
     object Settings : ProfileScreens("profile/settings", "Settings")
 
@@ -182,6 +184,8 @@ fun ProfileScreen(navController: NavController) {
         ProfileScreens.User,
         ProfileScreens.Settings
     )
+
+    val user = getUser()
     ModalNavigationDrawer(
         drawerContent = {
             ProfileMenu(
@@ -198,13 +202,15 @@ fun ProfileScreen(navController: NavController) {
                 LocalNavGraphViewModelStoreOwner provides vmStoreOwner,
                 LocalNavController provides localNavController
             ) {
-                NavHost(localNavController, startDestination = ProfileScreens.User.route) {
-//                    composable(ProfileScreens.User.route + "/{userId}") {
-//                        UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.White) })
-//                    }
-                    composable(ProfileScreens.User.route) {
+                NavHost(localNavController, startDestination = ProfileScreens.User.route + "/{userId}") {
+                    composable(route=ProfileScreens.User.route + "/{userId}",
+                        arguments = listOf(navArgument("userId") { type = NavType.StringType; defaultValue = user.getUserId() })
+                    ) {
                         UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.White) })
                     }
+//                    composable(ProfileScreens.User.route) {
+//                        UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.White) })
+//                    }
                     composable(ProfileScreens.Settings.route) {
                         SettingScreen(
                             navController = navController,
