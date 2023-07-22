@@ -212,20 +212,20 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>) {
                                 .align(Alignment.CenterVertically)
                         ) {
                             IconButton(onClick = { /*TODO*/ }) {
-                                BadgedBox(
+/*                                BadgedBox(
                                     badge = {
                                         Badge(containerColor = GreenMedium) {
                                             Text("2", color = Color.White)
                                         }
                                     }
-                                ) {
+                                ) {*/
                                     Icon(
-                                        painterResource(id = R.drawable.icon_shopping_cart),
+                                        painterResource(id = R.drawable.icon_add_outline),
                                         contentDescription = null,
-                                        modifier = Modifier.size(28.dp),
+                                        modifier = Modifier.size(36.dp),
                                         tint = Color.Gray,
                                     )
-                                }
+                                /*}*/
                             }
                         }
                     }
