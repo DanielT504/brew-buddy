@@ -145,20 +145,17 @@ const getRecipesMetadataWithAuthor = async (metadatas, db) => {
   const res = [];
   for (let i = 0; i < metadatas.length; i++) {
     const metadata = metadatas[i];
-    var author = null;
-    try {
-      author = await getUserById(metadata.authorId, db);
-    } catch (e) {
-      author = PLACEHOLDER_USER;
+    if (metadata.authorId) {
+      const author = await getUserById(metadata.authorId, db);
+      res.push({
+        id: metadata.id,
+        bannerUrl: metadata.bannerUrl,
+        likes: metadata.likes,
+        title: metadata.title,
+        tags: metadata.tags,
+        author,
+      });
     }
-    res.push({
-      id: metadata.id,
-      bannerUrl: metadata.bannerUrl,
-      likes: metadata.likes,
-      title: metadata.title,
-      tags: metadata.tags,
-      author,
-    });
   }
   return res;
 };

@@ -1,8 +1,6 @@
 package com.example.brewbuddy.recipes
 
 sealed class Screen(val route: String) {
-    object RecipesScreen: Screen("recipes_screen")
     object IndividualRecipeScreen: Screen("Recipes")
-    object RecipeResultsScreen: Screen("Recipes")
-
+    object MarketplaceItemScreen: Screen("items")
 }

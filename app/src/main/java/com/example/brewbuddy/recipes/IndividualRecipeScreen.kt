@@ -1,6 +1,6 @@
 package com.example.brewbuddy.recipes
 
-import android.widget.Toast
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -22,14 +22,21 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -47,6 +55,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -55,11 +64,14 @@ import com.example.brewbuddy.R
 import com.example.brewbuddy.data.remote.dto.IngredientList
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.Recipe
+import com.example.brewbuddy.profile.db
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.TitleLarge
 import com.example.brewbuddy.recipes.Tag
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 
 
 @Composable
@@ -96,10 +108,11 @@ fun IndividualRecipeScreen(
             ) {
                 Box() {
                     RecipeBanner(
+                        state.recipe!!.id!!,
                         state.recipe!!.bannerUrl!!,
                         state.recipe!!.title!!,
                         navController,
-                        state.recipe!!.author!!
+                        state.recipe!!.author!!,
                     )
                 }
                 Box(
@@ -117,9 +130,23 @@ fun IndividualRecipeScreen(
 }
 
 @Composable
-private fun RecipeBanner(img: String, title: String, navController: NavHostController, author: Author) {
+private fun RecipeBanner(
+    id: String,
+    img: String,
+    title: String,
+    navController: NavHostController,
+    author: Author,
+    viewModel: IndividualRecipeScreenViewModel = hiltViewModel()
+) {
     val contextForToast = LocalContext.current.applicationContext
-    var favourited by remember { mutableStateOf(false)}
+    var isFavourite = viewModel.isFavourite.value
+    var exploreExpanded by remember { mutableStateOf(false) }
+    var moreInfoDialogState by remember { mutableStateOf(false) }
+
+    LaunchedEffect(id) {
+        viewModel.checkFavouriteFromDatabase(id)
+    }
+
     Box(modifier = Modifier
         .height(230.dp)
         .fillMaxWidth(),
@@ -150,7 +177,9 @@ private fun RecipeBanner(img: String, title: String, navController: NavHostContr
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween)
         {
-            Column(modifier = Modifier.padding(start = 12.dp, top = 24.dp, bottom = 24.dp).width(300.dp)) {
+            Column(modifier = Modifier
+                .padding(start = 12.dp, top = 24.dp, bottom = 24.dp)
+                .width(300.dp)) {
                 Row(horizontalArrangement = Arrangement.Start) {
                     Text(style = MaterialTheme.typography.titleLarge, text =  title, color =  Cream)
                 }
@@ -166,16 +195,13 @@ private fun RecipeBanner(img: String, title: String, navController: NavHostContr
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    Box(modifier = Modifier.align(Alignment.CenterVertically).padding(end = 4.dp)) {
+                    Box(modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .padding(end = 4.dp)) {
                         IconButton(
                             onClick = {
-                                favourited = !favourited
-                                Toast.makeText(
-                                    contextForToast,
-                                    if (favourited) { "Added to Favourites" } else { "Removed from Favourites" },
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                                viewModel.toggleFavourite(id, contextForToast)
+                            },
                         ) {
                             Canvas(modifier = Modifier.size(38.dp)) {
                                 drawCircle(color = Cream)
@@ -183,7 +209,7 @@ private fun RecipeBanner(img: String, title: String, navController: NavHostContr
                             Icon(
                                 tint = Brown,
                                 painter = painterResource(
-                                    id = if (favourited) { R.drawable.icon_favourite_heart } else { R.drawable.icon_favourite_border}
+                                id = if (isFavourite) { R.drawable.icon_favourite_heart } else { R.drawable.icon_favourite_border }
                                 ),
                                 contentDescription = "Favourite Recipe",
                                 modifier = Modifier
@@ -192,19 +218,86 @@ private fun RecipeBanner(img: String, title: String, navController: NavHostContr
                             )
                         }
                     }
-/*                    IconButton(onClick = { *//*TODO*//* }) {
-                        Icon(
-                            tint = Cream,
-                            painter = painterResource(id = R.drawable.icon_more_vertical),
-                            contentDescription = "Explore more",
-                            modifier = Modifier.size(42.dp),
+                    Box(modifier = Modifier.padding(end = 4.dp),) {
+                        IconButton(onClick = { exploreExpanded = !exploreExpanded }) {
+                            Icon(
+                                tint = Cream,
+                                painter = painterResource(id = R.drawable.icon_explore_more_large),
+                                contentDescription = "Explore more",
+                                modifier = Modifier
+                                    .size(150.dp)
+                                    .rotate(90F)
+                            )
+                        }
+                    }
+                    DropdownMenu(
+                        expanded = exploreExpanded,
+                        onDismissRequest = { exploreExpanded = !exploreExpanded }
+                    ) {
+                        DropdownMenuItem(
+                            leadingIcon = {
+                                Icon(painter = painterResource(id = R.drawable.icon_info_outline), contentDescription = "More Info")
+                                          } ,
+                            text = { Text("More Info")},
+                            onClick = {
+                                moreInfoDialogState = !moreInfoDialogState
+                                exploreExpanded = false
+                            }
                         )
-                    }*/
+                    }
+                }
+            }
+        }
+    }
+    MoreInfoDialog(moreInfoDialogState = moreInfoDialogState, onDialogDismissed = { moreInfoDialogState = false })
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MoreInfoDialog(
+    moreInfoDialogState: Boolean,
+    onDialogDismissed: () -> Unit,
+    viewModel: IndividualRecipeScreenViewModel = hiltViewModel()
+) {
+    if(moreInfoDialogState) {
+        AlertDialog(onDismissRequest = { onDialogDismissed() },) {
+            Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                viewModel.state.value.recipe?.summary?.let {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Summary",
+                                fontSize = 30.sp,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            IconButton(onClick = { onDialogDismissed()  }) {
+                                Icon(
+                                    painterResource(id = R.drawable.icon_close),
+                                    contentDescription = "Close Dialog",
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                        }
+                        Row() {
+                            Text(
+                                text = it,
+                                fontSize = 16.sp,
+                                lineHeight = 1.5.em,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
+
 
 @Composable
 private fun RecipeSection(recipe: Recipe?) {
@@ -395,7 +488,6 @@ private fun IngredientsSection(ingredients: List<IngredientList>) {
 
 @Composable
 private fun SectionHeading(heading: String, preparationHeading: Boolean) {
-    val headingString = if (preparationHeading) "For the $heading" else heading
     Text(
         modifier = Modifier
             .padding(top = 4.dp, bottom = 4.dp),
@@ -414,6 +506,7 @@ private fun IngredientBullet(quantity: Number, unit: String, subIngredientDetail
     ) {
         displayQuantity = displayQuantity.substring(0, displayQuantity.indexOf(".") + 2)
     }
+    var width = 80
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -423,7 +516,7 @@ private fun IngredientBullet(quantity: Number, unit: String, subIngredientDetail
         Column(
             modifier = Modifier
                 .align(Alignment.CenterVertically)
-                .width(70.dp)
+                .width(width.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Canvas(modifier = Modifier.size(6.dp),) {

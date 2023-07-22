@@ -89,3 +89,10 @@
 | 2023/07/20 |        |1        |      |        |         |        | Debugging and fixing ViewModel state to sync with DB to show proper like button state on page load |
 | 2023/07/21 |        |2        |      |        |         |        | More info modal + explore more dropdown on individual recipe screen |
 | 2023/07/21 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync meeting                                          |
+| 2023/07/21 |        |1        |      |        |         |        | Debug & fix featured page crashing app bug                    |
+| 2023/07/21 |        |8        |      |        |         |        | Recommendation Engine part 1 - Similarity cosine calc etc.    |
+| 2023/07/21 |        |         | 1    |        |         |        | Merging + starting refactor                                   |
+| 2023/07/21 |        |         | 2    |        |         |        | Code review                                                   |
+| 2023/07/21 |        |         | 4    |        |         |        | Get user recipe data from firestore, update imagegrid         |
+| 2023/07/21 |        |         | 2    |        |         |        | Debug attempt                                                 |
+| 2023/07/22 |        |2        |      |        |         |        |MarketplaceItemScreen, viewmodel scaffold, routing             |
