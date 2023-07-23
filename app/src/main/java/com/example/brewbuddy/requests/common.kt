@@ -1,7 +1,6 @@
 package com.example.brewbuddy.requests
 
 import android.util.Log
-import androidx.compose.ui.text.toLowerCase
 import com.google.firebase.functions.FirebaseFunctions
 import io.github.cdimascio.dotenv.dotenv
 
@@ -9,7 +8,7 @@ fun getFunctions(): FirebaseFunctions {
 
     val dotenv = dotenv {
         directory = "/assets"
-        filename = "env" // instead of '.env', use 'env'
+        filename = "env"
     }
     val debug = (dotenv["DEBUG"] ?: "false").lowercase()
 

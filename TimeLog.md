@@ -104,3 +104,9 @@
 | 2023/07/22 |        |         |      |        | 4       |        | Implement basic search functionality/add in filter tags to recipe page                                                    |
 | 2023/07/22 |        |         |      |        | 2       |        | Fix issue where user page is not getting passed the user id, refactor code and fix issue with matching author ID to users |
 | 2023/07/22 |        | 2       |      |        |         |        | Get Marketplace Items FE & BE                                                                                             |
+| 2023/07/22 |        |         | 6    |        |         |        | Adding viewmodels and usecases, debugging                                                                                 |
+| 2023/07/22 |        |         | 2    |        |         |        | Merge conflicts                                                                                                           |
+| 2023/07/22 |        |         | 1    |        |         | 1      | Pair debugging and resolving merge conflict issues                                                                        |
+| 2023/07/23 |        |         |      |        |         | 2      | Age verification and environment issues                                                                                   |
+| 2023/07/23 |        |         |      |        |         | 1      | .env bug patch                                                                                                            |
+| 2023/07/23 |        |1        |      |        |         |        | Update likes field on recipe doc + real time update in UI|

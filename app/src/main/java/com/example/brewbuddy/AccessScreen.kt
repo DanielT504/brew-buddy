@@ -72,7 +72,27 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.fragment.app.FragmentActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.appcompat.app.AlertDialog
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
+import android.app.Dialog
+
 
 sealed class AccessScreens(val route: String, @StringRes val resourceId: Int) {
     object Login : AccessScreens("Profile", R.string.login_route)
@@ -249,6 +269,8 @@ fun RegisterScreen(
     val nonWhitespaceFilter = remember { Regex("^[^\n]*\$")}
     val alphanumericFilter = remember { Regex("[a-zA-Z0-9]*")}
 
+    var showAgeVerificationDialog by remember { mutableStateOf(true) }
+
     var username by remember { mutableStateOf(TextFieldValue("")) }
     var password by remember { mutableStateOf(TextFieldValue("")) }
     var email by remember { mutableStateOf(TextFieldValue("")) }
@@ -263,6 +285,19 @@ fun RegisterScreen(
     Surface(
         modifier = Modifier.fillMaxSize(),
     ) {
+        if (showAgeVerificationDialog) {
+            ShowAgeVerificationDialog(
+                onConfirm = {
+                    // The user confirmed their age, show the registration button
+                    showAgeVerificationDialog = false // Hide the dialog
+                },
+                onCancel = {
+                    // The user declined, close the app
+                    activity.finish()
+                }
+            )
+        }
+
         Row(
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.Start
@@ -345,14 +380,24 @@ fun RegisterScreen(
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     CoroutineScope(Dispatchers.Main).launch {
-                                        val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                                        val loginResult = loginUser(
+                                            username.text,
+                                            password.text,
+                                            errorMsg,
+                                            currentUserViewModel,
+                                            activity
+                                        )
                                         Log.d("UPDATE_UI", "User is signed in: 1")
                                         if (!loginResult.first) {
-                                            password = TextFieldValue("") // Clear the password field
+                                            password =
+                                                TextFieldValue("") // Clear the password field
                                             errorMsg.value = "Incorrect password or username."
                                             passwordFocusRequester.requestFocus()
                                         } else {
-                                            currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                                            currentUserViewModel.loginUser(
+                                                username.text,
+                                                loginResult.second!!
+                                            )
                                             navController.navigate(AccessScreens.Login.route)
                                         }
                                     }
@@ -382,14 +427,24 @@ fun RegisterScreen(
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 CoroutineScope(Dispatchers.Main).launch {
-                                    val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                                    val loginResult = loginUser(
+                                        username.text,
+                                        password.text,
+                                        errorMsg,
+                                        currentUserViewModel,
+                                        activity
+                                    )
                                     Log.d("UPDATE_UI", "User is signed in: 1")
                                     if (!loginResult.first) {
-                                        password = TextFieldValue("") // Clear the password field
+                                        password =
+                                            TextFieldValue("") // Clear the password field
                                         errorMsg.value = "Incorrect password or username."
                                         passwordFocusRequester.requestFocus()
                                     } else {
-                                        currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                                        currentUserViewModel.loginUser(
+                                            username.text,
+                                            loginResult.second!!
+                                        )
                                         navController.navigate(AccessScreens.Login.route)
                                     }
                                 }
@@ -409,7 +464,11 @@ fun RegisterScreen(
                 onGoogleSignInSuccess = { account ->
                     Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: ${account.id}")
                     currentUserViewModel.viewModelScope.launch {
-                        currentUserViewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!)
+                        currentUserViewModel.registerUserWithGoogle(
+                            context,
+                            account.displayName!!,
+                            account.email!!
+                        )
                     }
                 },
                 currentUserRepository = currentUserRepository,
@@ -490,4 +549,30 @@ private suspend fun loginUser(
         Log.d("UPDATE_UI", "User is signed in 123")
         return Pair(false, null)
     }
+}
+
+@Composable
+fun ShowAgeVerificationDialog(
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = {
+            Text(text = "Age Verification")
+        },
+        text = {
+            Text(text = "Are you 18+ years of age?")
+        },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("Yes")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onCancel) {
+                Text("No")
+            }
+        }
+    )
 }
