@@ -32,6 +32,10 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
     private val _isFavourite = mutableStateOf<Boolean>(false)
     val isFavourite: State<Boolean> get() = _isFavourite
 
+    private val _numberOfLikes = mutableStateOf(0)
+    val numberOfLikes: State<Number> get() = _numberOfLikes
+
+
     init {
         Log.d("IndividualRecipeScreenViewModel", savedStateHandle.toString())
         savedStateHandle.get<String>(Constants.PARAM_RECIPE_ID)?.let { recipeId ->
@@ -46,6 +50,7 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
             when(result) {
                 is Resource.Success -> {
                     _state.value = RecipeState(recipe = result.data)
+                    _numberOfLikes.value = result.data!!.likes
                 }
                 is Resource.Error -> {
                     _state.value = RecipeState(error = result.message ?: "An unexpected error occurred.")
@@ -102,6 +107,7 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
                         .addOnFailureListener { exception ->
                             Log.d("UNABLE_TO_UPDATE_RECIPE_LIKES", "$recipeId: $exception")
                         }
+                    _numberOfLikes.value += 1
                     Toast.makeText(applicationContext, "Added to favourites",  Toast.LENGTH_SHORT).show()
                 }
                 if (isCurrentlyFavourited) {
@@ -119,6 +125,7 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
                         .addOnFailureListener { exception ->
                             Log.d("UNABLE_TO_UPDATE_RECIPE_LIKES", "$recipeId: $exception")
                         }
+                    _numberOfLikes.value -= 1
                     Toast.makeText(applicationContext, "Removed from favourites",  Toast.LENGTH_SHORT).show()
                 }
             }

@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.brewbuddy.R
@@ -121,7 +122,7 @@ fun IndividualRecipeScreen(
                         .padding(bottom = 60.dp)
                         .fillMaxSize()
                 ) {
-                    RecipeSection(state.recipe)
+                    RecipeSection(state.recipe, viewModel)
                 }
             }
         }
@@ -300,7 +301,7 @@ private fun MoreInfoDialog(
 
 
 @Composable
-private fun RecipeSection(recipe: Recipe?) {
+private fun RecipeSection(recipe: Recipe?, viewModel: IndividualRecipeScreenViewModel) {
     if(recipe == null) {
         Surface(
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
@@ -347,7 +348,7 @@ private fun RecipeSection(recipe: Recipe?) {
                             .size(28.dp), color = Brown)
                         LabelledIcon(
                             img = R.drawable.icon_favourite_border,
-                            label = recipe.likes.toString()
+                        label = viewModel.numberOfLikes.value.toString()
                         )
                     }
                 }
