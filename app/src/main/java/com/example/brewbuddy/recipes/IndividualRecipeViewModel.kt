@@ -32,6 +32,10 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
     private val _isFavourite = mutableStateOf<Boolean>(false)
     val isFavourite: State<Boolean> get() = _isFavourite
 
+    private val _numberOfLikes = mutableStateOf(0)
+    val numberOfLikes: State<Number> get() = _numberOfLikes
+
+
     init {
         Log.d("IndividualRecipeScreenViewModel", savedStateHandle.toString())
         savedStateHandle.get<String>(Constants.PARAM_RECIPE_ID)?.let { recipeId ->
@@ -46,6 +50,7 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
             when(result) {
                 is Resource.Success -> {
                     _state.value = RecipeState(recipe = result.data)
+                    _numberOfLikes.value = result.data!!.likes
                 }
                 is Resource.Error -> {
                     _state.value = RecipeState(error = result.message ?: "An unexpected error occurred.")
@@ -86,8 +91,8 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
             val userId = FirebaseAuth.getInstance().currentUser?.uid
             userId?.let {
                 val userRef = db.collection("users").document(userId)
+                val recipeRef = db.collection("recipes").document(recipeId)
                 if (!isCurrentlyFavourited) {
-                    /*TODO: Update likes on Recipe*/
                     userRef.update("likedRecipeIds", FieldValue.arrayUnion(recipeId))
                         .addOnSuccessListener {
                             Log.d("LIKED_RECIPE", "User liked recipe $recipeId")
@@ -95,6 +100,14 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
                         .addOnFailureListener { exception ->
                             Log.d("LIKED_RECIPE", "Error liking recipe $recipeId: $exception")
                         }
+                    recipeRef.update("likes", FieldValue.increment(1))
+                        .addOnSuccessListener {
+                                Log.d("UPDATED_RECIPE_LIKES", "$recipeId")
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.d("UNABLE_TO_UPDATE_RECIPE_LIKES", "$recipeId: $exception")
+                        }
+                    _numberOfLikes.value += 1
                     Toast.makeText(applicationContext, "Added to favourites",  Toast.LENGTH_SHORT).show()
                 }
                 if (isCurrentlyFavourited) {
@@ -105,6 +118,14 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
                         .addOnFailureListener { exception ->
                             Log.d("UNLIKED_RECIPE", "Error unliking recipe $recipeId: $exception")
                         }
+                    recipeRef.update("likes", FieldValue.increment(-1))
+                        .addOnSuccessListener {
+                            Log.d("UPDATED_RECIPE_LIKES", "$recipeId")
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.d("UNABLE_TO_UPDATE_RECIPE_LIKES", "$recipeId: $exception")
+                        }
+                    _numberOfLikes.value -= 1
                     Toast.makeText(applicationContext, "Removed from favourites",  Toast.LENGTH_SHORT).show()
                 }
             }
