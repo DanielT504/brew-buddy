@@ -73,6 +73,8 @@
 | 2023/07/18 |5       |         |      |        |         |        | Start notif work, adding saved stores to db                   |
 | 2023/07/18 |        |         | 3    |        |         |        | Deliverable 5 Doc Work                                        |
 | 2023/07/18 |        |         |      |        |         | 5      | Code refactoring for nav from logout button to access screen  |
+| 2023/07/18 |        |         |      |        | 1       |        | Refactor API functions to live separately in utils folder     |
+| 2023/07/19 |        |         |      |        | 3       |        | Fix featured pages styling, update recipes in Firestore to have keywords     |
 | 2023/07/19 |        |1        |      |        |         |        | Featured page infinite scroll bug fix                         |
 | 2023/07/19 |        |1        |      |        |         |        | Favourite button bug fix and added state for unfavourited     |
 | 2023/07/19 |        |         | 1    |        |         |        | Firebase setup, node/npm issue fixes                          |
@@ -87,6 +89,7 @@
 | 2023/07/20 |6       |         |      |        |         |        | Finish one option for notifs, implement saved shops fxns      |
 | 2023/07/20 |        |4        |      |        |         |        | Adding LikedRecipeIds to Users, added liking function in UI, start recommendation engine |
 | 2023/07/20 |        |1        |      |        |         |        | Debugging and fixing ViewModel state to sync with DB to show proper like button state on page load |
+| 2023/07/21 |        |         |      |        | 2       |        | Convert booleans to tag array, update all class models to reflect this     |
 | 2023/07/21 |        |2        |      |        |         |        | More info modal + explore more dropdown on individual recipe screen |
 | 2023/07/21 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync meeting                                          |
 | 2023/07/21 |        |1        |      |        |         |        | Debug & fix featured page crashing app bug                    |
@@ -97,3 +100,7 @@
 | 2023/07/21 |        |         | 2    |        |         |        | Debug attempt                                                 |
 | 2023/07/22 |        |2        |      |        |         |        |MarketplaceItemScreen, viewmodel scaffold, routing             |
 | 2023/07/22 |        |4        |      |        |         |        |Refactor recommendation engine to live in api layer            |
+| 2023/07/22 |        |4        |      |        |         |        |Refactor recommendation engine to live in api layer            |
+| 2023/07/19 |        |         |      |        | 4       |        |Implement basic search functionality/add in filter tags to recipe page     |
+| 2023/07/19 |        |         |      |        | 2       |        |Fix issue where user page is not getting passed the user id, refactor code and fix issue with matching author ID to users     |
+
