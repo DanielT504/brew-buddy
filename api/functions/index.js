@@ -43,12 +43,6 @@ const DEFAULT_BANNER_URL =
 const DEFAULT_AVATAR_URL =
   "https://firebasestorage.googleapis.com/v0/b/brew-buddy-ece452.appspot.com/o/placeholder_avatar.jpg?alt=media&token=38f93e98-58d1-4076-8262-1dc5c340cac7";
 
-const PLACEHOLDER_USER = {
-  uid: "1",
-  username: "Unknown",
-  bannerUrl: DEFAULT_BANNER_URL,
-  avatarUrl: DEFAULT_AVATAR_URL,
-};
 exports.getRecipesByAuthor = onCall(async ({ data }, context) => {
   // Get all recipes from specified author ID.
   var recipes = [];
@@ -91,7 +85,7 @@ exports.getRecipeById = onCall(async ({ data }, context) => {
   try {
     author = await getUserById(recipe.authorId, db);
   } catch (e) {
-    author = PLACEHOLDER_USER;
+    author = null;
   }
 
   console.log("Author of GetRecipeById: ", author);
@@ -113,7 +107,9 @@ exports.getUserById = onCall(async ({ data }, context) => {
       "getUserById: No user ID provided"
     );
   }
-  return await getUserById(userId, db);
+  const user = await getUserById(userId, db);
+  console.log("getUserById: ", user);
+  return user;
 });
 
 exports.pinRecipe = onCall(async ({ data }, context) => {
@@ -185,6 +181,7 @@ exports.getRecipesMetadata = onCall(async ({ data }, context) => {
       queryParams.filters,
       db
     );
+    console.log(metadatas);
     return await getRecipesMetadataWithAuthor(metadatas, db);
   }
   const metadatas = await getRecipesMetadata(db);
@@ -244,23 +241,25 @@ exports.updateRecipes = onRequest(async ({ body }, response) => {
     .get()
     .then((snapshot) => {
       snapshot.forEach((doc) => {
-        // const titleWords = doc.data().title.toLowerCase().split(" ");
-        const preferences = {
-          glutenFree: doc.data().glutenFree,
-          vegetarian: doc.data().vegetarian,
-          vegan: doc.data().vegan,
-          dairyFree: doc.data().dairyFree,
-          keto: doc.data().keto,
-        };
+        const titleWords = doc.data().title.toLowerCase().split(" ");
 
-        const preferenceArray = Object.keys(preferences).filter(
-          (a) => preferences[a] === true
+        const keywords = titleWords.filter(
+          (w) => !blacklistWords.includes(w.toLowerCase())
         );
-        // const keywords = titleWords.filter(
-        //   (w) => !blacklistWords.includes(w.toLowerCase())
+
+        // const preferences = {
+        //   glutenFree: doc.data().glutenFree,
+        //   vegetarian: doc.data().vegetarian,
+        //   vegan: doc.data().vegan,
+        //   dairyFree: doc.data().dairyFree,
+        //   keto: doc.data().keto,
+        // };
+
+        // const preferenceArray = Object.keys(preferences).filter(
+        //   (a) => preferences[a] === true
         // );
-        console.log(preferenceArray);
-        db.collection("recipes").doc(doc.id).update({ tags: preferenceArray });
+        // console.log(preferenceArray);
+        db.collection("recipes").doc(doc.id).update({ keywords });
       });
     });
 

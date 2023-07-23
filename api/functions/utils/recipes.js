@@ -43,11 +43,7 @@ exports.getRecipeMetadataById = (recipeId, db) => {
           `No recipe with ID ${recipeId} found`
         );
       }
-      return {
-        id: doc.id,
-        bannerUrl: doc.data().bannerUrl,
-        title: doc.data().title,
-      };
+      return extractMetadata(doc);
     });
 };
 
@@ -105,16 +101,17 @@ exports.getRecipesMetadata = (db) => {
 };
 
 exports.getRecipesMetadataByQuery = (keywords, filters, db) => {
-  const queryRef = db.collection("recipes");
+  let queryRef = db.collection("recipes");
   console.log("keywords: ", keywords);
   if (keywords.length > 0) {
-    queryRef.where("keywords", "array-contains-any", keywords);
+    queryRef = queryRef.where("keywords", "array-contains-any", keywords);
   }
 
   for (const [key, value] of Object.entries(filters)) {
     // if filter is not true, then don't need to filter it
+    console.log(`key: ${key} value: ${value}`);
     if (value) {
-      queryRef.where(key, "==", value);
+      queryRef = queryRef.where(key, "==", value);
     }
   }
 
