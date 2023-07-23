@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import com.example.brewbuddy.common.Constants
 
 
 // global state view model to get currently logged in user.
@@ -31,7 +32,7 @@ class CurrentUserViewModel : ViewModel() {
     }
 
     fun loginUser(username: String, email: String) {
-        val user = User(username, email)
+        val user = User(username, email, null, null)
         setUser(user)
     }
 
@@ -40,7 +41,7 @@ class CurrentUserViewModel : ViewModel() {
     }
 
     fun registerUser(username: String, email: String): Boolean {
-        val user = User(username, email);
+        val user = User(username, email, null, null);
         setUser(user);
         return true;
     }
@@ -57,7 +58,12 @@ class CurrentUserViewModel : ViewModel() {
             val currentUser = authResult.user
 
             if (currentUser != null) {
-                val user = User(username, email)
+                val user = User(
+                    username = username,
+                    email = email,
+                    bannerUrl = Constants.DEFAULT_BANNER_URL,
+                    avatarUrl = Constants.DEFAULT_AVATAR_URL
+                )
                 setUser(user)
                 true
             } else {

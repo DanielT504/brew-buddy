@@ -63,6 +63,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.res.painterResource
 import com.example.brewbuddy.profile.CurrentUserRepository
+import com.example.brewbuddy.requests.getUserById
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import kotlinx.coroutines.CoroutineScope
@@ -91,7 +92,7 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
-//TODO: cancel google sigin popup, email confirmation, prevent reuse of emails and creds, invalid email check
+//TODO: age verification, cancel google signin popup, email confirmation, prevent reuse of emails and creds, invalid email check
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -197,7 +198,8 @@ fun LoginScreen(
                                 errorMsg.value = "Incorrect password or username."
                             } else {
                                 Log.d("UPDATE_UI", "User is signed in: 2")
-                                currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                                val user = getUserById(loginResult.second!!)
+                                currentUserViewModel.setUser(user)
                             }
                         }
                     },
@@ -482,7 +484,7 @@ private suspend fun loginUser(
     val signInResult = signIn(username, password, activity)
     if (signInResult.success) {
         val email = signInResult.email
-        return Pair(true, email)
+        return Pair(true, signInResult.userId)
     } else {
         errorMsg.value = "Incorrect password or username."
         Log.d("UPDATE_UI", "User is signed in 123")

@@ -16,15 +16,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.example.brewbuddy.marketplace.MarketplaceItemScreen
 import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.example.brewbuddy.recipes.IndividualRecipeScreen
-import com.example.brewbuddy.recipes.RecipeNavigationScreens
+import com.example.brewbuddy.recipes.Screen
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
@@ -35,14 +40,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
             color=MaterialTheme.colorScheme.primary,
             style=MaterialTheme.typography.titleLarge
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    BrewBuddyTheme {
-        Greeting("BrewBuddy")
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,6 +82,10 @@ private fun MainScreenNavigationConfigurations(
     // it is accessing the right scope, e.g. the scope of the main activity instead
     // of making its own scope within the navhost
     val vmStoreOwner = rememberViewModelStoreOwner()
+    val location = LocalContext.current
+    val fusedLocationProviderClient = remember {
+        LocationServices.getFusedLocationProviderClient(location)
+    }
     CompositionLocalProvider(
         LocalNavGraphViewModelStoreOwner provides vmStoreOwner
     ) {
@@ -93,29 +94,28 @@ private fun MainScreenNavigationConfigurations(
                 ProfileScreen(navController)
             }
             composable(BottomNavigationScreens.ShopLocator.route) {
-                ShopLocatorScreen()
+                ShopLocatorScreen(fusedLocationProviderClient)
             }
             composable(BottomNavigationScreens.Marketplace.route) {
-                MarketplaceScreen("marketplace")
+                MarketplaceScreen(navController)
             }
             composable(BottomNavigationScreens.Featured.route) {
-                FeaturedScreen("featured")
+                FeaturedScreen(navController)
             }
             composable(BottomNavigationScreens.Recipes.route) {
                 RecipesScreen(navController)
             }
             composable(
-                RecipeNavigationScreens.IndividualRecipe.route,
-                arguments = listOf(
-                    navArgument("recipe_name") {
-                        type = NavType.StringType
-                    }
-                )
-            ) {
-                val param = it.arguments?.getString("recipe_name") ?: ""
-                IndividualRecipeScreen(navController, param = param)
+                route = Screen.IndividualRecipeScreen.route + "/{recipeId}"
+            ){
+                IndividualRecipeScreen(navController)
             }
-
+            composable(
+                route = Screen.MarketplaceItemScreen.route + "/{itemId}"
+            )
+            {
+                MarketplaceItemScreen(navController)
+            }
         }
 
     }

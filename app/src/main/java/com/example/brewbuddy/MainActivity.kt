@@ -3,7 +3,6 @@ package com.example.brewbuddy
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -14,9 +13,13 @@ import androidx.lifecycle.Observer
 import androidx.navigation.compose.rememberNavController
 import com.example.brewbuddy.profile.CurrentUserRepository
 import com.example.brewbuddy.profile.CurrentUserViewModel
+import com.example.brewbuddy.shoplocator.storeNotif
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
 import com.google.firebase.FirebaseApp
+import com.google.firebase.messaging.FirebaseMessaging
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val currentUserViewModel: CurrentUserViewModel by viewModels()
@@ -25,6 +28,20 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         FirebaseApp.initializeApp(this)
+        val firebaseMessaging = FirebaseMessaging.getInstance()
+        firebaseMessaging.subscribeToTopic("Stores")
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // If the permission is not granted, request it
+            ActivityCompat.requestPermissions(
+                this, arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                100
+            )
+            return
+        }
         setContent {
             BrewBuddyTheme {
                 val navController = rememberNavController()
