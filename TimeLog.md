@@ -103,4 +103,5 @@
 | 2023/07/22 |        |4        |      |        |         |        |Refactor recommendation engine to live in api layer            |
 | 2023/07/22 |        |         |      |        | 4       |        |Implement basic search functionality/add in filter tags to recipe page     |
 | 2023/07/22 |        |         |      |        | 2       |        |Fix issue where user page is not getting passed the user id, refactor code and fix issue with matching author ID to users     |
+| 2023/07/22 |        |2        |      |        |         |        |Get Marketplace Items FE & BE                                  |
 
