@@ -204,7 +204,12 @@ fun ProfileScreen(navController: NavController) {
             ) {
                 NavHost(localNavController, startDestination = ProfileScreens.User.route + "/{userId}") {
                     composable(route=ProfileScreens.User.route + "/{userId}",
-                        arguments = listOf(navArgument("userId") { type = NavType.StringType; defaultValue = user.getUserId() })
+                        arguments = listOf(
+                            navArgument("userId") {
+                                type = NavType.StringType;
+                                defaultValue = user.getUserId()
+                            }
+                        )
                     ) {
                         UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.White) })
                     }
