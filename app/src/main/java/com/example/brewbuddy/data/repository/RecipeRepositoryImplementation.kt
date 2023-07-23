@@ -6,6 +6,8 @@ import com.example.brewbuddy.data.remote.dto.RecipeMetadataDto
 import com.example.brewbuddy.domain.repository.RecipeRepository
 import com.example.brewbuddy.requests.getFunctions
 import com.example.brewbuddy.domain.model.Author
+import com.example.brewbuddy.domain.model.Recipe
+import com.example.brewbuddy.domain.model.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.tasks.await
@@ -64,7 +66,6 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             return@withContext data.map{RecipeMetadataDto.from(it)}
         }
     }
-
     override suspend fun getRecipesByUserId(user_id: String): List<RecipeMetadataDto> {
         Log.d("GET_RECIPE_BY_USER_ID", user_id)
 
