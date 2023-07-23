@@ -86,14 +86,21 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
             val userId = FirebaseAuth.getInstance().currentUser?.uid
             userId?.let {
                 val userRef = db.collection("users").document(userId)
+                val recipeRef = db.collection("recipes").document(recipeId)
                 if (!isCurrentlyFavourited) {
-                    /*TODO: Update likes on Recipe*/
                     userRef.update("likedRecipeIds", FieldValue.arrayUnion(recipeId))
                         .addOnSuccessListener {
                             Log.d("LIKED_RECIPE", "User liked recipe $recipeId")
                         }
                         .addOnFailureListener { exception ->
                             Log.d("LIKED_RECIPE", "Error liking recipe $recipeId: $exception")
+                        }
+                    recipeRef.update("likes", FieldValue.increment(1))
+                        .addOnSuccessListener {
+                                Log.d("UPDATED_RECIPE_LIKES", "$recipeId")
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.d("UNABLE_TO_UPDATE_RECIPE_LIKES", "$recipeId: $exception")
                         }
                     Toast.makeText(applicationContext, "Added to favourites",  Toast.LENGTH_SHORT).show()
                 }
@@ -104,6 +111,13 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
                         }
                         .addOnFailureListener { exception ->
                             Log.d("UNLIKED_RECIPE", "Error unliking recipe $recipeId: $exception")
+                        }
+                    recipeRef.update("likes", FieldValue.increment(-1))
+                        .addOnSuccessListener {
+                            Log.d("UPDATED_RECIPE_LIKES", "$recipeId")
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.d("UNABLE_TO_UPDATE_RECIPE_LIKES", "$recipeId: $exception")
                         }
                     Toast.makeText(applicationContext, "Removed from favourites",  Toast.LENGTH_SHORT).show()
                 }
