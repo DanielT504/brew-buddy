@@ -36,7 +36,11 @@ const {
 
 const {
     calculateSimilarityScore
-} = require("./utils/recommendation_engine.js")
+} = require("./utils/recommendation_engine.js");
+
+const {
+    getMarketplaceItems,
+} = require("./utils/marketplace.js")
 
 const {
     getUserById,
@@ -251,6 +255,10 @@ exports.getFeaturedRecipes = onCall(async ({ data }, context) => {
 
 exports.getUserPreferences = onCall(async ({ data }, context) => {
   const metadatas = await getRecipesMetadata(db);
+});
+
+exports.getMarketplaceItems = onCall(async ({ data }, context) => {
+    return await getMarketplaceItems(db);
 });
 
 // exports.createRecipe = onRequest(async ({ body }, response) => {
