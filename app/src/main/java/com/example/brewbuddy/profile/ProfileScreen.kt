@@ -185,7 +185,7 @@ fun ProfileScreen(navController: NavController) {
         ProfileScreens.User,
         ProfileScreens.Settings
     )
-
+    Log.d("PROFILESCREEN", "rpofilescreen")
     val user = getUser()
     ModalNavigationDrawer(
         drawerContent = {
@@ -208,7 +208,8 @@ fun ProfileScreen(navController: NavController) {
                         arguments = listOf(
                             navArgument("userId") {
                                 type = NavType.StringType;
-                                defaultValue = user.getUserId()
+//                                defaultValue = user.getUserId()
+                                defaultValue = "O5YFvrugNU7niEGiy0smfi"
                             }
                         )
                     ) {
