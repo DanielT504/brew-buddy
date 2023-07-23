@@ -107,3 +107,4 @@
 | 2023/07/22 |        |         |      |        |         | 1      | Pair debugging and resolving merge conflict issues                                                                        |
 | 2023/07/23 |        |         |      |        |         | 2      | Age verification and environment issues                                                                                   |
 | 2023/07/23 |        |         |      |        |         | 1      | .env bug patch                                                                                                            |
+| 2023/07/23 |        |         |      |        |         | 4      | Email verification                                                                                                        |
