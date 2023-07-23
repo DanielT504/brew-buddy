@@ -203,7 +203,9 @@ exports.getFeaturedRecipes = onCall(async ({ data }, context) => {
 });
 
 exports.getUserPreferences = onCall(async ({ data }, context) => {
-  const metadatas = await getRecipesMetadata(db);
+  const { userId } = data;
+  const prefs = await this.getUserPreferences(userId, db);
+  return prefs;
 });
 
 // exports.createRecipe = onRequest(async ({ body }, response) => {

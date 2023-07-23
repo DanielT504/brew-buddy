@@ -54,7 +54,7 @@ exports.getUserPreferences = (userId, db) => {
       if (!doc) {
         throw new HttpsError(
           "failed-precondition",
-          `No user with ID ${userId} found`
+          `[getUserPreferences]: No user with ID ${userId} found`
         );
       }
       return {
