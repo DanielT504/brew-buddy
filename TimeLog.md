@@ -64,3 +64,4 @@
 | 2023/07/21 |        |         |      |        |         | 1      | Fixed new Firebase rules after account migration              |
 | 2023/07/22 |        |         |      |        |         | 2      | Account deletion from firebase done, but not from firestore   |
 | 2023/07/22 |        |         |      |        |         | 1      | Account deletion fully functional                             |
+| 2023/07/22 |        |         |      |        |         | 3      | Debugged app crashing upon failed google signin               |

@@ -11,22 +11,24 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
+import androidx.navigation.compose.rememberNavController
 import com.example.brewbuddy.profile.CurrentUserRepository
 import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
 import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
-    // initializes the viewmodel for the currently logged in user and attaches it to the
-    // scope of the main activity
+
     private val currentUserViewModel: CurrentUserViewModel by viewModels()
+    private val currentUserRepository = CurrentUserRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         FirebaseApp.initializeApp(this)
         setContent {
             BrewBuddyTheme {
-                AccessScreen(this, ::handleLogout) // Pass the handleLogout function to AccessScreen
+                val navController = rememberNavController()
+                AccessScreen(navController, currentUserRepository, currentUserViewModel, this, ::handleLogout)
             }
         }
         currentUserViewModel.setUser(null)
@@ -44,8 +46,8 @@ class MainActivity : ComponentActivity() {
             } else {
                 setContent {
                     BrewBuddyTheme {
-                        AccessScreen(this, ::handleLogout) // Pass the handleLogout function to AccessScreen
-                    }
+                        val navController = rememberNavController()
+                        AccessScreen(navController, currentUserRepository, currentUserViewModel, this, ::handleLogout)                    }
                 }
             }
         })

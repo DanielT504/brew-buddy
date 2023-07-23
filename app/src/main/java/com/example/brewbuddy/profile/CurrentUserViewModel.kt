@@ -1,5 +1,6 @@
 package com.example.brewbuddy.profile
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -9,7 +10,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.compose.*
 import com.example.brewbuddy.profile.User
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 
 // global state view model to get currently logged in user.
@@ -40,9 +45,27 @@ class CurrentUserViewModel : ViewModel() {
         return true;
     }
 
-    fun registerUserWithGoogle(username: String, email: String): Boolean {
-        val user = User(username, email);
-        setUser(user);
-        return true;
+    suspend fun registerUserWithGoogle(context: Context, username: String, email: String): Boolean {
+        return try {
+            val account = GoogleSignIn.getLastSignedInAccount(context)
+            if (account == null) {
+                return false
+            }
+
+            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+            val authResult = FirebaseAuth.getInstance().signInWithCredential(credential).await()
+            val currentUser = authResult.user
+
+            if (currentUser != null) {
+                val user = User(username, email)
+                setUser(user)
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            Log.e("GoogleSignIn", "Error signing in with Google: ${e.message}")
+            false
+        }
     }
 }

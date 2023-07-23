@@ -62,11 +62,16 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.res.painterResource
+import com.example.brewbuddy.profile.CurrentUserRepository
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
 
 sealed class AccessScreens(val route: String, @StringRes val resourceId: Int) {
     object Login : AccessScreens("Profile", R.string.login_route)
@@ -86,13 +91,17 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
-//TODO: logout button from profile screen, email confirmation, prevent reuse of emails
-//TODO: invalid email check, auth error bug, bad login error handling, disallow redundant accounts
-//TODO: clicking away from google sign in crashes app, logging into a registered account crashes app
+//TODO: cancel google sigin popup, email confirmation, prevent reuse of emails and creds, invalid email check
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController, activity: Activity) {
+fun LoginScreen(
+    navController: NavController,
+    currentUserRepository: CurrentUserRepository,
+    currentUserViewModel: CurrentUserViewModel,
+    activity: Activity,
+    context: Context
+) {
 
     val currentUserViewModel: CurrentUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     val nonWhitespaceFilter = remember { Regex("^[^\n ]*\$")}
@@ -209,10 +218,17 @@ fun LoginScreen(navController: NavController, activity: Activity) {
                 ) {
                     Text(text = "Sign up")
                 }
-                GoogleSignInButton(onGoogleSignInSuccess = { account ->
-                    Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
-                    currentUserViewModel.registerUserWithGoogle(account.displayName!!, account.email!!)
-                })
+                GoogleSignInButton(
+                    onGoogleSignInSuccess = { account ->
+                        Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
+                        CoroutineScope(Dispatchers.Main).launch {
+                            currentUserViewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!)
+                        }
+                    },
+                    currentUserRepository = currentUserRepository,
+                    currentUserViewModel = currentUserViewModel,
+                    navController = navController
+                )
             }
         }
     }
@@ -220,7 +236,13 @@ fun LoginScreen(navController: NavController, activity: Activity) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(navController: NavController, activity: Activity) {
+fun RegisterScreen(
+    navController: NavController,
+    currentUserRepository: CurrentUserRepository,
+    currentUserViewModel: CurrentUserViewModel,
+    activity: Activity,
+    context: Context
+) {
     val currentUserViewModel: CurrentUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     val nonWhitespaceFilter = remember { Regex("^[^\n]*\$")}
     val alphanumericFilter = remember { Regex("[a-zA-Z0-9]*")}
@@ -381,10 +403,17 @@ fun RegisterScreen(navController: NavController, activity: Activity) {
                 Text("REGISTER")
             }
             ErrorMessage(errorMsg.value)
-            GoogleRegisterButton(onGoogleSignInSuccess = { account ->
-                Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: ${account.id}")
-                currentUserViewModel.registerUserWithGoogle(account.displayName!!, account.email!!)
-            })
+            GoogleRegisterButton(
+                onGoogleSignInSuccess = { account ->
+                    Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: ${account.id}")
+                    currentUserViewModel.viewModelScope.launch {
+                        currentUserViewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!)
+                    }
+                },
+                currentUserRepository = currentUserRepository,
+                currentUserViewModel = currentUserViewModel,
+                navController = navController
+            )
         }
     }
 }
@@ -417,7 +446,13 @@ fun Title(color: Color = OrangeBrownMedium) {
     }
 }
 @Composable
-fun AccessScreen(activity: Activity, handleLogout: () -> Unit) {
+fun AccessScreen(
+    navController: NavController,
+    currentUserRepository: CurrentUserRepository,
+    currentUserViewModel: CurrentUserViewModel,
+    activity: Activity,
+    handleLogout: () -> Unit
+) {
     val navController = rememberNavController()
     val vmStoreOwner = rememberViewModelStoreOwner()
     Surface() {
@@ -426,15 +461,16 @@ fun AccessScreen(activity: Activity, handleLogout: () -> Unit) {
         ) {
             NavHost(navController, startDestination = AccessScreens.Login.route) {
                 composable(AccessScreens.Login.route) {
-                    LoginScreen(navController, activity) // Pass handleLogout to LoginScreen
+                    LoginScreen(navController, currentUserRepository, currentUserViewModel, activity, context = LocalContext.current)
                 }
                 composable(AccessScreens.Register.route) {
-                    RegisterScreen(navController, activity) // Pass handleLogout to RegisterScreen
+                    RegisterScreen(navController, currentUserRepository, currentUserViewModel, activity, context = LocalContext.current)
                 }
             }
         }
     }
 }
+
 
 private suspend fun loginUser(
     username: String,

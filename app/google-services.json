@@ -13,7 +13,12 @@
           "package_name": "com.example.brewbuddy"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "915144908139-dpf9mrea1vvm3hbibc3f5jf4ekgmtjsn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC1l-B_y2nPhRuXsF1WBmaqAGz6iXOBnY8"
