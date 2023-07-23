@@ -96,3 +96,4 @@
 | 2023/07/21 |        |         | 4    |        |         |        | Get user recipe data from firestore, update imagegrid         |
 | 2023/07/21 |        |         | 2    |        |         |        | Debug attempt                                                 |
 | 2023/07/22 |        |2        |      |        |         |        |MarketplaceItemScreen, viewmodel scaffold, routing             |
+| 2023/07/22 |        |4        |      |        |         |        |Refactor recommendation engine to live in api layer            |
