@@ -71,7 +71,6 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.marketplace.Filter
-import com.example.brewbuddy.recipes.RecipeResultsViewModel
 import com.example.brewbuddy.recipes.RecipeScreenViewModel
 import com.example.brewbuddy.recipes.TagList
 import com.example.brewbuddy.ui.theme.AuthorCardDisplay
@@ -93,12 +92,11 @@ fun RecipesScreen (
     viewModel: RecipeScreenViewModel = hiltViewModel()
 ) {
 
-    Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-        Column(modifier = Modifier
-            .fillMaxSize()) {
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
             SearchBarWrapper(viewModel)
-            Box(modifier = Modifier
-                .fillMaxWidth()
+            Surface(modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
             ) {
                 RecipeSearchResults(navController, viewModel)
@@ -126,7 +124,7 @@ private fun SearchBar(viewModel: RecipeScreenViewModel) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            IconButton(onClick = { /*todo*/ }) {
+            IconButton(onClick = { viewModel.search() }) {
                 Icon(
                     painterResource(id = R.drawable.icon_search),
                     contentDescription = null
@@ -136,7 +134,6 @@ private fun SearchBar(viewModel: RecipeScreenViewModel) {
                 value = searchQuery,
                 onValueChange = {
                     viewModel.setKeywords(it);
-                    viewModel.search();
                 },
                 label = { Text("Search") },
                 colors = TextFieldDefaults
@@ -150,8 +147,7 @@ private fun SearchBar(viewModel: RecipeScreenViewModel) {
                     ),
 
                 modifier = Modifier
-                    .width(302.dp)
-                    .padding(start = 16.dp),
+                    .width(302.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
                     /*onSearch(text)*/
@@ -162,45 +158,44 @@ private fun SearchBar(viewModel: RecipeScreenViewModel) {
 
                 })
             )
+            Row(
+                modifier = Modifier.padding(top = 4.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(1.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .height(52.dp)
+                        .padding(top = 8.dp)
+                        .padding(top = 8.dp, start = 2.dp, end = 8.dp)
 
-                Row(
-                    modifier = Modifier.padding(top = 4.dp, end = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(1.dp)
+                        .align(Alignment.CenterVertically)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .height(52.dp)
-                            .padding(top = 8.dp)
-                            .padding(top = 8.dp, start = 2.dp, end = 8.dp)
-
-                            .align(Alignment.CenterVertically)
-                    ) {
-                        IconButton(onClick = { filtersExpanded = !filtersExpanded }) {
-                            BadgedBox(
-                                badge = {
-                                    Badge(containerColor = GreenMedium) {
-                                        Text(
-                                            text = viewModel.filters.size.toString(),
-                                            color = Color.White
-                                        )
-                                    }
+                    IconButton(onClick = { filtersExpanded = !filtersExpanded }) {
+                        BadgedBox(
+                            badge = {
+                                Badge(containerColor = GreenMedium) {
+                                    Text(
+                                        text = viewModel.filters.size.toString(),
+                                        color = Color.White
+                                    )
                                 }
-                            ) {
-                                Icon(
-                                    painterResource(id = R.drawable.icon_tune),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(28.dp),
-                                    tint = Color.Gray,
-                                )
                             }
+                        ) {
+                            Icon(
+                                painterResource(id = R.drawable.icon_tune),
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp),
+                                tint = Color.Gray,
+                            )
                         }
                     }
-                    RecipeFilters(
-                        state=filtersExpanded,
-                        onDismissRequest = { filtersExpanded = false },
-                        viewModel = viewModel
-                    )
                 }
+                RecipeFilters(
+                    state=filtersExpanded,
+                    onDismissRequest = { filtersExpanded = false },
+                    viewModel = viewModel
+                )
+            }
         }
         Spacer(modifier = Modifier.height(8.dp))
         FlowRow(
@@ -225,14 +220,28 @@ private fun RecipeFilters(state: Boolean, onDismissRequest: () -> Unit, viewMode
             .fillMaxWidth()
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            Column() {
-                Text("Filters")
+            Column(modifier=Modifier.width(200.dp)) {
+                Label("Filters")
                 TagList.forEach { tagInfo ->
                     val filter = Filter(name=tagInfo.name, filterLabel = tagInfo.label, enabled=true)
-                    CheckboxFilter(
-                        text = tagInfo.label,
-                        checked = viewModel.filters.contains(filter),
-                        onCheckChanged = {
+                    DropdownMenuItem(
+                        leadingIcon = {if(viewModel.filters.contains(filter)) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.icon_checked_box),
+                                contentDescription = "Checked",
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.Black
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.icon_box),
+                                contentDescription = "Checked",
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.Black
+                            )
+                        }},
+                        text = { Text(tagInfo.label) },
+                        onClick = {
                             updateActiveFilters(filter, viewModel)
                             viewModel.search()
                         }
@@ -240,7 +249,7 @@ private fun RecipeFilters(state: Boolean, onDismissRequest: () -> Unit, viewMode
                 }
             }
             Column() {
-                Text("Sort by")
+                Label("Sort by")
                 SortFilters.forEach { filter ->
                     DropdownMenuItem(
                         text = { Text(filter.filterLabel) },
@@ -256,12 +265,8 @@ private fun RecipeFilters(state: Boolean, onDismissRequest: () -> Unit, viewMode
 }
 
 @Composable
-private fun CheckboxFilter(text: String, checked: Boolean, onCheckChanged: (Boolean) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Checkbox(checked = checked, onCheckedChange = onCheckChanged)
-        Text(text)
-    }
-
+private fun Label(text: String) {
+    Text(text=text, modifier=Modifier.padding(start=12.dp))
 }
 private fun updateActiveFilters(
     filterToAdd: Filter,
@@ -273,7 +278,6 @@ private fun updateActiveFilters(
     val priceLowToHigh = filters.last { filter: Filter -> filter.name == "priceAsce"}
     val priceHighToLow = filters.last { filter: Filter -> filter.name == "priceDesc" }
     if (viewModel.filters.contains(filterToAdd)) {
-        Log.d("FILTERS", "Removing")
         viewModel.removeFilter(filterToAdd)
         return
     }
@@ -329,7 +333,12 @@ private fun FilterTag(filter: Filter, viewModel: RecipeScreenViewModel) {
                 modifier = Modifier.padding(vertical = 2.dp, horizontal = 8.dp)
             ) {
                 Box(modifier = Modifier.align(Alignment.CenterVertically)) {
-                    IconButton(onClick = { viewModel.filters.remove(filter) }, modifier = Modifier.size(16.dp)) {
+                    IconButton(
+                        onClick = {
+                            viewModel.filters.remove(filter);
+                            viewModel.search()
+                        },
+                        modifier = Modifier.size(16.dp)) {
                         Canvas(modifier = Modifier.size(16.dp)) {
                             drawCircle(color = SlateLight)
                         }
@@ -374,7 +383,7 @@ private fun RecipeSearchResults(navController: NavHostController, viewModel: Rec
         )
     } else if(state.isLoading){
         Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-            Box() {
+            Box(modifier=Modifier.fillMaxSize()) {
                 CircularProgressIndicator(modifier = Modifier
                     .align(Alignment.Center)
                     .size(34.dp))

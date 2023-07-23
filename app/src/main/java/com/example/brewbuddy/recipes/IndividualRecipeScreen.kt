@@ -312,7 +312,7 @@ private fun RecipeSection(recipe: Recipe?) {
             TitleLarge(text = "Recipe could not be found.")
         }
     } else {
-        var recipeRating = if (recipe.likes >= 5) 5.0 else recipe.likes.toDouble()
+//        var recipeRating = if (recipe.likes >= 5) 5.0 else recipe.likes.toDouble()
         Surface(
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
             modifier = Modifier
@@ -346,8 +346,8 @@ private fun RecipeSection(recipe: Recipe?) {
                             .width(1.dp)
                             .size(28.dp), color = Brown)
                         LabelledIcon(
-                            img = R.drawable.icon_star_outline,
-                            label = recipeRating.toString()
+                            img = R.drawable.icon_favourite_border,
+                            label = recipe.likes.toString()
                         )
                     }
                 }
