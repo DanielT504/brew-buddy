@@ -106,3 +106,4 @@
 | 2023/07/22 |        | 2       |      |        |         |        | Get Marketplace Items FE & BE                                                                                             |
 | 2023/07/22 |        |         |      |        |         | 1      | Pair debugging and resolving merge conflict issues                                                                        |
 | 2023/07/23 |        |         |      |        |         | 2      | Age verification and environment issues                                                                                   |
+| 2023/07/23 |        |         |      |        |         | 1      | .env bug patch                                                                                                            |
