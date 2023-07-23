@@ -103,3 +103,4 @@
 | 2023/07/22 |        |         |      |        |         | 3      | Debugged app crashing upon failed google signin                                                                           |
 | 2023/07/22 |        |         |      |        | 4       |        | Implement basic search functionality/add in filter tags to recipe page                                                    |
 | 2023/07/22 |        |         |      |        | 2       |        | Fix issue where user page is not getting passed the user id, refactor code and fix issue with matching author ID to users |
+| 2023/07/22 |        | 2       |      |        |         |        | Get Marketplace Items FE & BE                                                                                             |
