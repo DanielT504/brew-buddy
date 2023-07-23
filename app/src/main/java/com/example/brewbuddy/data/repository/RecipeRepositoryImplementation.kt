@@ -1,6 +1,7 @@
 package com.example.brewbuddy.data.repository
 import android.util.Log
 import com.example.brewbuddy.data.remote.dto.Instructions
+import com.example.brewbuddy.data.remote.dto.MarketplaceItemMetadataDto
 import com.example.brewbuddy.data.remote.dto.RecipeDto
 import com.example.brewbuddy.data.remote.dto.RecipeMetadataDto
 import com.example.brewbuddy.domain.repository.RecipeRepository
@@ -79,6 +80,21 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             val data = task.data as List<HashMap<String, Object>>
             Log.d("RECOMMENDED", "$data")
             return@withContext data.map{RecipeMetadataDto.from(it)}
+        }
+    }
+
+    override suspend fun getMarketplaceItems(): List<MarketplaceItemMetadataDto> {
+        Log.d("GET_MARKETPLACE_ITEMS", "Running")
+
+        return withContext(Dispatchers.IO) {
+            val dataDeferred = async {
+                getFunctions()
+                    .getHttpsCallable("getMarketplaceItems")
+                    .call().await()
+            }
+            val task = dataDeferred.await()
+            val data = task.data as List<HashMap<String, Object>>
+            return@withContext data.map{MarketplaceItemMetadataDto.from(it)}
         }
     }
 }

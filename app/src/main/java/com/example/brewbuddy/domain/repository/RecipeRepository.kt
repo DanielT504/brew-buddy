@@ -1,5 +1,6 @@
 package com.example.brewbuddy.domain.repository
 
+import com.example.brewbuddy.data.remote.dto.MarketplaceItemMetadataDto
 import com.example.brewbuddy.data.remote.dto.RecipeDto
 import com.example.brewbuddy.data.remote.dto.RecipeMetadataDto
 import com.example.brewbuddy.domain.model.Recipe
@@ -14,4 +15,6 @@ interface RecipeRepository {
     suspend fun getPopular(): List<RecipeMetadataDto>
 
     suspend fun getRecommended(userId: String): List<RecipeMetadataDto>
+
+    suspend fun getMarketplaceItems(): List<MarketplaceItemMetadataDto>
 }

@@ -27,6 +27,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,11 +56,11 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.example.brewbuddy.featured.FeaturedViewModel
 import com.example.brewbuddy.marketplace.Filter
 import com.example.brewbuddy.marketplace.MarketplaceItem
 import com.example.brewbuddy.marketplace.MarketplaceViewModel
@@ -83,9 +84,29 @@ fun MarketplaceScreen (
     viewModel: MarketplaceViewModel = hiltViewModel()
 ) {
     var activeFilters =  remember { mutableStateListOf<Filter>() }
+    var state = viewModel.marketplaceState.value
     var marketplaceSectionOffset = 20.dp
     if (activeFilters.size >= 3) {
         marketplaceSectionOffset = -(5.dp)
+    }
+    if(state.error.isNotBlank()) {
+        Text(
+            text = state.error,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+    }
+    if(state.isLoading){
+        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+            Box() {
+                CircularProgressIndicator(modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(34.dp))
+            }
+        }
     }
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(modifier = Modifier
@@ -98,7 +119,7 @@ fun MarketplaceScreen (
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
             ) {
-                Marketplace(navController)
+                Marketplace(navController, viewModel)
             }
         }
     }
@@ -341,7 +362,11 @@ private fun ActiveFilters() {
 }
 
 @Composable
-private fun Marketplace(navController: NavHostController) {
+private fun Marketplace(
+    navController: NavHostController,
+    viewModel: MarketplaceViewModel
+) {
+    val state = viewModel.marketplaceState.value
     Surface(shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -353,13 +378,13 @@ private fun Marketplace(navController: NavHostController) {
                 .padding(start = 16.dp, end = 16.dp, top = 34.dp, bottom = 94.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-            for (marketplaceItem in marketplaceItems) {
+            for (marketplaceItem in state.data) {
                 MarketplaceCard(
                     title = marketplaceItem.postTitle,
                     price = marketplaceItem.price,
                     city = marketplaceItem.city,
                     province = marketplaceItem.province,
-                    userName = marketplaceItem.userName,
+                    userName = marketplaceItem.authorId,
                     navController = navController
                 )
             }
@@ -370,7 +395,7 @@ private fun Marketplace(navController: NavHostController) {
 @Composable
 private fun MarketplaceCard(
     title: String,
-    price: String,
+    price: Number,
     city: String,
     province: String,
     userName: String,
@@ -416,7 +441,7 @@ private fun MarketplaceCard(
                 ) {
                     Column() {
                         Row(modifier = Modifier.padding(bottom = 16.dp)) {
-                            Text(text = price, fontSize = 20.sp)
+                            Text(text = "$ $price", fontSize = 20.sp)
                         }
                         Row() {
                             Text(
