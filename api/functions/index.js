@@ -33,7 +33,20 @@ const {
   getRecipeMetadataById,
   getRecipesMetadataByQuery,
 } = require("./utils/recipes.js");
-const { getUserById, updatePinnedRecipes } = require("./utils/users.js");
+
+const {
+    calculateSimilarityScore
+} = require("./utils/recommendation_engine.js");
+
+const {
+    getMarketplaceItems,
+} = require("./utils/marketplace.js")
+
+const {
+    getUserById,
+    updatePinnedRecipes,
+    getUserPreferences
+} = require("./utils/users.js");
 
 initializeApp();
 const db = getFirestore();
@@ -194,9 +207,44 @@ exports.getPopularRecipes = onCall(async ({ data }, context) => {
   const popularRecipes = await getRecipesMetadataWithAuthor(metadatas, db);
 
   popularRecipes.sort((a, b) => b.likes - a.likes);
-  console.log("Popular Recipes: ", popularRecipes);
+ /* console.log("Popular Recipes: ", popularRecipes);*/
   return popularRecipes.slice(0, 5);
 });
+
+
+exports.getRecommendedRecipes = onCall(async ({ data }, context) => {
+    const { userId } = data;
+    const metadatas = await getRecipesMetadata(db);
+    const userPreferences = await getUserPreferences(userId, db);
+    const { id, ...preferences } = userPreferences
+
+    const recipeMetadatas = await getRecipesMetadataWithAuthor(metadatas, db);
+
+    const recommendedRecipesWithScores = [];
+    let recommendedRecipesToReturn = [];
+
+    recipeMetadatas.forEach((recipe) => {
+        const recipeScore = calculateSimilarityScore(recipe, preferences);
+        if (recipeScore > 0) {
+            recommendedRecipesWithScores.push({ ...recipe, score: recipeScore })
+        }
+    });
+
+    recommendedRecipesWithScores.sort((a, b) => b.score - a.score);
+    recommendedRecipesToReturn = recommendedRecipesWithScores.map((recipeWithScore) => {
+        const { score, ...recipeMetadata } = recipeWithScore;
+        return recipeMetadata;
+    });
+    if (recommendedRecipesToReturn.length === 0) {
+        return recipeMetadatas
+    }
+    /*TODO: Fix UI bug when slicing*/
+/*    if (recommendedRecipesToReturn.length > 17) {
+        return recommendedRecipesToReturn.slice(0, 16);
+    }*/
+    return recommendedRecipesToReturn
+});
+
 
 exports.getFeaturedRecipes = onCall(async ({ data }, context) => {
   const metadatas = await getRecipesMetadata(db);
@@ -206,6 +254,10 @@ exports.getUserPreferences = onCall(async ({ data }, context) => {
   const { userId } = data;
   const prefs = await this.getUserPreferences(userId, db);
   return prefs;
+});
+
+exports.getMarketplaceItems = onCall(async ({ data }, context) => {
+    return await getMarketplaceItems(db);
 });
 
 // exports.createRecipe = onRequest(async ({ body }, response) => {

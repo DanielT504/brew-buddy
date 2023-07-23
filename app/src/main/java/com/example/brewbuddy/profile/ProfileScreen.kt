@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -211,7 +212,7 @@ fun ProfileScreen(navController: NavController) {
                             }
                         )
                     ) {
-                        UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.White) })
+                        UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.Black, top = 200.dp) })
                     }
 //                    composable(ProfileScreens.User.route) {
 //                        UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.White) })
@@ -239,16 +240,26 @@ private fun toggleMenu(menuDrawerState: DrawerState, coroutineScope: CoroutineSc
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MenuButton(coroutineScope: CoroutineScope, menuDrawerState: DrawerState, color: Color = Color.Black) {
-    IconButton(
-        onClick = { toggleMenu(menuDrawerState, coroutineScope) },
-        modifier = Modifier.padding(6.dp)
+private fun MenuButton(
+    coroutineScope: CoroutineScope,
+    menuDrawerState: DrawerState,
+    color: Color = Color.Black,
+    top: Dp = 0.dp
+) {
+    Box(
+        modifier = Modifier
+            .padding(top = top) // Use the top parameter for padding
+            .padding(6.dp) // Add additional padding if needed
     ) {
-        Icon(
-            painter = painterResource(id=R.drawable.icon_menu),
-            contentDescription ="Profile Menu",
-            tint= color
-        )
+        IconButton(
+            onClick = { toggleMenu(menuDrawerState, coroutineScope) },
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.icon_menu),
+                contentDescription = "Profile Menu",
+                tint = color
+            )
+        }
     }
 }
 
