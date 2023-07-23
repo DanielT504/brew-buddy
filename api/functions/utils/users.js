@@ -1,4 +1,11 @@
 const { HttpsError } = require("firebase-functions/v2/https");
+const { DEFAULT_AVATAR_URL, DEFAULT_BANNER_URL } = require("./constants.js");
+const PLACEHOLDER_USER = {
+  username: "unknown",
+  bannerUrl: DEFAULT_BANNER_URL,
+  avatarUrl: DEFAULT_AVATAR_URL,
+  email: "unknownuser@email.com",
+};
 
 exports.getUserById = (userId, db) => {
   if (!userId) {
@@ -16,6 +23,7 @@ exports.getUserById = (userId, db) => {
         );
       }
       return {
+        ...PLACEHOLDER_USER,
         id: doc.id,
         ...doc.data(),
       };
@@ -42,11 +50,12 @@ exports.getUserPreferences = (userId, db) => {
   return db
     .collection("user_preferences")
     .doc(userId)
+    .get()
     .then((doc) => {
       if (!doc) {
         throw new HttpsError(
           "failed-precondition",
-          `No user with ID ${userId} found`
+          `[getUserPreferences]: No user with ID ${userId} found`
         );
       }
       return {

@@ -33,7 +33,16 @@ const {
   getRecipeMetadataById,
   getRecipesMetadataByQuery,
 } = require("./utils/recipes.js");
-const { getUserById, updatePinnedRecipes } = require("./utils/users.js");
+
+const {
+    calculateSimilarityScore
+} = require("./utils/recommendation_engine.js")
+
+const {
+    getUserById,
+    updatePinnedRecipes,
+    getUserPreferences
+} = require("./utils/users.js");
 
 initializeApp();
 const db = getFirestore();
@@ -43,12 +52,6 @@ const DEFAULT_BANNER_URL =
 const DEFAULT_AVATAR_URL =
   "https://firebasestorage.googleapis.com/v0/b/brew-buddy-ece452.appspot.com/o/placeholder_avatar.jpg?alt=media&token=38f93e98-58d1-4076-8262-1dc5c340cac7";
 
-const PLACEHOLDER_USER = {
-  uid: "1",
-  username: "Unknown",
-  bannerUrl: DEFAULT_BANNER_URL,
-  avatarUrl: DEFAULT_AVATAR_URL,
-};
 exports.getRecipesByAuthor = onCall(async ({ data }, context) => {
   // Get all recipes from specified author ID.
   var recipes = [];
@@ -91,7 +94,7 @@ exports.getRecipeById = onCall(async ({ data }, context) => {
   try {
     author = await getUserById(recipe.authorId, db);
   } catch (e) {
-    author = PLACEHOLDER_USER;
+    author = null;
   }
 
   console.log("Author of GetRecipeById: ", author);
@@ -113,7 +116,9 @@ exports.getUserById = onCall(async ({ data }, context) => {
       "getUserById: No user ID provided"
     );
   }
-  return await getUserById(userId, db);
+  const user = await getUserById(userId, db);
+  console.log("getUserById: ", user);
+  return user;
 });
 
 exports.pinRecipe = onCall(async ({ data }, context) => {
@@ -185,6 +190,7 @@ exports.getRecipesMetadata = onCall(async ({ data }, context) => {
       queryParams.filters,
       db
     );
+    console.log(metadatas);
     return await getRecipesMetadataWithAuthor(metadatas, db);
   }
   const metadatas = await getRecipesMetadata(db);
@@ -197,16 +203,53 @@ exports.getPopularRecipes = onCall(async ({ data }, context) => {
   const popularRecipes = await getRecipesMetadataWithAuthor(metadatas, db);
 
   popularRecipes.sort((a, b) => b.likes - a.likes);
-  console.log("Popular Recipes: ", popularRecipes);
+ /* console.log("Popular Recipes: ", popularRecipes);*/
   return popularRecipes.slice(0, 5);
 });
+
+
+exports.getRecommendedRecipes = onCall(async ({ data }, context) => {
+    const { userId } = data;
+    const metadatas = await getRecipesMetadata(db);
+    const userPreferences = await getUserPreferences(userId, db);
+    const { id, ...preferences } = userPreferences
+
+    const recipeMetadatas = await getRecipesMetadataWithAuthor(metadatas, db);
+
+    const recommendedRecipesWithScores = [];
+    let recommendedRecipesToReturn = [];
+
+    recipeMetadatas.forEach((recipe) => {
+        const recipeScore = calculateSimilarityScore(recipe, preferences);
+        if (recipeScore > 0) {
+            recommendedRecipesWithScores.push({ ...recipe, score: recipeScore })
+        }
+    });
+
+    recommendedRecipesWithScores.sort((a, b) => b.score - a.score);
+    recommendedRecipesToReturn = recommendedRecipesWithScores.map((recipeWithScore) => {
+        const { score, ...recipeMetadata } = recipeWithScore;
+        return recipeMetadata;
+    });
+    if (recommendedRecipesToReturn.length === 0) {
+        return recipeMetadatas
+    }
+    /*TODO: Fix UI bug when slicing*/
+/*    if (recommendedRecipesToReturn.length > 17) {
+        return recommendedRecipesToReturn.slice(0, 16);
+    }*/
+    return recommendedRecipesToReturn
+});
+
 
 exports.getFeaturedRecipes = onCall(async ({ data }, context) => {
   const metadatas = await getRecipesMetadata(db);
 });
 
 exports.getUserPreferences = onCall(async ({ data }, context) => {
-  const metadatas = await getRecipesMetadata(db);
+  const { userId } = data;
+  const prefs = await this.getUserPreferences(userId, db);
+  return prefs;
 });
 
 // exports.createRecipe = onRequest(async ({ body }, response) => {
@@ -244,23 +287,25 @@ exports.updateRecipes = onRequest(async ({ body }, response) => {
     .get()
     .then((snapshot) => {
       snapshot.forEach((doc) => {
-        // const titleWords = doc.data().title.toLowerCase().split(" ");
-        const preferences = {
-          glutenFree: doc.data().glutenFree,
-          vegetarian: doc.data().vegetarian,
-          vegan: doc.data().vegan,
-          dairyFree: doc.data().dairyFree,
-          keto: doc.data().keto,
-        };
+        const titleWords = doc.data().title.toLowerCase().split(" ");
 
-        const preferenceArray = Object.keys(preferences).filter(
-          (a) => preferences[a] === true
+        const keywords = titleWords.filter(
+          (w) => !blacklistWords.includes(w.toLowerCase())
         );
-        // const keywords = titleWords.filter(
-        //   (w) => !blacklistWords.includes(w.toLowerCase())
+
+        // const preferences = {
+        //   glutenFree: doc.data().glutenFree,
+        //   vegetarian: doc.data().vegetarian,
+        //   vegan: doc.data().vegan,
+        //   dairyFree: doc.data().dairyFree,
+        //   keto: doc.data().keto,
+        // };
+
+        // const preferenceArray = Object.keys(preferences).filter(
+        //   (a) => preferences[a] === true
         // );
-        console.log(preferenceArray);
-        db.collection("recipes").doc(doc.id).update({ tags: preferenceArray });
+        // console.log(preferenceArray);
+        db.collection("recipes").doc(doc.id).update({ keywords });
       });
     });
 
