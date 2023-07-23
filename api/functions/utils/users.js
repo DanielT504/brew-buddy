@@ -42,6 +42,7 @@ exports.getUserPreferences = (userId, db) => {
   return db
     .collection("user_preferences")
     .doc(userId)
+    .get()
     .then((doc) => {
       if (!doc) {
         throw new HttpsError(

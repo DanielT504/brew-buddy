@@ -165,6 +165,7 @@ private fun PopularRecipes(viewModel: FeaturedViewModel, navController: NavHostC
 @Composable
 private fun GridLayout(navController: NavHostController, viewModel: FeaturedViewModel) {
     val state = viewModel.recipeState.value
+    val recommended = viewModel.recommendedState.value
 
     val height = ((state.data.size*200) + 70).dp
     Column() {
@@ -178,7 +179,7 @@ private fun GridLayout(navController: NavHostController, viewModel: FeaturedView
                 .fillMaxSize()
                 .height(height)
         ) {
-            items(state.data) {
+            items(recommended.data) {
                     recipe ->
                 RecipeCard(recipe, navController)
             }
