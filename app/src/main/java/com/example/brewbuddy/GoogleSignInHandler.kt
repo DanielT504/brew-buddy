@@ -1,3 +1,4 @@
+import android.app.Activity
 import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -11,12 +12,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
+import com.example.brewbuddy.profile.CurrentUserRepository
+import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -29,6 +36,9 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 //private const val RC_SIGN_IN = 9001
 
@@ -37,18 +47,38 @@ private val auth = Firebase.auth
 private val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
     .requestIdToken("936295543644-ovaailsfjpdibr169fqkqufb2kpf8ian.apps.googleusercontent.com")
     .requestEmail()
-    .build() 
+    .build()
 
 @Composable
-fun GoogleSignInButton(onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit) {
+fun GoogleSignInButton(
+    onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit,
+    currentUserRepository: CurrentUserRepository,
+    currentUserViewModel: CurrentUserViewModel,
+    navController: NavController
+) {
     val context = LocalContext.current
     val googleSignInClient = remember { GoogleSignIn.getClient(context, gso) }
     val signInResult = remember { mutableStateOf<GoogleSignInAccount?>(null) }
 
     val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
-        Log.wtf("GOOGLE123456789", "Successfully registered with Google: ${result.data.toString()}")
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.getData())
-        handleSignInResult(task, onGoogleSignInSuccess, signInResult)
+        if (result.resultCode == Activity.RESULT_OK) {
+            // Sign-in was successful
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            signInResult.value = task.getResult(ApiException::class.java)
+        } else {
+
+            Log.w("GoogleSignInButton", "Sign-in was canceled or failed with result code: ${result.resultCode}")
+        }
+    }
+
+
+    LaunchedEffect(signInResult.value) {
+        signInResult.value?.let { account ->
+            handleSignInResult(account, onGoogleSignInSuccess, currentUserRepository, navController)            // Now that we successfully signed in with Google, we can call the suspend function here.
+            currentUserViewModel.viewModelScope.launch {
+                val success = currentUserViewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!)
+            }
+        }
     }
 
     Row(
@@ -82,19 +112,26 @@ fun GoogleSignInButton(onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit) {
     signInResult.value?.let { account ->
         signInResult.value = null
 
-        onGoogleSignInSuccess(account)
+        CoroutineScope(Dispatchers.Main).launch {
+            onGoogleSignInSuccess(account)
+        }
     }
 }
 
 @Composable
-fun GoogleRegisterButton(onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit) {
+fun GoogleRegisterButton(
+    onGoogleSignInSuccess: suspend (GoogleSignInAccount) -> Unit,
+    currentUserRepository: CurrentUserRepository,
+    currentUserViewModel: CurrentUserViewModel,
+    navController: NavController
+) {
     val context = LocalContext.current
     val googleRegisterClient = remember { GoogleSignIn.getClient(context, gso) }
     val signInResult = remember { mutableStateOf<GoogleSignInAccount?>(null) }
 
     val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        handleSignInResult(task, onGoogleSignInSuccess, signInResult)
+        signInResult.value = task.getResult(ApiException::class.java)
     }
 
     Row(
@@ -114,7 +151,9 @@ fun GoogleRegisterButton(onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit) {
     signInResult.value?.let { account ->
         signInResult.value = null
 
-        onGoogleSignInSuccess(account)
+        CoroutineScope(Dispatchers.Main).launch {
+            onGoogleSignInSuccess(account)
+        }
     }
 }
 
@@ -129,18 +168,35 @@ private fun startGoogleSignOutActivity(googleSignInClient: GoogleSignInClient, l
     launcher.launch(signInIntent)
 }
 
-private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>, onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit, signInResult: MutableState<GoogleSignInAccount?>) {
-    Log.d("GOOGLE_SIGN_IN", "Successfully registered with Google: ${completedTask.isSuccessful}")
-    Log.d("GOOGLE_SIGN_IN", "Successfully registered with Google: ${completedTask.result.idToken}")
-    try {
-        val account = completedTask.getResult(ApiException::class.java)
-        if (account != null) {
-            signInResult.value = account
-            Log.d("GOOGLE_SIGN_IN", "Successfully registered with Google: ${account}")
-            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
-            auth.signInWithCredential(credential)
+private fun handleSignInResult(
+    account: GoogleSignInAccount,
+    onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit,
+    currentUserRepository: CurrentUserRepository,
+    navController: NavController
+) {
+    val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+
+    auth.signInWithCredential(credential).addOnCompleteListener { task ->
+        if (task.isSuccessful) {
+
+            val currentUser = auth.currentUser
+            if (currentUser != null) {
+                val uid = currentUser.uid
+                CoroutineScope(Dispatchers.IO).launch {
+                    val isDeleted = currentUserRepository.deleteAccount(uid)
+
+                    if (isDeleted) {
+
+                        navController.popBackStack()
+                    } else {
+
+                    }
+                }
+            }
+
+            onGoogleSignInSuccess(account)
+        } else {
+            Log.e("GoogleSignIn", "Sign-in failed: ${task.exception}")
         }
-    } catch (e: ApiException) {
-        Log.e("GoogleSignIn", "Sign-in failed with exception: $e")
     }
 }
