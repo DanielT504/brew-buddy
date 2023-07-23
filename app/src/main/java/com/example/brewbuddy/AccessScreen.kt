@@ -92,6 +92,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
 import android.app.Dialog
+import android.util.Patterns
+import com.google.firebase.auth.FirebaseAuth
 
 
 sealed class AccessScreens(val route: String, @StringRes val resourceId: Int) {
@@ -111,8 +113,6 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
         content()
     }
 }
-
-//TODO: age verification, cancel google signin popup, email confirmation, prevent reuse of emails and creds, invalid email check
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -409,6 +409,12 @@ fun RegisterScreen(
                 ),
                 modifier = Modifier.focusRequester(emailFocusRequester)
             )
+
+            val auth = FirebaseAuth.getInstance()
+
+            class EmailVerificationState(var emailSent: Boolean = false)
+
+            val emailVerificationState = remember { EmailVerificationState() }
             Button(
                 onClick = {
                     Log.d("REGISTER_USER", username.text)
@@ -422,34 +428,42 @@ fun RegisterScreen(
                         return@Button
                     }
 
+                    if (!isValidEmail(email.text)) {
+                        errorMsg.value = "Invalid email address"
+                        return@Button
+                    }
+
                     errorMsg.value = ""
                     createAccount(username.text, password.text, email.text, activity)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
-                                CoroutineScope(Dispatchers.Main).launch {
-                                    val loginResult = loginUser(
-                                        username.text,
-                                        password.text,
-                                        errorMsg,
-                                        currentUserViewModel,
-                                        activity
-                                    )
-                                    Log.d("UPDATE_UI", "User is signed in: 1")
-                                    if (!loginResult.first) {
-                                        password =
-                                            TextFieldValue("") // Clear the password field
-                                        errorMsg.value = "Incorrect password or username."
-                                        passwordFocusRequester.requestFocus()
-                                    } else {
-                                        currentUserViewModel.loginUser(
+                                val user = auth.currentUser
+                                user?.sendEmailVerification()?.addOnCompleteListener { emailTask ->
+                                    emailVerificationState.emailSent = emailTask.isSuccessful
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        val loginResult = loginUser(
                                             username.text,
-                                            loginResult.second!!
+                                            password.text,
+                                            errorMsg,
+                                            currentUserViewModel,
+                                            activity
                                         )
-                                        navController.navigate(AccessScreens.Login.route)
+                                        Log.d("UPDATE_UI", "User is signed in: 1")
+                                        if (!loginResult.first) {
+                                            password = TextFieldValue("") // Clear the password field
+                                            errorMsg.value = "Incorrect password or username."
+                                            passwordFocusRequester.requestFocus()
+                                        } else {
+                                            currentUserViewModel.loginUser(
+                                                username.text,
+                                                loginResult.second!!
+                                            )
+                                            navController.navigate(AccessScreens.Login.route)
+                                        }
                                     }
                                 }
                             } else {
-                                errorMsg.value = "Failed to create account"
+                                errorMsg.value = "Email address already in use"
                             }
                         }
                 },
@@ -477,6 +491,10 @@ fun RegisterScreen(
             )
         }
     }
+}
+
+private fun isValidEmail(email: String): Boolean {
+    return Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }
 
 @Composable
