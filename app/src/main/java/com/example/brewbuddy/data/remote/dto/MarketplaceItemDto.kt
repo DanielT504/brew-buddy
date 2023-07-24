@@ -30,7 +30,7 @@ data class MarketplaceItemDto(
                 author=AuthorDto.from(map["author"] as? HashMap<String, Object> ?: hashMapOf()),
                 title=map["title"] as? String ?: "",
                 id=map["id"] as? String ?: "",
-                imageUrl=map["imageUrl"] as? String ?: Constants.DEFAULT_BANNER_URL,
+                imageUrl=map["imageUrl"] as? String ?: Constants.DEFAULT_IMAGE_URL,
                 description=map["description"] as? String ?: "",
                 tags=map["tags"] as? List<String> ?: emptyList(),
                 price=map["price"] as? Number ?: 0

@@ -97,7 +97,7 @@ fun AuthorCardDisplay(author: Author, textColor: Color = Color.White) {
     ExperimentalLayoutApi::class
 )
 @Composable
-fun <T>SearchBar(viewModel: SearchViewModel<T>, filtersExpanded: MutableState<Boolean>, content: @Composable () -> Unit, ) {
+fun <T>SearchBar(viewModel: SearchViewModel<T>, filtersExpanded: MutableState<Boolean>, bar: @Composable () -> Unit = {}, filters: @Composable () -> Unit) {
     var searchQuery = viewModel.search.value
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -107,18 +107,29 @@ fun <T>SearchBar(viewModel: SearchViewModel<T>, filtersExpanded: MutableState<Bo
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            IconButton(onClick = { viewModel.search() }) {
-                Icon(
-                    painterResource(id = R.drawable.icon_search),
-                    contentDescription = null
-                )
+            Box(
+                modifier = Modifier
+                    .height(52.dp)
+                    .padding(top = 8.dp)
+                    .padding(top = 8.dp, start = 2.dp, end = 8.dp)
+
+                    .align(Alignment.CenterVertically)
+            ) {
+                IconButton(onClick = { viewModel.search() }) {
+                    Icon(
+                        painterResource(id = R.drawable.icon_search),
+                        contentDescription = null,
+                        modifier = Modifier.size(28.dp),
+                        tint = Color.Gray,
+                    )
+                }
             }
             TextField(
                 value = searchQuery,
                 onValueChange = {
                     viewModel.setKeywords(it);
                 },
-                label = { Text("Search") },
+                placeholder = { Text("Search") },
                 colors = TextFieldDefaults
                     .textFieldColors(
                         containerColor = Color.White,
@@ -130,7 +141,7 @@ fun <T>SearchBar(viewModel: SearchViewModel<T>, filtersExpanded: MutableState<Bo
                     ),
 
                 modifier = Modifier
-                    .width(302.dp),
+                    .weight(1f),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
                     /*onSearch(text)*/
@@ -173,8 +184,9 @@ fun <T>SearchBar(viewModel: SearchViewModel<T>, filtersExpanded: MutableState<Bo
                         }
                     }
                 }
-                content()
+                filters()
             }
+            bar()
         }
         Spacer(modifier = Modifier.height(8.dp))
         FlowRow(
@@ -270,7 +282,7 @@ fun <T>SearchResults(
 
             Column(
                 modifier = Modifier
-                    .padding(start = 16.dp, end = 16.dp, top = 34.dp, bottom = 94.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 34.dp, bottom = 94.dp).fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
                 for (el in state.results) {

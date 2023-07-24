@@ -99,15 +99,23 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             return@withContext data.map{RecipeMetadataDto.from(it)}
         }
     }
-    override suspend fun getMarketplaceItems(): List<MarketplaceItemMetadataDto> {
+    override suspend fun getMarketplaceItems(query: String?): List<MarketplaceItemMetadataDto> {
         Log.d("GET_MARKETPLACE_ITEMS", "Running")
 
         return withContext(Dispatchers.IO) {
             val dataDeferred = async {
-                getFunctions()
-                    .getHttpsCallable("getMarketplaceItems")
-                    .call().await()
+                if(query != null) {
+                    getFunctions()
+                        .getHttpsCallable("getMarketplaceItemsMetadata")
+                        .call(hashMapOf("query" to query)).await()
+
+                } else {
+                    getFunctions()
+                        .getHttpsCallable("getMarketplaceItemsMetadata")
+                        .call().await()
+                }
             }
+
             val task = dataDeferred.await()
             val data = task.data as List<HashMap<String, Object>>
             return@withContext data.map{MarketplaceItemMetadataDto.from(it)}

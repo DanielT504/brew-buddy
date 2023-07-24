@@ -19,7 +19,7 @@ class RecipesViewModel  @Inject constructor(
 ): SearchViewModel<RecipeMetadata>(savedStateHandle) {
 
     init {
-        getResults("")
+        getResults()
     }
     override fun search() {
         _query.value = createQueryString(_search.value, _filters)
@@ -27,7 +27,7 @@ class RecipesViewModel  @Inject constructor(
         getResults(_query.value)
     }
 
-    private fun getResults(query: String) {
+    private fun getResults(query: String = "") {
         getRecipeResultsUseCase(query).onEach { result ->
             when(result) {
                 is Resource.Success -> {

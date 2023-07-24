@@ -1,6 +1,5 @@
 package com.example.brewbuddy.domain.model
 
-import com.example.brewbuddy.data.remote.dto.AuthorDto
 
 data class MarketplaceItem (
     val id: String,

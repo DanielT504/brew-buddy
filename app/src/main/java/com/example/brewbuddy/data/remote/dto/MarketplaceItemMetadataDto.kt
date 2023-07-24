@@ -4,6 +4,7 @@ import com.example.brewbuddy.common.Constants
 import com.example.brewbuddy.domain.model.MarketplaceItemMetadata
 
 data class MarketplaceItemMetadataDto(
+    val id: String = "",
     val author: AuthorDto,
     val city: String,
     val title: String,
@@ -15,6 +16,7 @@ data class MarketplaceItemMetadataDto(
     companion object {
         fun from(map: HashMap<String, Object>) = object {
             val data = MarketplaceItemMetadataDto(
+                id=map["id"] as? String ?: "",
                 author=AuthorDto.from(map["author"] as? HashMap<String, Object> ?: hashMapOf()),
                 city=map["city"] as? String ?: "",
                 title=map["title"] as? String ?: "Untitled Listing",
@@ -29,6 +31,7 @@ data class MarketplaceItemMetadataDto(
 
 fun MarketplaceItemMetadataDto.toMarketplaceItemMetadata(): MarketplaceItemMetadata {
     return MarketplaceItemMetadata(
+        id=id,
         author=author.toAuthor(),
         city=city,
         title=title,

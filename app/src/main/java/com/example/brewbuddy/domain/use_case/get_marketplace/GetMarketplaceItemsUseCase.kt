@@ -14,10 +14,10 @@ import javax.inject.Inject
 class GetMarketplaceItemsUseCase @Inject constructor(
     private val repository: RecipeRepository
 ) {
-    operator fun invoke(): Flow<Resource<List<MarketplaceItemMetadata>>> = flow {
+    operator fun invoke(query: String?): Flow<Resource<List<MarketplaceItemMetadata>>> = flow {
         try {
             emit(Resource.Loading())
-            val marketplaceItems = repository.getMarketplaceItems().map { it.toMarketplaceItemMetadata() }
+            val marketplaceItems = repository.getMarketplaceItems(query).map { it.toMarketplaceItemMetadata() }
             emit(Resource.Success(marketplaceItems))
         } catch(e: HttpException) {
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred."))

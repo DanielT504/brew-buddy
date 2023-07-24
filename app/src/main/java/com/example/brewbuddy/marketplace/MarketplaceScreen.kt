@@ -1,33 +1,22 @@
 package com.example.brewbuddy
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,45 +25,32 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.marketplace.Filter
+import com.example.brewbuddy.marketplace.MarketplaceItemModal
 import com.example.brewbuddy.marketplace.MarketplaceViewModel
-import com.example.brewbuddy.recipes.RecipeTagList
-import com.example.brewbuddy.recipes.RecipesViewModel
+import com.example.brewbuddy.profile.RecipeModal
 import com.example.brewbuddy.ui.theme.AuthorCardDisplay
-import com.example.brewbuddy.ui.theme.Cream
-import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
+import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.Label
 import com.example.brewbuddy.ui.theme.SearchBar
 import com.example.brewbuddy.ui.theme.SearchResultCard
 import com.example.brewbuddy.ui.theme.SearchResults
-import com.example.brewbuddy.ui.theme.SlateLight
+import com.example.brewbuddy.ui.theme.SlateDark
 
 
 sealed class MarketplaceNavigationScreens(val route: String) {
@@ -90,15 +66,18 @@ fun MarketplaceScreen (
     navController: NavHostController,
     viewModel: MarketplaceViewModel = hiltViewModel()
 ) {
+    var showDialog = remember { mutableStateOf(false) }
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            SearchBarWrapper(viewModel)
+            SearchBarWrapper(viewModel, showDialog)
             Surface(modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
             ) {
                 MarketplaceSearchResults(navController, viewModel)
             }
+            MarketplaceItemModal(viewModel, showDialog,  onClose = { showDialog.value = false })
+
         }
     }
 
@@ -108,6 +87,7 @@ fun MarketplaceScreen (
 private fun MarketplaceSearchResults(navController: NavHostController, viewModel: MarketplaceViewModel) {
     SearchResults(viewModel = viewModel) {
         MarketplaceCard(
+            id=it.id,
             title = it.title,
             price = it.price,
             city = it.city,
@@ -130,8 +110,7 @@ private fun MarketplaceFilters(state: Boolean, onDismissRequest: () -> Unit, vie
         Row(modifier = Modifier.fillMaxWidth()) {
             Column(modifier=Modifier.width(200.dp)) {
                 Label("Categories")
-                RecipeTagList.forEach { tagInfo ->
-                    val filter = Filter(name=tagInfo.name, filterLabel = tagInfo.label, enabled=true)
+                MarketplaceCategories.forEach { filter ->
                     DropdownMenuItem(
                         leadingIcon = {if(viewModel.filters.contains(filter)) {
                             Icon(
@@ -148,7 +127,7 @@ private fun MarketplaceFilters(state: Boolean, onDismissRequest: () -> Unit, vie
                                 tint = Color.Black
                             )
                         }},
-                        text = { Text(tagInfo.label) },
+                        text = { Text(filter.filterLabel) },
                         onClick = {
                             updateActiveFilters(filter, viewModel)
                             viewModel.search()
@@ -219,40 +198,40 @@ private fun updateActiveFilters(
     viewModel.addFilter(filterToAdd)
     return
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FilterTag(filter: Filter, activeFilters: SnapshotStateList<Filter>) {
-    Box(modifier = Modifier.padding(top = 6.dp)) {
-        Box(
-            modifier =
-            Modifier
-                .clip(RoundedCornerShape(14.dp))
-                .background(color = GreenLight)
-                .height(28.dp)
-            ,
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 2.dp, horizontal = 8.dp)
-            ) {
-                Box(modifier = Modifier.align(Alignment.CenterVertically)) {
-                    IconButton(onClick = { activeFilters.remove(filter) }, modifier = Modifier.size(16.dp)) {
-                        Canvas(modifier = Modifier.size(16.dp)) {
-                            drawCircle(color = SlateLight)
+private fun SearchBarWrapper(viewModel: MarketplaceViewModel, showDialog: MutableState<Boolean>) {
+    var filtersExpanded = remember { mutableStateOf(false) }
+
+    Row(modifier = Modifier
+        .background(color = Color.White)
+    ) {
+        Box(modifier=Modifier.weight(1f)){
+            SearchBar(viewModel, filtersExpanded,
+                bar={
+                    Box(
+                        modifier = Modifier
+                            .height(52.dp)
+                            .padding(top = 8.dp)
+                            .padding(top = 8.dp, end = 8.dp)
+                    ) {
+                        IconButton(onClick = { showDialog.value = true }) {
+                            Icon(
+                                painterResource(id = R.drawable.icon_add_outline),
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp),
+                                tint = Color.Gray,
+                            )
                         }
-                        Icon(
-                            tint = Color.Black,
-                            painter = painterResource(id = R.drawable.icon_close),
-                            contentDescription = "Display icon",
-                            modifier = Modifier.size(10.dp)
-                        )
+
                     }
                 }
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = filter.filterLabel,
-                    color = Color.Black,
-                    style = MaterialTheme.typography.bodySmall
+            ) {
+                MarketplaceFilters(
+                    state=filtersExpanded.value,
+                    onDismissRequest = { filtersExpanded.value = false },
+                    viewModel = viewModel
                 )
             }
         }
@@ -260,23 +239,8 @@ private fun FilterTag(filter: Filter, activeFilters: SnapshotStateList<Filter>) 
 }
 
 @Composable
-private fun SearchBarWrapper(viewModel: MarketplaceViewModel) {
-    var filtersExpanded = remember { mutableStateOf(false) }
-
-    Box(modifier = Modifier
-        .background(color = Color.White)) {
-        SearchBar(viewModel, filtersExpanded) {
-            MarketplaceFilters(
-                state=filtersExpanded.value,
-                onDismissRequest = { filtersExpanded.value = false },
-                viewModel = viewModel
-            )
-        }
-    }
-}
-
-@Composable
 private fun MarketplaceCard(
+    id: String,
     title: String,
     price: Number,
     city: String,
@@ -287,10 +251,23 @@ private fun MarketplaceCard(
 ) {
     SearchResultCard(
         image= imageUrl,
-        onClick = { navigateToItem("123", navController) }
+        onClick = { navigateToItem(id, navController) }
     ) {
-        Row() {
-            Text(text = title, style = MaterialTheme.typography.titleMedium, fontSize = 20.sp)
+        Column() {
+            Row() {
+                Text(text = title, style = MaterialTheme.typography.titleMedium, fontSize = 20.sp)
+            }
+            Row(modifier = Modifier.padding(bottom = 16.dp)) {
+                Text(text = "$ $price", fontSize = 20.sp)
+            }
+            Row() {
+                Text(
+                    text = "$city, $province",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Light,
+                    color = Color.DarkGray
+                )
+            }
         }
         Row(
             horizontalArrangement = Arrangement.spacedBy(28.dp),
@@ -299,57 +276,24 @@ private fun MarketplaceCard(
                 .fillMaxHeight()
                 .padding(bottom = 8.dp)
         ) {
-            Column() {
-                Row(modifier = Modifier.padding(bottom = 16.dp)) {
-                    Text(text = "$ $price", fontSize = 20.sp)
-                }
-                Row() {
-                    Text(
-                        text = "$city, $province",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Light,
-                        color = Color.DarkGray
-                    )
-                }
-            }
             Column(horizontalAlignment = Alignment.End) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     AuthorCardDisplay(author, textColor = Color.Black)
-//                    Text(
-//                        text = userName,
-//                        fontSize = 12.sp,
-//                        fontWeight = FontWeight.Light,
-//                        color = Color.DarkGray
-//                    )
-//                    Box(contentAlignment = Alignment.Center) {
-//                        Canvas(modifier = Modifier.size(22.dp)) {
-//                            drawCircle(color = Color.Gray)
-//                        }
-//                        Icon(
-//                            painterResource(id = R.drawable.icon_user),
-//                            contentDescription = "User image placeholder",
-//                            modifier = Modifier.size(20.dp)
-//                        )
-//                    }
                 }
             }
         }
     }
 }
 
-//val marketplaceItems = listOf(
-//    MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe"),
-//    MarketplaceItem(postTitle = "20lbs of fresh-grounded black tea", price = "$150", city = "Cambridge", province = "ON", userName = "Jane Doe"),
-//    MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe"),
-//    MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe")
-//)
+private val MarketplaceCategories = listOf(
+    Filter(filterLabel = "Equipment", enabled = true, name="equipment"),
+    Filter(filterLabel = "Ingredients", enabled = true, name="ingredients"),
+)
 
 private val SortFilters = listOf(
-    Filter(filterLabel = "Equipment", enabled = false, name="equipment"),
-    Filter(filterLabel = "Ingredients", enabled = false, name="ingredients"),
     Filter(filterLabel = "Newest to Oldest", enabled = false, name="dateDesc"),
     Filter(filterLabel = "Oldest to Newest", enabled = false, name="dateAsce"),
     Filter(filterLabel = "Price (Low to High)", enabled = false, name="priceAsce"),

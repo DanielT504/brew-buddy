@@ -23,7 +23,7 @@ class MarketplaceItemViewModel  @Inject constructor(
 ): PostViewModel<MarketplaceItem>(Constants.PARAM_MARKETPLACE_ITEM_ID, savedStateHandle) {
 
     init {
-        Log.d("LOADED", "MarketplaceItem")
+        fetchPost()
     }
 
     override fun getPostById(postId: String) {

@@ -3,6 +3,7 @@ package com.example.brewbuddy.marketplace
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.brewbuddy.common.Resource
+import com.example.brewbuddy.common.createQueryString
 import com.example.brewbuddy.domain.model.MarketplaceItemMetadata
 import com.example.brewbuddy.domain.model.SearchResultState
 import com.example.brewbuddy.domain.use_case.get_marketplace.GetMarketplaceItemsUseCase
@@ -19,11 +20,15 @@ class MarketplaceViewModel @Inject constructor(
 ): SearchViewModel<MarketplaceItemMetadata>(savedStateHandle) {
 
     init {
-        getMarketplaceItems()
+        getResults()
     }
+    override fun search() {
+        _query.value = createQueryString(_search.value, _filters)
 
-    private fun getMarketplaceItems() {
-        getMarketplaceItemsUseCase().onEach { result ->
+        getResults(_query.value)
+    }
+    private fun getResults(query: String = "") {
+        getMarketplaceItemsUseCase(query).onEach { result ->
             when(result) {
                 is Resource.Success -> {
                     _state.value = SearchResultState(results = result.data ?: emptyList())
