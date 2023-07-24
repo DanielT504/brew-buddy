@@ -85,7 +85,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.brewbuddy.domain.model.Recipe
-import com.example.brewbuddy.profile.SettingsScreen
+//import com.example.brewbuddy.profile.SettingsScreen
 import com.example.brewbuddy.profile.User
 import com.example.brewbuddy.profile.UserScreen
 import com.example.brewbuddy.ui.theme.OrangeBrownMedium

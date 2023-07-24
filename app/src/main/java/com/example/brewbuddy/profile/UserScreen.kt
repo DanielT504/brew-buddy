@@ -105,7 +105,7 @@ import com.example.brewbuddy.recipes.IngredientsList
 //import com.example.brewbuddy.recipes.RecipeSection
 import com.example.brewbuddy.recipes.UserScreenViewModel
 import com.example.brewbuddy.shoplocator.Store
-import com.example.brewbuddy.store1
+//import com.example.brewbuddy.store1
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
@@ -869,7 +869,7 @@ fun UserScreen(
 
 @Composable
 fun MapWrapper(stores: List<Store>) {
-    val savedStore = LatLng(stores[0].latitude, stores[0].longitude)
+    val savedStore = LatLng(stores[stores.size-1].latitude, stores[stores.size-1].longitude)
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(savedStore, 15f)

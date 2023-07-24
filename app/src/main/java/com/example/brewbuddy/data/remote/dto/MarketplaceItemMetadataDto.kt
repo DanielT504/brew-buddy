@@ -13,11 +13,11 @@ data class MarketplaceItemMetadataDto(
     companion object {
         fun from(map: HashMap<String, Object>) = object {
             val data = MarketplaceItemMetadataDto(
-                authorId=map["authorId"] as String,
-                city=map["city"] as String,
-                postTitle=map["postTitle"] as String,
-                price=map["price"] as Number,
-                province=map["province"] as String
+                authorId=map["authorId"] as? String ?: "",
+                city=map["city"] as? String ?: "",
+                postTitle=map["postTitle"] as? String ?: "Untitled Listing",
+                price=map["price"] as? Number ?: 0,
+                province=map["province"] as? String ?: ""
             )
         }.data
     }

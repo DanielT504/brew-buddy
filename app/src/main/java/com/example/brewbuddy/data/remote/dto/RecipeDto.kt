@@ -1,6 +1,7 @@
 package com.example.brewbuddy.data.remote.dto
 
 import android.util.Log
+import com.example.brewbuddy.common.Constants
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.Recipe
 
@@ -19,33 +20,31 @@ data class RecipeDto(
     val sustainable: Boolean,
     val vegan: Boolean,
     val vegetarian: Boolean,
-    val author: Author,
-    val tags: List<String>,
-    val keywords: List<String>
+    val author: AuthorDto,
+    val tags: List<String>
 ) {
     companion object {
         fun from(map: HashMap<String, Object>) = object {
-            val instructions = map["instructions"] as List<HashMap<String, Object>>
-            val ingredientLists = map["ingredientLists"] as List<HashMap<String, Object>>
+            val instructions = map["instructions"] as? List<HashMap<String, Object>> ?: emptyList()
+            val ingredientLists = map["ingredientLists"] as? List<HashMap<String, Object>> ?: emptyList()
             val data = RecipeDto(
-                likes=map["likes"] as Int,
-                servings=map["servings"] as Int,
-                preparationMinutes=map["preparationMinutes"] as Int,
-                glutenFree=map["glutenFree"] as Boolean,
-                dairyFree=map["dairyFree"] as Boolean,
-                sustainable=map["sustainable"] as Boolean,
-                vegetarian=map["vegetarian"] as Boolean,
-                vegan=map["vegan"] as Boolean,
-                author=Author.from(map["author"] as HashMap<String, Object>),
-                title=map["title"] as String,
+                likes=map["likes"] as? Int ?: 0,
+                servings=map["servings"] as? Int ?: 0,
+                preparationMinutes=map["preparationMinutes"] as? Int ?: 0,
+                glutenFree=map["glutenFree"] as? Boolean ?: false,
+                dairyFree=map["dairyFree"] as? Boolean ?: false,
+                sustainable=map["sustainable"] as? Boolean ?: false,
+                vegetarian=map["vegetarian"] as? Boolean ?: false,
+                vegan=map["vegan"] as? Boolean ?: false,
+                author=AuthorDto.from(map["author"] as? HashMap<String, Object> ?: hashMapOf()),
+                title=map["title"] as? String ?: "",
                 instructions=instructions.map{Instructions.from(it)},
                 ingredientLists=ingredientLists.map{IngredientList.from(it)},
-                id=map["id"] as String,
-                bannerUrl=map["bannerUrl"] as String,
-                summary=map["summary"] as String,
-                tags=map["tags"] as List<String> ,
-                keywords=map["keywords"] as? List<String> ?: emptyList()
-                )
+                id=map["id"] as? String ?: "",
+                bannerUrl=map["bannerUrl"] as? String ?: Constants.DEFAULT_BANNER_URL,
+                summary=map["summary"] as? String ?: "",
+                tags=map["tags"] as? List<String> ?: emptyList()
+            )
         }.data
     }
 
@@ -67,8 +66,7 @@ fun RecipeDto.toRecipe(): Recipe {
         vegan = vegan,
         vegetarian = vegetarian,
         ingredientLists = ingredientLists,
-        author=author,
-        tags=tags,
-        keywords=keywords
+        author=author.toAuthor(),
+        tags=tags
     )
 }

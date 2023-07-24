@@ -47,16 +47,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
-import com.example.brewbuddy.profile.currGlutenFree
-import com.example.brewbuddy.profile.currHalal
-import com.example.brewbuddy.profile.currKeto
-import com.example.brewbuddy.profile.currKosher
-import com.example.brewbuddy.profile.currLactoseFree
-import com.example.brewbuddy.profile.currNutFree
-import com.example.brewbuddy.profile.currRadius
-import com.example.brewbuddy.profile.currVegan
-import com.example.brewbuddy.profile.currVegetarian
-import com.example.brewbuddy.profile.db
 import com.example.brewbuddy.profile.parseData
 import com.example.brewbuddy.shoplocator.LocationPermissionsAndSettingDialogs
 import com.example.brewbuddy.shoplocator.LocationUtils
@@ -487,15 +477,6 @@ fun StoreInfo(storeName: String, address: String, latitude: Double, longitude: D
         }
     }
 }
-
-public val store1 =
-    Store(storeName = "C&D",
-        address = "188 University Ave.",
-        latitude = 43.471701,
-        longitude = -80.543566,
-        items= listOf("Coffee", "Espresso"),
-        rating=4.9, saved = false)
-
 
 @Preview(showBackground = true)
 @Composable

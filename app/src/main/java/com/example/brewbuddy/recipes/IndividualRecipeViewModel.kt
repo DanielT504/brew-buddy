@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.compose.runtime.State
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,10 +17,12 @@ import com.example.brewbuddy.profile.db
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,6 +39,9 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
     private val _numberOfLikes = mutableStateOf(0)
     val numberOfLikes: State<Number> get() = _numberOfLikes
 
+    private val _feedbackState = MutableLiveData<String>()
+    val feedbackState: LiveData<String> get()= _feedbackState
+
 
     init {
         Log.d("IndividualRecipeScreenViewModel", savedStateHandle.toString())
@@ -43,6 +50,10 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
             val id = recipeId.substringAfter("}")
             getRecipeById(id)
         }
+    }
+
+    fun onTextChanged(newText: String) {
+        _feedbackState.value = newText
     }
 
     fun getRecipeById(recipeId: String) {
@@ -130,7 +141,22 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
                 }
             }
         }
+    }
 
+    fun postRecipeFeedback(recipeId: String, applicationContext: Context) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        val feedbackData = hashMapOf(
+            "recipeId" to recipeId,
+            "userId" to userId,
+            "feedback" to _feedbackState
+        )
+        viewModelScope.launch {
+            db.collection("feedback").add(feedbackData).addOnSuccessListener {
+                Log.d("FEEDBACK_SUBMITTED", "Feedback submitted for $recipeId by $userId")
+                _feedbackState.value = ""
+                Toast.makeText(applicationContext, "Feedback submitted",  Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
 }
