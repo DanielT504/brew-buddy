@@ -20,7 +20,8 @@ data class RecipeDto(
     val vegan: Boolean,
     val vegetarian: Boolean,
     val author: Author,
-    val tags: List<String>
+    val tags: List<String>,
+    val keywords: List<String>
 ) {
     companion object {
         fun from(map: HashMap<String, Object>) = object {
@@ -42,7 +43,8 @@ data class RecipeDto(
                 id=map["id"] as String,
                 bannerUrl=map["bannerUrl"] as String,
                 summary=map["summary"] as String,
-                tags=map["tags"] as List<String>
+                tags=map["tags"] as List<String> ,
+                keywords=map["keywords"] as? List<String> ?: emptyList()
                 )
         }.data
     }
@@ -66,6 +68,7 @@ fun RecipeDto.toRecipe(): Recipe {
         vegetarian = vegetarian,
         ingredientLists = ingredientLists,
         author=author,
-        tags=tags
+        tags=tags,
+        keywords=keywords
     )
 }

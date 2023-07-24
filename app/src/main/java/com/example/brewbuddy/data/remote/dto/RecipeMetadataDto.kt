@@ -18,7 +18,7 @@ data class RecipeMetadataDto(
                 title=map["title"] as String,
                 bannerUrl=map["bannerUrl"] as String,
                 author=Author.from(map["author"] as HashMap<String, Object>),
-                tags=map["tags"] as List<String>
+                tags=map["tags"] as? List<String> ?: emptyList()
             )
         }.data
     }
