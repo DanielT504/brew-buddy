@@ -91,6 +91,18 @@ class MarketplaceViewModel @Inject constructor(
                 }
         }
     }
+
+    fun sort(order: String) {
+        if(order === "priceAsce") {
+            val res = _state.value.results.toMutableList()
+            _state.value = SearchResultState(results = res.sortedBy{ it.price.toDouble() })
+        }
+
+        if(order === "priceDesc") {
+            val res = _state.value.results.toMutableList()
+            _state.value = SearchResultState(results = res.sortedByDescending{ it.price.toDouble() })
+        }
+    }
     private fun getResults(query: String = "") {
         getMarketplaceItemsUseCase(query).onEach { result ->
             when(result) {

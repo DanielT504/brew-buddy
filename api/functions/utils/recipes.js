@@ -89,6 +89,7 @@ const extractMetadata = (doc) => ({
   likes: doc.data().likes,
   authorId: doc.data().authorId,
   tags: doc.data().tags,
+  keywords: doc.data().keywords,
 });
 
 exports.getRecipesMetadata = (db) => {

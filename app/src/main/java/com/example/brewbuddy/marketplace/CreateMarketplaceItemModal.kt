@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -53,7 +55,8 @@ import java.util.TimeZone
 private fun Label(text: String) {
     Text(
         text = text,
-        style = TextStyle(fontSize = 20.sp)
+        style = TextStyle(fontSize = 20.sp),
+        modifier=Modifier.padding(top=4.dp)
     )
 
 }
@@ -155,19 +158,21 @@ fun MarketplaceItemModal(viewModel: MarketplaceViewModel, openDialog: MutableSta
                                 Modifier
                                     .fillMaxWidth()
                                     .padding(4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 TextField(
                                     value = city,
                                     onValueChange = { newValue: String -> city = newValue },
                                     placeholder = { Text(text = "City") },
-                                    modifier = Modifier.weight(0.45f)
+                                    modifier = Modifier.weight(1f)
+
                                 )
+                                Spacer(modifier=Modifier.width(8.dp))
                                 TextField(
                                     value = province,
                                     onValueChange = { newValue: String -> province = newValue },
                                     placeholder = { Text(text = "Province") },
-                                    modifier = Modifier.weight(0.45f)
+                                    modifier = Modifier.weight(1f)
+
 
                                 )
                             }
@@ -185,7 +190,7 @@ fun MarketplaceItemModal(viewModel: MarketplaceViewModel, openDialog: MutableSta
                         Column() {
                             Label("Categories")
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Checkbox(checked = isEquipment, onCheckedChange = {isEquipment = !isEquipment})
+                                Checkbox(modifier=Modifier.padding(start=0.dp), checked = isEquipment, onCheckedChange = {isEquipment = !isEquipment})
                                 Text(text="Equipment", style=TextStyle(fontSize = 16.sp) )
                                 Checkbox(checked = isIngredients, onCheckedChange = {isIngredients = !isIngredients})
                                 Text(text="Ingredients", style=TextStyle(fontSize = 16.sp) )
