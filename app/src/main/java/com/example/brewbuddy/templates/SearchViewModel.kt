@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
-open class SearchViewModel<T>(
+abstract class SearchViewModel<T>(
     savedStateHandle: SavedStateHandle
 ): ViewModel() {
     protected val _filters = mutableStateListOf<Filter>()
@@ -47,5 +47,5 @@ open class SearchViewModel<T>(
     protected val _query = mutableStateOf(String())
     val query: State<String> = _query
 
-    open fun search() {}
+    abstract fun search();
 }
