@@ -19,7 +19,6 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
 
     override suspend fun getRecipes(query: String?): List<RecipeMetadataDto> {
         Log.d("GET_RECIPES", "Running")
-
         return withContext(Dispatchers.IO) {
             val dataDeferred = async {
                 if(query != null) {
@@ -37,7 +36,6 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             val data = task.data as List<HashMap<String, Object>>
             return@withContext data.map{RecipeMetadataDto.from(it)}
         }
-
     }
     override suspend fun getRecipeById(id: String): RecipeDto {
         Log.d("GET_RECIPE_BY_ID", id)
@@ -67,6 +65,24 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             return@withContext data.map{RecipeMetadataDto.from(it)}
         }
     }
+    override suspend fun getRecipesByUserId(user_id: String): List<RecipeMetadataDto> {
+        Log.d("GET_RECIPES_BY_USER_ID", user_id)
+
+        return withContext(Dispatchers.IO) {
+            val dataDeferred = async {
+                getFunctions()
+                    .getHttpsCallable("getUserRecipes")
+                    .call(hashMapOf("authorId" to user_id)).await()
+            }
+            Log.d("GET_RECIPES_BY_USER_ID2", user_id)
+            val task = dataDeferred.await()
+            Log.d("GET_RECIPES_BY_USER_ID3", user_id)
+            val data = task.data as List<HashMap<String, Object>>
+            Log.d("GET_RECIPES_BY_USER_ID4", user_id)
+            return@withContext data.map{RecipeMetadataDto.from(it)}
+
+        }
+    }
     override suspend fun getRecommended(userId: String): List<RecipeMetadataDto> {
         Log.d("GET_RECOMMENDED", "Running")
 
@@ -82,7 +98,6 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             return@withContext data.map{RecipeMetadataDto.from(it)}
         }
     }
-
     override suspend fun getMarketplaceItems(): List<MarketplaceItemMetadataDto> {
         Log.d("GET_MARKETPLACE_ITEMS", "Running")
 

@@ -12,6 +12,8 @@ interface RecipeRepository {
 
     suspend fun getRecipeById(recipeId: String): RecipeDto
 
+    suspend fun getRecipesByUserId(recipeId: String): List<RecipeMetadataDto>
+    
     suspend fun getPopular(): List<RecipeMetadataDto>
 
     suspend fun getRecommended(userId: String): List<RecipeMetadataDto>

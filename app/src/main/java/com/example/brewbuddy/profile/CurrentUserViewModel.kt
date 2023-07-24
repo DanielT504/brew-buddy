@@ -32,7 +32,7 @@ class CurrentUserViewModel : ViewModel() {
     }
 
     fun loginUser(username: String, email: String) {
-        val user = User(username, email, null, null)
+        val user = User(username, email, null, null, "")
         setUser(user)
     }
 
@@ -41,7 +41,7 @@ class CurrentUserViewModel : ViewModel() {
     }
 
     fun registerUser(username: String, email: String): Boolean {
-        val user = User(username, email, null, null);
+        val user = User(username, email, null, null, "");
         setUser(user);
         return true;
     }
@@ -62,7 +62,8 @@ class CurrentUserViewModel : ViewModel() {
                     username = username,
                     email = email,
                     bannerUrl = Constants.DEFAULT_BANNER_URL,
-                    avatarUrl = Constants.DEFAULT_AVATAR_URL
+                    avatarUrl = Constants.DEFAULT_AVATAR_URL,
+                    userId = currentUser.uid
                 )
                 setUser(user)
                 true

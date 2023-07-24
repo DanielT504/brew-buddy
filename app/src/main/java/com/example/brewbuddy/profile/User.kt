@@ -11,13 +11,18 @@ class User {
     private var email: String = "";
     private var bannerUrl: String? = ""
     private var avatarUrl: String? = ""
-    constructor(username: String, email: String, bannerUrl: String?, avatarUrl: String?) {
+    private var userId: String
+    constructor(username: String, email: String, bannerUrl: String?, avatarUrl: String?, userId: String) {
         this.username = username
         this.email = email
         this.bannerUrl = bannerUrl
         this.avatarUrl = avatarUrl
+        this.userId = userId
     }
 
+    fun getUserId(): String {
+        return userId
+    }
     fun getBannerUrl(): String {
         return bannerUrl ?: Constants.DEFAULT_BANNER_URL
     }

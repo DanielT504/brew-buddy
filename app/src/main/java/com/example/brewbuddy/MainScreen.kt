@@ -91,7 +91,7 @@ private fun MainScreenNavigationConfigurations(
     ) {
         NavHost(navController, startDestination = BottomNavigationScreens.Profile.route) {
             composable(BottomNavigationScreens.Profile.route) {
-                ProfileScreen(navController)
+                ProfileScreen(navController, )
             }
             composable(BottomNavigationScreens.ShopLocator.route) {
                 ShopLocatorScreen(fusedLocationProviderClient)
