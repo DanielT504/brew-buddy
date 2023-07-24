@@ -169,6 +169,20 @@ const getRecipesMetadataWithAuthor = async (metadatas, db) => {
   return res;
 };
 
+exports.getUserRecipes = onCall(async ({ data }, context) => {
+  const metadatas = await getRecipesMetadata(db);
+  const recipeAuthorMetadatas = await getRecipesMetadataWithAuthor(metadatas, db);
+  var recipes = [];
+  const { authorId } = data;
+
+  if (!authorId) {
+    throw new HttpsError("failed-precondition", "No author ID provided");
+  }
+
+  recipes = recipeAuthorMetadatas.filter(metadata => metadata.authorId === authorId);
+  return recipes;
+});
+
 const getQueryParams = (string) => {
   const arr = string.split("&");
 
