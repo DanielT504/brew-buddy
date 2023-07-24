@@ -7,8 +7,8 @@ data class Ingredient(
     companion object {
         fun from(map: HashMap<String, Object>) = object {
             val data = Ingredient(
-                name=map["name"] as String,
-                quantity=Measures.from(map["quantity"] as HashMap<String, Object>),
+                name=map["name"] as? String ?: "",
+                quantity=Measures.from(map["quantity"] as? HashMap<String, Object> ?: hashMapOf()),
             )
         }.data
     }
