@@ -213,7 +213,7 @@ fun ProfileScreen(navController: NavController) {
                             }
                         )
                     ) {
-                        UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.Black, top = 200.dp) })
+                        UserScreen(navController = navController as NavHostController, menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.Black, top = 200.dp) })
                     }
 //                    composable(ProfileScreens.User.route) {
 //                        UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.White) })

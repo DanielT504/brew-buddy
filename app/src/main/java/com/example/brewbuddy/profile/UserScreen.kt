@@ -89,11 +89,13 @@ import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.example.brewbuddy.common.Constants.DEFAULT_BANNER_URL
 import com.example.brewbuddy.domain.model.RecipeMetadata
+import com.example.brewbuddy.navigateToRecipe
 import com.example.brewbuddy.recipes.IndividualIngredient
 import com.example.brewbuddy.recipes.IndividualRecipeScreenViewModel
 import com.example.brewbuddy.recipes.IndividualStep
@@ -214,26 +216,13 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
 
 @Composable
 fun ImageGrid(
+    navController: NavHostController,
     columns: Int,
     modifier: Modifier = Modifier,
     recipes: List<RecipeMetadata> = emptyList(),
 ) {
-//    val images = listOf(
-//        R.drawable.x_recipe1,
-//        R.drawable.x_recipe2,
-//        R.drawable.x_recipe3,
-//        R.drawable.x_recipe4,
-//        R.drawable.x_recipe5,
-//        R.drawable.x_recipe6,
-//        R.drawable.x_recipe7,
-//        R.drawable.x_recipe8,
-//        R.drawable.x_recipe9,
-//    )
-//    var itemCount = images.size
-    Log.d("TEST_IMAGE_GRID2", recipes.size.toString())
     val imageUrls = recipes.map { it.bannerUrl }
     var itemCount = imageUrls.size
-    Log.d("TEST_IMAGE_GRID", itemCount.toString())
     Column(modifier = modifier) {
         var rows = (itemCount / columns)
         if (itemCount.mod(columns) > 0) {
@@ -252,15 +241,12 @@ fun ImageGrid(
                             .weight(1f)
                     ) {
                         if (index < itemCount) {
-//                            navController = NavController()
-
-                            // todo: make images clickable
                             BoxWithConstraints(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .aspectRatio(1f)
                                     .padding(4.dp)
-//                                    .clickable( onClick = { navController.navigate(AccessScreens.Login.route)} )
+                                    .clickable( onClick = { navigateToRecipe(recipes[index].id, navController)  } )
                             ) {
                                 val imageUrl = imageUrls[index]
                                 AsyncImage(
@@ -471,6 +457,8 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
     val instructions = remember { mutableStateListOf<IndividualStep>(IndividualStep(0, "")) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var servings by remember { mutableStateOf("") }
+    var prepMinutes by remember { mutableStateOf("") }
     var uri by remember { mutableStateOf<Uri?>(null) }
 
 
@@ -574,6 +562,44 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                 value = title,
                                 onValueChange = { newValue: String -> title = newValue },
                                 label = { Text(text = "Title") },
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)) {
+                            Text(
+                                text = "Servings",
+                                style = TextStyle(fontSize = 20.sp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 10.dp)) {
+                            TextField(
+                                value = servings,
+                                onValueChange = { newValue: String -> servings = newValue },
+                                label = { Text(text = "Number of servings") },
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)) {
+                            Text(
+                                text = "Preparation Time",
+                                style = TextStyle(fontSize = 20.sp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 10.dp)) {
+                            TextField(
+                                value = prepMinutes,
+                                onValueChange = { newValue: String -> prepMinutes = newValue },
+                                label = { Text(text = "Minutes taken to prepare") },
                             )
                         }
                         Row(
@@ -758,6 +784,7 @@ private fun retrieveSavedStores() {
 @Composable
 fun UserScreen(
     menuButton: @Composable () -> Unit,
+    navController: NavHostController,
     viewModel: UserScreenViewModel = hiltViewModel()
 ) {
     var state = viewModel.state.value
@@ -774,14 +801,7 @@ fun UserScreen(
                 TitleLarge(text = "Your Recipes")
             }
 
-
-
-
-
-
-
             if(state.error.isNotBlank()) {
-                Log.d("ADFIFAHEIDFHADIFH", state.data.size.toString())
                 Text(
                     text = state.error,
                     color = MaterialTheme.colorScheme.error,
@@ -799,12 +819,10 @@ fun UserScreen(
                     }
                 }
             } else {
-                if (state.data != null) {
-                    Log.d("!!!!!!!!!!!!!!!", state.data.size.toString())
-                    ImageGrid(columns = 3, modifier = Modifier.padding(16.dp), state.data)
+                if (state.data.isNotEmpty()) {
+                    ImageGrid(navController, columns = 3, modifier = Modifier.padding(16.dp), state.data)
                 }
                 else {
-                    Log.d("BOOOOOOOO", state.data.size.toString())
                     Text( text = "You have not uploaded any recipes" )
                 }
             }
