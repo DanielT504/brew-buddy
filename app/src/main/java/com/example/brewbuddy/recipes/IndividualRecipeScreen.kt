@@ -1,9 +1,9 @@
 package com.example.brewbuddy.recipes
 
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,8 +21,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
@@ -34,45 +38,44 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.brewbuddy.R
 import com.example.brewbuddy.data.remote.dto.IngredientList
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.Recipe
-import com.example.brewbuddy.profile.db
 import com.example.brewbuddy.ui.theme.Brown
 import com.example.brewbuddy.ui.theme.Cream
-import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.TitleLarge
-import com.example.brewbuddy.recipes.Tag
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldValue
 
 
 @Composable
@@ -143,6 +146,7 @@ private fun RecipeBanner(
     var isFavourite = viewModel.isFavourite.value
     var exploreExpanded by remember { mutableStateOf(false) }
     var moreInfoDialogState by remember { mutableStateOf(false) }
+    var feedbackDialogState by remember { mutableStateOf(false) }
 
     LaunchedEffect(id) {
         viewModel.checkFavouriteFromDatabase(id)
@@ -245,12 +249,23 @@ private fun RecipeBanner(
                                 exploreExpanded = false
                             }
                         )
+                        DropdownMenuItem(
+                            leadingIcon = {
+                                Icon(painter = painterResource(id = R.drawable.icon_feedback), contentDescription = "Feedback")
+                            } ,
+                            text = { Text("Feedback")},
+                            onClick = {
+                                feedbackDialogState = !feedbackDialogState
+                                exploreExpanded = false
+                            }
+                        )
                     }
                 }
             }
         }
     }
     MoreInfoDialog(moreInfoDialogState = moreInfoDialogState, onDialogDismissed = { moreInfoDialogState = false })
+    FeedbackDialog(feedbackDialogState = feedbackDialogState, onDialogDismissed = { feedbackDialogState = false })
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -299,6 +314,111 @@ private fun MoreInfoDialog(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@Composable
+private fun FeedbackDialog(
+    feedbackDialogState: Boolean,
+    onDialogDismissed: () -> Unit,
+    viewModel: IndividualRecipeScreenViewModel = hiltViewModel()
+) {
+    val textFieldState by viewModel.feedbackState.observeAsState(initial = "")
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val contextForToast = LocalContext.current.applicationContext
+    if(feedbackDialogState) {
+            AlertDialog(onDismissRequest = { onDialogDismissed() },) {
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    viewModel.state.value.recipe?.summary?.let {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    "Feedback",
+                                    fontSize = 30.sp,
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                                IconButton(onClick = { onDialogDismissed() }) {
+                                    Icon(
+                                        painterResource(id = R.drawable.icon_close),
+                                        contentDescription = "Close Dialog",
+                                        modifier = Modifier.size(36.dp)
+                                    )
+                                }
+                            }
+                            Row() {
+                                Text(
+                                    text = "Provide recipe feedback",
+                                    fontSize = 16.sp,
+                                    lineHeight = 1.5.em,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
+                            Row() {
+                                TextField(
+                                    value = textFieldState,
+                                    colors = TextFieldDefaults.textFieldColors(containerColor = Color.White),
+                                    onValueChange = { newText: String ->
+                                        if ((viewModel.feedbackState.value?.length ?: 0) >= 200) {
+                                            keyboardController?.hide()
+                                        } else {
+                                            viewModel.onTextChanged(newText)
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(180.dp)
+                                        .padding(8.dp)
+                                        .border(
+                                            width = 2.dp,
+                                            color = Brown,
+                                            shape = RoundedCornerShape(8.dp)
+                                        ),
+                                    keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+                                    keyboardOptions = KeyboardOptions.Default.copy(
+                                        imeAction = ImeAction.Done,
+                                        keyboardType = KeyboardType.Text
+                                    ),
+                                )
+                            }
+                            Row(
+                                horizontalArrangement = Arrangement.End,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(text = "${viewModel.feedbackState.value?.length ?: "0"} /200")
+                            }
+                            Row(
+                                horizontalArrangement = Arrangement.End,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Button(
+                                    onClick = {
+                                        viewModel.state.value.recipe!!.id?.let { it1 ->
+                                            viewModel.postRecipeFeedback(
+                                                it1,
+                                                contextForToast
+                                            )
+                                            keyboardController?.hide()
+                                            onDialogDismissed()
+                                        }
+                                    },
+                                ) {
+                                    Text("Submit")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+    }
+}
+
 
 @Composable
 private fun RecipeSection(recipe: Recipe?, viewModel: IndividualRecipeScreenViewModel) {
@@ -313,7 +433,6 @@ private fun RecipeSection(recipe: Recipe?, viewModel: IndividualRecipeScreenView
             TitleLarge(text = "Recipe could not be found.")
         }
     } else {
-//        var recipeRating = if (recipe.likes >= 5) 5.0 else recipe.likes.toDouble()
         Surface(
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
             modifier = Modifier
