@@ -22,4 +22,4 @@ data class Recipe(
     val ingredientLists: List<IngredientList> = emptyList(),
     val author: Author = Author(),
     val tags: List<String> = emptyList()
-    )
+)

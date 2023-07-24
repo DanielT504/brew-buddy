@@ -44,7 +44,7 @@ data class RecipeDto(
                 bannerUrl=map["bannerUrl"] as? String ?: Constants.DEFAULT_BANNER_URL,
                 summary=map["summary"] as? String ?: "",
                 tags=map["tags"] as? List<String> ?: emptyList()
-                )
+            )
         }.data
     }
 

@@ -89,11 +89,22 @@ import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.example.brewbuddy.common.Constants.DEFAULT_BANNER_URL
+import com.example.brewbuddy.data.remote.dto.Imperial
+import com.example.brewbuddy.data.remote.dto.Ingredient
+import com.example.brewbuddy.data.remote.dto.IngredientList
+import com.example.brewbuddy.data.remote.dto.Instructions
+import com.example.brewbuddy.data.remote.dto.Measures
+import com.example.brewbuddy.data.remote.dto.Metric
+import com.example.brewbuddy.data.remote.dto.Step
+import com.example.brewbuddy.domain.model.Author
+import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.model.RecipeMetadata
+import com.example.brewbuddy.navigateToRecipe
 import com.example.brewbuddy.recipes.IndividualIngredient
 import com.example.brewbuddy.recipes.IndividualRecipeScreenViewModel
 import com.example.brewbuddy.recipes.IndividualStep
@@ -133,25 +144,35 @@ private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
     }
     return diff % pageCount
 }
-fun postRecipe(recipe: IngredientsList?, title: String?, summary: String?, imageUri: String) {
+fun postRecipe(recipe: Recipe) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
-    Log.d("Upload Image Success2", imageUri)
     userId?.let {
-        val recipesRef = db.collection("recipes").document(userId)
+        val recipesRef = db.collection("recipes").document()
         val recipeInfo = hashMapOf(
-            "bannerUrl" to imageUri,
-            "ingredientLists" to recipe,
-            "title" to title,
-            "summary" to summary,
-            "authorId" to userId,
-//            "summary" to lactoseFree
+            "id" to "testing testing",
+            "authorId" to recipe.author.id,
+            "bannerUrl" to recipe.bannerUrl,
+            "ingredientLists" to recipe.ingredientLists,
+            "instructions" to recipe.instructions,
+            "preparationMinutes" to recipe.preparationMinutes,
+            "servings" to recipe.servings,
+            "summary" to recipe.summary,
+            "title" to recipe.title,
+//        todo: stop using defaults for these fields
+            "dairyFree" to recipe.dairyFree,
+            "glutenFree" to recipe.glutenFree,
+            "sustainable" to recipe.sustainable,
+            "vegan" to recipe.vegan,
+            "vegetarian" to recipe.vegetarian,
+            "tags" to recipe.tags,
+//         todo: write keyword function, map keywords
         )
         recipesRef.set(recipeInfo)
         .addOnSuccessListener {
-            Log.d("Upload Image Success", imageUri)
+            Log.d("Upload Recipe Success", recipe.bannerUrl)
         }
         .addOnFailureListener { exception ->
-            Log.d("Upload Image", "Error uploading recipe: $exception")
+            Log.d("Upload Recipe", "Error uploading recipe: $exception")
         }
     }
 }
@@ -214,26 +235,14 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
 
 @Composable
 fun ImageGrid(
+    navController: NavHostController,
     columns: Int,
     modifier: Modifier = Modifier,
     recipes: List<RecipeMetadata> = emptyList(),
 ) {
-//    val images = listOf(
-//        R.drawable.x_recipe1,
-//        R.drawable.x_recipe2,
-//        R.drawable.x_recipe3,
-//        R.drawable.x_recipe4,
-//        R.drawable.x_recipe5,
-//        R.drawable.x_recipe6,
-//        R.drawable.x_recipe7,
-//        R.drawable.x_recipe8,
-//        R.drawable.x_recipe9,
-//    )
-//    var itemCount = images.size
-    Log.d("TEST_IMAGE_GRID2", recipes.size.toString())
-    val imageUrls = recipes.map { it.bannerUrl }
-    var itemCount = imageUrls.size
-    Log.d("TEST_IMAGE_GRID", itemCount.toString())
+    var itemCount = recipes.size
+    Log.d("ITEMCOUNT", itemCount.toString())
+    Log.d("RECIPE BANNER", recipes[0].bannerUrl)
     Column(modifier = modifier) {
         var rows = (itemCount / columns)
         if (itemCount.mod(columns) > 0) {
@@ -252,17 +261,19 @@ fun ImageGrid(
                             .weight(1f)
                     ) {
                         if (index < itemCount) {
-//                            navController = NavController()
-
-                            // todo: make images clickable
                             BoxWithConstraints(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .aspectRatio(1f)
                                     .padding(4.dp)
-//                                    .clickable( onClick = { navController.navigate(AccessScreens.Login.route)} )
+                                    .clickable(onClick = {
+                                        navigateToRecipe(
+                                            recipes[index].id,
+                                            navController
+                                        )
+                                    })
                             ) {
-                                val imageUrl = imageUrls[index]
+                                val imageUrl = recipes[index].bannerUrl
                                 AsyncImage(
                                     model = imageUrl,
                                     contentDescription = "Recipe Image",
@@ -283,7 +294,7 @@ fun ImageGrid(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StepInput(stepNumber: Number, inputStep: String? = null, onStepChange: (IndividualStep) -> Unit) {
+fun StepInput(stepNumber: Number, inputStep: String? = null, onStepChange: (Step) -> Unit) {
     var step by remember { mutableStateOf("") }
     if (inputStep != null) {
         step = inputStep
@@ -295,7 +306,7 @@ fun StepInput(stepNumber: Number, inputStep: String? = null, onStepChange: (Indi
                 value = step,
                 onValueChange = { newValue ->
                     step = newValue
-                    onStepChange(IndividualStep(stepNumber, step))
+                    onStepChange(Step(stepNumber as Int, step))
                 },
                 label = { Text("Add Step", style = TextStyle(fontSize = 12.sp, color = Color.Gray)) },
                 modifier = Modifier
@@ -371,7 +382,7 @@ fun IngredientInput(ingredientData: IndividualIngredient? = null, onIngredientCh
     }
 }
 
-fun uploadImageToFirebaseStorage(imageUri: Uri?, onUrlReady: (String) -> Unit) {
+fun uploadImageToFirebaseStorage(inputRecipe: Recipe, imageUri: Uri?, onUrlReady: (Recipe) -> Unit) {
     if (imageUri != null) {
         val filename = "recipe_image_${UUID.randomUUID()}"
         val storage = Firebase.storage
@@ -387,13 +398,14 @@ fun uploadImageToFirebaseStorage(imageUri: Uri?, onUrlReady: (String) -> Unit) {
         }.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val downloadUrl = task.result.toString()
-                onUrlReady(downloadUrl)
+                inputRecipe.bannerUrl = downloadUrl
+                onUrlReady(inputRecipe)
             } else {
-                onUrlReady(DEFAULT_BANNER_URL)
+                onUrlReady(inputRecipe)
             }
         }
     } else {
-        onUrlReady(DEFAULT_BANNER_URL)
+        onUrlReady(inputRecipe)
     }
 }
 
@@ -464,15 +476,25 @@ fun ImageUpload(returnImageUri: (Uri?) -> Unit) {
     }
 }
 
+fun convertToIngredientDto(ingredient: IndividualIngredient) : Ingredient{
+    val imperialValue = Imperial(amount = ingredient.quantity, unitLong = ingredient.unit, unitShort = ingredient.unit)
+    val metricValue = Metric(amount = ingredient.quantity, unitLong = ingredient.unit, unitShort = ingredient.unit)
+    val measures = Measures(metric = metricValue, imperial = imperialValue)
+    return Ingredient(name = ingredient.label, quantity = measures)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
-    val ingredients = remember { mutableStateListOf<IndividualIngredient>(IndividualIngredient(0, "", "")) }
-    val instructions = remember { mutableStateListOf<IndividualStep>(IndividualStep(0, "")) }
+    val ingredients = remember { mutableStateListOf<Ingredient>(convertToIngredientDto(IndividualIngredient(0, "", ""))) }
+    val instructions = remember { mutableStateListOf<Step>(Step(0, "")) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var servings by remember { mutableStateOf("") }
+    var prepMinutes by remember { mutableStateOf("") }
     var uri by remember { mutableStateOf<Uri?>(null) }
 
+    val currentUser = getUser()
 
     if (openDialog.value) {
         AlertDialog(
@@ -485,14 +507,17 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                 .padding(end = 4.dp)
                                 .weight(0.5f),
                             colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
-                            onClick = { ingredients.add(IndividualIngredient(0, "", "")) }
+                            onClick = {
+                                val ingredientToAdd = convertToIngredientDto(IndividualIngredient(0, "", ""))
+                                ingredients.add(ingredientToAdd)
+                            }
                         ) {
                             Text("Add Ingredient")
                         }
                         Button(
                             modifier = Modifier.weight(0.4f),
                             colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
-                            onClick = { instructions.add(IndividualStep(0, "")) }
+                            onClick = { instructions.add(Step(0, "")) }
                         ) {
                             Text("Add Step")
                         }
@@ -505,9 +530,10 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                             colors = ButtonDefaults.buttonColors(containerColor = GreenDark),
                             onClick = {
                                 ingredients.clear()
-                                ingredients.add(IndividualIngredient(0, "", ""))
+                                val ingredientToAdd = convertToIngredientDto(IndividualIngredient(0, "", ""))
+                                ingredients.add(ingredientToAdd)
                                 instructions.clear()
-                                instructions.add(IndividualStep(0, ""))
+                                instructions.add(Step(0, ""))
                                 title = ""
                                 description = ""
                                 uri = null
@@ -521,25 +547,29 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(containerColor = GreenDark),
                             onClick = {
-                                var labelList = mutableStateListOf<String>()
-                                var unitList = mutableStateListOf<String>()
-                                var quantityList = mutableStateListOf<Number>()
-
-                                ingredients.forEach { ingredient ->
-                                    labelList.add(ingredient.label)
-                                    unitList.add(ingredient.unit)
-                                    quantityList.add(ingredient.quantity)
-                                }
-
-                                val completedRecipe = IngredientsList(quantityList, unitList, labelList)
+                                val ingredientList = IngredientList(name = title, ingredients = ingredients )
                                 var uriAsString = ""
+                                var completedRecipe = Recipe(
+                                preparationMinutes = prepMinutes.toInt(),
+                                title = title,
+                                servings = servings.toInt(),
+                                summary = description,
+                                instructions = listOf(Instructions(name = title, steps = instructions)),
+                                ingredientLists = listOf(IngredientList("title", ingredients)),
+                                author = Author(
+                                    id = currentUser.getUserId(),
+                                    username = currentUser.getUsername(),
+                                    avatarUrl = currentUser.getAvatarUrl()
+                                )
+                            )
                                 uploadImageToFirebaseStorage(
+                                    completedRecipe,
                                     uri
-                                ) { newValue: String ->
-                                    uriAsString = newValue
-                                    postRecipe(completedRecipe, title, description, newValue)
-                                    Log.d("NEWVAL", newValue)
-                                    Log.d("URIASSTRING", uriAsString)
+                                ) { newValue: Recipe ->
+                                    completedRecipe = newValue
+                                    postRecipe(newValue)
+                                    Log.d("NEWVAL", newValue.bannerUrl)
+//                                    Log.d("URIASSTRING", uriAsString)
                                 }
                                 onClose()
                             }
@@ -581,6 +611,44 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                 .fillMaxWidth()
                                 .padding(4.dp)) {
                             Text(
+                                text = "Servings",
+                                style = TextStyle(fontSize = 20.sp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 10.dp)) {
+                            TextField(
+                                value = servings,
+                                onValueChange = { newValue: String -> servings = newValue },
+                                label = { Text(text = "Number of servings") },
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)) {
+                            Text(
+                                text = "Preparation Time",
+                                style = TextStyle(fontSize = 20.sp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 10.dp)) {
+                            TextField(
+                                value = prepMinutes,
+                                onValueChange = { newValue: String -> prepMinutes = newValue },
+                                label = { Text(text = "Minutes taken to prepare") },
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)) {
+                            Text(
                                 text = "Ingredients",
                                 style = TextStyle(fontSize = 20.sp)
                             )
@@ -607,9 +675,13 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                             }
                             Row(modifier = Modifier.padding(bottom = 8.dp)) {
                                 IngredientInput(
-                                    ingredientData = ingredient,
+                                    ingredientData = IndividualIngredient(
+                                        quantity = ingredient.quantity.imperial.amount,
+                                        unit = ingredient.quantity.imperial.unitShort,
+                                        label = ingredient.name
+                                    ),
                                     onIngredientChange = { updatedIngredient ->
-                                        ingredients[index] = updatedIngredient
+                                        ingredients[index] = convertToIngredientDto(updatedIngredient)
                                     }
                                 )
                             }
@@ -646,7 +718,7 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                             Row(modifier = Modifier.padding(bottom = 8.dp)) {
                                 StepInput(
                                     index + 1,
-                                    inputStep = instruction.stepInfo,
+                                    inputStep = instruction.step,
                                     onStepChange = { updatedStep ->
                                         instructions[index] = updatedStep
                                     }
@@ -758,6 +830,7 @@ private fun retrieveSavedStores() {
 @Composable
 fun UserScreen(
     menuButton: @Composable () -> Unit,
+    navController: NavHostController,
     viewModel: UserScreenViewModel = hiltViewModel()
 ) {
     var state = viewModel.state.value
@@ -774,14 +847,7 @@ fun UserScreen(
                 TitleLarge(text = "Your Recipes")
             }
 
-
-
-
-
-
-
             if(state.error.isNotBlank()) {
-                Log.d("ADFIFAHEIDFHADIFH", state.data.size.toString())
                 Text(
                     text = state.error,
                     color = MaterialTheme.colorScheme.error,
@@ -799,13 +865,14 @@ fun UserScreen(
                     }
                 }
             } else {
-                if (state.data != null) {
-                    Log.d("!!!!!!!!!!!!!!!", state.data.size.toString())
-                    ImageGrid(columns = 3, modifier = Modifier.padding(16.dp), state.data)
+                if (state.data.isNotEmpty()) {
+                    ImageGrid(navController, columns = 3, modifier = Modifier.padding(start = 16.dp), state.data)
                 }
                 else {
-                    Log.d("BOOOOOOOO", state.data.size.toString())
-                    Text( text = "You have not uploaded any recipes" )
+                    Text(
+                        text="You haven't uploaded any recipes yet!",
+                        modifier = Modifier.padding(16.dp)
+                    )
                 }
             }
 
