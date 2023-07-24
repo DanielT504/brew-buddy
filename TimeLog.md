@@ -120,4 +120,4 @@
 | 2023/07/23 |         | 1      | 1    |        | 1       |        | Knowledge transfer session |
 | 2023/07/23 |         |        | 5    |        |         |        | Update API calls, add uploads to firebase storage, finish "Your Recipes" component|
 | 2023/07/23 |        |         |      |        | 2       |        | Redeploy firebase functions, set up permissions, add safety accessors to the data classes. Refactor author to have author dto |
-
+| 2023/07/23 |        |         | 3    |        |         |        | Add navigation to image grid, update data strucutres and recipe upload|
