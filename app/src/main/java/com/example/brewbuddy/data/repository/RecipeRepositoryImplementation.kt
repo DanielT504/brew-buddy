@@ -71,7 +71,7 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
         return withContext(Dispatchers.IO) {
             val dataDeferred = async {
                 getFunctions()
-                    .getHttpsCallable("getRecipesByAuthor")
+                    .getHttpsCallable("getUserRecipes")
                     .call(hashMapOf("authorId" to user_id)).await()
             }
             Log.d("GET_RECIPES_BY_USER_ID2", user_id)
@@ -80,7 +80,7 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             val data = task.data as List<HashMap<String, Object>>
             Log.d("GET_RECIPES_BY_USER_ID4", user_id)
             return@withContext data.map{RecipeMetadataDto.from(it)}
-            
+
         }
     }
     override suspend fun getRecommended(userId: String): List<RecipeMetadataDto> {

@@ -40,7 +40,7 @@ class UserScreenViewModel  @Inject constructor(
     }
 
     private fun getRecipesByUserId(userId: String) {
-        getUserRecipesUseCase(userId).onEach { result ->
+        getUserRecipesUseCase(userId2).onEach { result ->
             Log.d("inside", "im in")
             when(result) {
                 is Resource.Success -> {
