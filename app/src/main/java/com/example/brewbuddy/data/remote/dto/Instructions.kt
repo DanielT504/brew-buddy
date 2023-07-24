@@ -6,9 +6,9 @@ data class Instructions(
 ) {
     companion object {
         fun from(map: HashMap<String, Object>) = object {
-            val steps = map["steps"] as List<HashMap<String, Object>>
+            val steps = map["steps"] as? List<HashMap<String, Object>> ?: emptyList()
             val data = Instructions(
-                name=map["name"] as String,
+                name=map["name"] as? String ?: "",
                 steps=steps.map{Step.from(it)},
             )
         }.data

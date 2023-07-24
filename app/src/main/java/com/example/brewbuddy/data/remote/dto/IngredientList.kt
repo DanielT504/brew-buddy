@@ -6,9 +6,9 @@ data class IngredientList(
 ) {
     companion object {
         fun from(map: HashMap<String, Object>) = object {
-            val ingredientList = map["ingredients"] as List<HashMap<String, Object>>
+            val ingredientList = map["ingredients"] as? List<HashMap<String, Object>> ?: emptyList()
             val data = IngredientList(
-                name=map["name"] as String,
+                name=map["name"] as? String ?: "",
                 ingredients=ingredientList.map{Ingredient.from(it)},
             )
         }.data

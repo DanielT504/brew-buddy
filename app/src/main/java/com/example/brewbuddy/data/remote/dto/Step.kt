@@ -7,8 +7,8 @@ data class Step(
     companion object {
         fun from(map: HashMap<String, Object>) = object {
             val data = Step(
-                number=map["number"] as Int,
-                step=map["step"] as String,
+                number=map["number"] as? Int ?: 0,
+                step=map["step"] as? String ?: "",
             )
         }.data
     }

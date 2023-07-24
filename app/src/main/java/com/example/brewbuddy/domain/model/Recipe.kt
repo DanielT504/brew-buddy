@@ -12,14 +12,14 @@ data class Recipe(
     var dairyFree: Boolean = false,
     var sustainable: Boolean = false,
     var preparationMinutes: Int = 0,
-    var id: String? = null,
-    var title: String = "Unnamed Recipe",
+    var id: String = "",
+    var title: String = "Untitled",
     var servings: Int = 0,
-    var summary: String? = null,
+    var summary: String = "",
     var diets: List<String> = emptyList(),
     var instructions: List<Instructions> = emptyList(),
     var bannerUrl: String = Constants.DEFAULT_BANNER_URL,
     val ingredientLists: List<IngredientList> = emptyList(),
-    val author: Author? = null,
+    val author: Author = Author(),
     val tags: List<String> = emptyList()
     )

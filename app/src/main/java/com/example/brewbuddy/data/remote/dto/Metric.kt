@@ -8,9 +8,9 @@ data class Metric(
     companion object {
         fun from(map: HashMap<String, Object>) = object {
             val data = Metric(
-                amount=map["amount"] as Number,
-                unitLong=map["unitLong"] as String,
-                unitShort=map["unitShort"] as String
+                amount=map["amount"] as? Number ?: 0,
+                unitLong=map["unitLong"] as? String ?: "",
+                unitShort=map["unitShort"] as? String ?: ""
             )
         }.data
     }
