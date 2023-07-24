@@ -102,7 +102,7 @@ import com.example.brewbuddy.recipes.IngredientsList
 //import com.example.brewbuddy.recipes.RecipeSection
 import com.example.brewbuddy.recipes.UserScreenViewModel
 import com.example.brewbuddy.shoplocator.Store
-import com.example.brewbuddy.store1
+//import com.example.brewbuddy.store1
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
