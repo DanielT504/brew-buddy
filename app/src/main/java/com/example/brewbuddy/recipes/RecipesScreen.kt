@@ -1,6 +1,7 @@
 package com.example.brewbuddy
 
 //import com.example.brewbuddy.recipes.TagType
+import android.app.appsearch.SearchResults
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -63,12 +64,16 @@ import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.marketplace.Filter
 import com.example.brewbuddy.recipes.RecipeTagList
 import com.example.brewbuddy.recipes.RecipesViewModel
+import com.example.brewbuddy.recipes.SearchViewModel
 import com.example.brewbuddy.ui.theme.AuthorCardDisplay
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
+import com.example.brewbuddy.ui.theme.Label
+import com.example.brewbuddy.ui.theme.SearchBar
+import com.example.brewbuddy.ui.theme.SearchResultCard
+import com.example.brewbuddy.ui.theme.SearchResults
 import com.example.brewbuddy.ui.theme.SlateLight
-
 sealed class RecipeNavigationScreens(val route: String) {
     object IndividualRecipe : RecipeNavigationScreens("Recipes/{recipeId}")
     object RecipeResults : RecipeNavigationScreens("Recipes/{queryParams}")
@@ -93,109 +98,6 @@ fun RecipesScreen (
         }
     }
 
-}
-
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalComposeUiApi::class,
-    ExperimentalLayoutApi::class
-)
-@Composable
-private fun SearchBar(viewModel: RecipesViewModel) {
-    var filtersExpanded by remember { mutableStateOf(false) }
-    var searchQuery = viewModel.search.value
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
-
-    Column() {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            IconButton(onClick = { viewModel.search() }) {
-                Icon(
-                    painterResource(id = R.drawable.icon_search),
-                    contentDescription = null
-                )
-            }
-            TextField(
-                value = searchQuery,
-                onValueChange = {
-                    viewModel.setKeywords(it);
-                },
-                label = { Text("Search") },
-                colors = TextFieldDefaults
-                    .textFieldColors(
-                        containerColor = Color.White,
-                        textColor = Color.DarkGray,
-                        unfocusedIndicatorColor = Color.LightGray,
-                        focusedIndicatorColor = Color.Gray,
-                        disabledLeadingIconColor = Color.DarkGray,
-                        disabledIndicatorColor = Color.DarkGray
-                    ),
-
-                modifier = Modifier
-                    .width(302.dp),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = {
-                    /*onSearch(text)*/
-                    // Hide the keyboard after submitting the search
-                    keyboardController?.hide()
-                    //or hide keyboard
-                    focusManager.clearFocus()
-
-                })
-            )
-            Row(
-                modifier = Modifier.padding(top = 4.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(1.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .height(52.dp)
-                        .padding(top = 8.dp)
-                        .padding(top = 8.dp, start = 2.dp, end = 8.dp)
-
-                        .align(Alignment.CenterVertically)
-                ) {
-                    IconButton(onClick = { filtersExpanded = !filtersExpanded }) {
-                        BadgedBox(
-                            badge = {
-                                Badge(containerColor = GreenMedium) {
-                                    Text(
-                                        text = viewModel.filters.size.toString(),
-                                        color = Color.White
-                                    )
-                                }
-                            }
-                        ) {
-                            Icon(
-                                painterResource(id = R.drawable.icon_tune),
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp),
-                                tint = Color.Gray,
-                            )
-                        }
-                    }
-                }
-                RecipeFilters(
-                    state=filtersExpanded,
-                    onDismissRequest = { filtersExpanded = false },
-                    viewModel = viewModel
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.padding(start = 12.dp, end = 12.dp)
-        ) {
-            for (filter in viewModel.filters) {
-                FilterTag(filter = filter, viewModel = viewModel)
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-    }
 }
 
 @Composable
@@ -252,19 +154,15 @@ private fun RecipeFilters(state: Boolean, onDismissRequest: () -> Unit, viewMode
 
 }
 
-@Composable
-private fun Label(text: String) {
-    Text(text=text, modifier=Modifier.padding(start=12.dp))
-}
 private fun updateActiveFilters(
     filterToAdd: Filter,
     viewModel: RecipesViewModel
 ) {
 
-    val oldestToNewest = filters.last { filter: Filter -> filter.name == "dateAsce" }
-    val newestToOldest = filters.last { filter: Filter -> filter.name == "dateDesc" }
-    val priceLowToHigh = filters.last { filter: Filter -> filter.name == "priceAsce"}
-    val priceHighToLow = filters.last { filter: Filter -> filter.name == "priceDesc" }
+    val oldestToNewest = SortFilters.last { filter: Filter -> filter.name == "dateAsce" }
+    val newestToOldest = SortFilters.last { filter: Filter -> filter.name == "dateDesc" }
+    val likesLowToHigh = SortFilters.last { filter: Filter -> filter.name == "likesAsce"}
+    val likesHighToLow = SortFilters.last { filter: Filter -> filter.name == "likesDesc" }
     if (viewModel.filters.contains(filterToAdd)) {
         viewModel.removeFilter(filterToAdd)
         return
@@ -284,18 +182,18 @@ private fun updateActiveFilters(
 
         return
     }
-    if (filterToAdd.name == "priceAsce"
-        && viewModel.filters.contains(priceHighToLow))
+    if (filterToAdd.name == "likesAsce"
+        && viewModel.filters.contains(likesHighToLow))
     {
-        viewModel.removeFilter(priceHighToLow)
+        viewModel.removeFilter(likesHighToLow)
         viewModel.addFilter(filterToAdd)
 
         return
     }
-    if (filterToAdd.name == "priceDesc"
-        && viewModel.filters.contains(priceLowToHigh))
+    if (filterToAdd.name == "likesDesc"
+        && viewModel.filters.contains(likesLowToHigh))
     {
-        viewModel.removeFilter(priceLowToHigh)
+        viewModel.removeFilter(likesLowToHigh)
         viewModel.addFilter(filterToAdd)
 
         return
@@ -304,108 +202,35 @@ private fun updateActiveFilters(
     return
 }
 
-@Composable
-private fun FilterTag(filter: Filter, viewModel: RecipesViewModel) {
-    Box(modifier = Modifier.padding(top = 6.dp)) {
-        Box(
-            modifier =
-            Modifier
-                .clip(RoundedCornerShape(14.dp))
-                .background(color = GreenLight)
-                .height(28.dp)
-            ,
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 2.dp, horizontal = 8.dp)
-            ) {
-                Box(modifier = Modifier.align(Alignment.CenterVertically)) {
-                    IconButton(
-                        onClick = {
-                            viewModel.filters.remove(filter);
-                            viewModel.search()
-                        },
-                        modifier = Modifier.size(16.dp)) {
-                        Canvas(modifier = Modifier.size(16.dp)) {
-                            drawCircle(color = SlateLight)
-                        }
-                        Icon(
-                            tint = Color.Black,
-                            painter = painterResource(id = R.drawable.icon_close),
-                            contentDescription = "Display icon",
-                            modifier = Modifier.size(10.dp)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = filter.filterLabel,
-                    color = Color.Black,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun SearchBarWrapper(viewModel: RecipesViewModel) {
+    var filtersExpanded = remember { mutableStateOf(false) }
+
     Box(modifier = Modifier
         .background(color = Color.White)) {
-        SearchBar(viewModel)
+        SearchBar(viewModel, filtersExpanded) {
+            RecipeFilters(
+                state=filtersExpanded.value,
+                onDismissRequest = { filtersExpanded.value = false },
+                viewModel = viewModel
+            )
+        }
     }
 }
 
 @Composable
 private fun RecipeSearchResults(navController: NavHostController, viewModel: RecipesViewModel) {
-    val state = viewModel.state.value
-    if(state.error.isNotBlank()) {
-        Text(
-            text = state.error,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
+    SearchResults(viewModel = viewModel) {
+        ResultCard(
+            title = it.title,
+            bannerUrl = it.bannerUrl,
+            recipeId = it.id,
+            author = it.author,
+            navController = navController
         )
-    } else if(state.isLoading){
-        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-            Box(modifier=Modifier.fillMaxSize()) {
-                CircularProgressIndicator(modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(34.dp))
-            }
-        }
-    } else {
-        Surface(
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .background(color = Color.Transparent)
-        )
-        {
-
-            Column(
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 16.dp, top = 34.dp, bottom = 94.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp),
-            ) {
-                for (el in state.results) {
-                    ResultCard(
-                        title = el.title,
-                        bannerUrl = el.bannerUrl,
-                        recipeId = el.id,
-                        author = el.author,
-                        navController = navController
-                    )
-                }
-            }
-        }
     }
 }
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ResultCard(
     title: String,
@@ -414,66 +239,26 @@ private fun ResultCard(
     author: Author,
     navController: NavHostController
 ) {
-    Card(
-        modifier = Modifier
-            .height(160.dp)
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 8.dp
-        ),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White,
-        ),
+    SearchResultCard(
+        image= bannerUrl,
         onClick = { navigateToRecipe(recipeId, navController) }
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Column(modifier = Modifier.width(135.dp)) {
-                AsyncImage(
-                    model = bannerUrl,
-                    contentDescription = "Recipe Banner",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Row() {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontSize = 20.sp
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(28.dp),
-                    verticalAlignment = Alignment.Bottom,
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(bottom = 8.dp)
-                ) {
-//                    Column() {
-//                        Row(modifier = Modifier.padding(bottom = 16.dp)) {
-//                            Text(text = price, fontSize = 20.sp)
-//                        }
-//                        Row() {
-//                            Text(
-//                                text = "$city, $province",
-//                                fontSize = 12.sp,
-//                                fontWeight = FontWeight.Light,
-//                                color = Color.DarkGray
-//                            )
-//                        }
-//                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        AuthorCardDisplay(author, textColor=Color.Black)
-                    }
-                }
+        Row() {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontSize = 20.sp
+            )
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(28.dp),
+            verticalAlignment = Alignment.Bottom,
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(bottom = 8.dp)
+        ) {
+            Column(horizontalAlignment = Alignment.End) {
+                AuthorCardDisplay(author, textColor=Color.Black)
             }
         }
     }

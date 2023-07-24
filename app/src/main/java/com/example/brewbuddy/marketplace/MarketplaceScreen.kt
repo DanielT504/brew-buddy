@@ -61,11 +61,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.marketplace.Filter
 import com.example.brewbuddy.marketplace.MarketplaceViewModel
+import com.example.brewbuddy.recipes.RecipeTagList
+import com.example.brewbuddy.recipes.RecipesViewModel
+import com.example.brewbuddy.ui.theme.AuthorCardDisplay
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
+import com.example.brewbuddy.ui.theme.Label
+import com.example.brewbuddy.ui.theme.SearchBar
+import com.example.brewbuddy.ui.theme.SearchResultCard
+import com.example.brewbuddy.ui.theme.SearchResults
 import com.example.brewbuddy.ui.theme.SlateLight
 
 
@@ -82,219 +90,135 @@ fun MarketplaceScreen (
     navController: NavHostController,
     viewModel: MarketplaceViewModel = hiltViewModel()
 ) {
-    var activeFilters =  remember { mutableStateListOf<Filter>() }
-    var state = viewModel.state.value
-    var marketplaceSectionOffset = 20.dp
-    if (activeFilters.size >= 3) {
-        marketplaceSectionOffset = -(5.dp)
-    }
-    if(state.error.isNotBlank()) {
-        Text(
-            text = state.error,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        )
-    }
-    if(state.isLoading){
-        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-            Box() {
-                CircularProgressIndicator(modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(34.dp))
-            }
-        }
-    }
-    Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-        Column(modifier = Modifier
-            .fillMaxSize()) {
-            Box() {
-                SearchBarWrapper(activeFilters)
-            }
-            Box(modifier = Modifier
-                .offset(y = -(marketplaceSectionOffset))
-                .fillMaxWidth()
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            SearchBarWrapper(viewModel)
+            Surface(modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
             ) {
-                Marketplace(navController, viewModel)
+                MarketplaceSearchResults(navController, viewModel)
             }
         }
     }
 
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalComposeUiApi::class,
-    ExperimentalLayoutApi::class
-)
 @Composable
-private fun SearchBar(activeFilters: SnapshotStateList<Filter>) {
-    var text by remember { mutableStateOf("")}
-    var filtersExpanded by remember { mutableStateOf(false) }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
-
-    Column() {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column() {
-                TextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    label = { Text("Search") },
-                    colors = TextFieldDefaults
-                        .textFieldColors(
-                            containerColor = Color.White,
-                            textColor = Color.DarkGray,
-                            unfocusedIndicatorColor = Color.LightGray,
-                            focusedIndicatorColor = Color.Gray,
-                            disabledLeadingIconColor = Color.DarkGray,
-                            disabledIndicatorColor = Color.DarkGray
-                        ),
-                    leadingIcon = {
-                        Icon(
-                            painterResource(id = R.drawable.icon_search),
-                            contentDescription = null
-                        )
-                    },
-                    modifier = Modifier
-                        .width(300.dp)
-                        .padding(start = 16.dp),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = {
-                        /*onSearch(text)*/
-                        // Hide the keyboard after submitting the search
-                        keyboardController?.hide()
-                        //or hide keyboard
-                        focusManager.clearFocus()
-
-                    })
-                )
-            }
-            Column(modifier = Modifier.background(color = Color.White)) {
-                Row(
-                    modifier = Modifier.padding(top = 4.dp, end = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(1.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .height(52.dp)
-                            .padding(top = 8.dp)
-                            .align(Alignment.CenterVertically)
-                    ) {
-                        IconButton(onClick = { filtersExpanded = !filtersExpanded }) {
-                            BadgedBox(
-                                badge = {
-                                    Badge(containerColor = GreenMedium) {
-                                        Text(
-                                            text = activeFilters.size.toString(),
-                                            color = Color.White
-                                        )
-                                    }
-                                }
-                            ) {
-                                Icon(
-                                    painterResource(id = R.drawable.icon_tune),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(28.dp),
-                                    tint = Color.Gray,
-                                )
-                            }
-                        }
-                    }
-                    DropdownMenu(
-                        expanded = filtersExpanded,
-                        onDismissRequest = { filtersExpanded = false },
-                        modifier = Modifier.background(color = Color.White)
-                    ) {
-                        for (filter in filters) {
-                            DropdownMenuItem(
-                                text = { Text(filter.filterLabel) },
-                                onClick = {
-                                    canAddToActiveFilters(
-                                        filter,
-                                        activeFilters
-                                    ) && activeFilters.add(filter)
-                                }
-                            )
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .height(52.dp)
-                            .padding(top = 8.dp, start = 2.dp, end = 8.dp)
-                            .align(Alignment.CenterVertically)
-                    ) {
-                        IconButton(onClick = { /*TODO*/ }) {
-/*                                BadgedBox(
-                                    badge = {
-                                        Badge(containerColor = GreenMedium) {
-                                            Text("2", color = Color.White)
-                                        }
-                                    }
-                                ) {*/
+private fun MarketplaceSearchResults(navController: NavHostController, viewModel: MarketplaceViewModel) {
+    SearchResults(viewModel = viewModel) {
+        MarketplaceCard(
+            title = it.title,
+            price = it.price,
+            city = it.city,
+            province = it.province,
+            author = it.author,
+            imageUrl = it.imageUrl,
+            navController = navController
+        )
+    }
+}
+@Composable
+private fun MarketplaceFilters(state: Boolean, onDismissRequest: () -> Unit, viewModel: MarketplaceViewModel) {
+    DropdownMenu(
+        expanded = state,
+        onDismissRequest = onDismissRequest,
+        modifier = Modifier
+            .background(color = Color.White)
+            .fillMaxWidth()
+    ) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier=Modifier.width(200.dp)) {
+                Label("Categories")
+                RecipeTagList.forEach { tagInfo ->
+                    val filter = Filter(name=tagInfo.name, filterLabel = tagInfo.label, enabled=true)
+                    DropdownMenuItem(
+                        leadingIcon = {if(viewModel.filters.contains(filter)) {
                             Icon(
-                                painterResource(id = R.drawable.icon_add_outline),
-                                contentDescription = null,
-                                modifier = Modifier.size(36.dp),
-                                tint = Color.Gray,
+                                painter = painterResource(id = R.drawable.icon_checked_box),
+                                contentDescription = "Checked",
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.Black
                             )
-                            /*}*/
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.icon_box),
+                                contentDescription = "Checked",
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.Black
+                            )
+                        }},
+                        text = { Text(tagInfo.label) },
+                        onClick = {
+                            updateActiveFilters(filter, viewModel)
+                            viewModel.search()
                         }
-                    }
+                    )
+                }
+            }
+            Column() {
+                Label("Sort by")
+                SortFilters.forEach { filter ->
+                    DropdownMenuItem(
+                        text = { Text(filter.filterLabel) },
+                        onClick = {
+                            updateActiveFilters(filter, viewModel)
+                        }
+                    )
                 }
             }
         }
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.padding(start = 12.dp, end = 12.dp)
-        ) {
-            for (filter in activeFilters) {
-                FilterTag(filter = filter, activeFilters = activeFilters)
-            }
-        }
     }
+
 }
 
-private fun canAddToActiveFilters(
+private fun updateActiveFilters(
     filterToAdd: Filter,
-    activeFilters: SnapshotStateList<Filter>
-): Boolean {
-    val oldestToNewest = filters.last { filter: Filter -> filter.filterLabel == "Oldest to Newest" }
-    val newestToOldest = filters.last { filter: Filter -> filter.filterLabel == "Newest to Oldest" }
-    val priceLowToHigh = filters.last { filter: Filter -> filter.filterLabel == "Price (Low to High)" }
-    val priceHighToLow = filters.last { filter: Filter -> filter.filterLabel == "Price (High to Low)" }
-    if (activeFilters.contains(filterToAdd)) {
-        return false
-    }
-    if (filterToAdd.filterLabel == "Newest to Oldest"
-        && activeFilters.contains(oldestToNewest))
-    {
-        return false
-    }
-    if (filterToAdd.filterLabel == "Oldest to Newest"
-        && activeFilters.contains(newestToOldest))
-    {
-        return false
-    }
-    if (filterToAdd.filterLabel == "Price (Low to High)"
-        && activeFilters.contains(priceHighToLow))
-    {
-        return false
-    }
-    if (filterToAdd.filterLabel == "Price (High to Low)"
-        && activeFilters.contains(priceLowToHigh))
-    {
-        return false
-    }
-    return true
-}
+    viewModel: MarketplaceViewModel
+) {
 
+    val oldestToNewest = SortFilters.last { filter: Filter -> filter.name == "dateAsce" }
+    val newestToOldest = SortFilters.last { filter: Filter -> filter.name == "dateDesc" }
+    val priceLowToHigh = SortFilters.last { filter: Filter -> filter.name == "priceAsce"}
+    val priceHighToLow = SortFilters.last { filter: Filter -> filter.name == "priceDesc" }
+    if (viewModel.filters.contains(filterToAdd)) {
+        viewModel.removeFilter(filterToAdd)
+        return
+    }
+    if (filterToAdd.name == "dateDesc"
+        && viewModel.filters.contains(oldestToNewest))
+    {
+        viewModel.removeFilter(oldestToNewest)
+        viewModel.addFilter(filterToAdd)
+        return
+    }
+    if (filterToAdd.name == "dateAsce"
+        && viewModel.filters.contains(newestToOldest))
+    {
+        viewModel.removeFilter(newestToOldest)
+        viewModel.addFilter(filterToAdd)
+
+        return
+    }
+    if (filterToAdd.name == "priceAsce"
+        && viewModel.filters.contains(priceHighToLow))
+    {
+        viewModel.removeFilter(priceHighToLow)
+        viewModel.addFilter(filterToAdd)
+
+        return
+    }
+    if (filterToAdd.name == "priceDesc"
+        && viewModel.filters.contains(priceLowToHigh))
+    {
+        viewModel.removeFilter(priceLowToHigh)
+        viewModel.addFilter(filterToAdd)
+
+        return
+    }
+    viewModel.addFilter(filterToAdd)
+    return
+}
 @Composable
 private fun FilterTag(filter: Filter, activeFilters: SnapshotStateList<Filter>) {
     Box(modifier = Modifier.padding(top = 6.dp)) {
@@ -336,144 +260,80 @@ private fun FilterTag(filter: Filter, activeFilters: SnapshotStateList<Filter>) 
 }
 
 @Composable
-private fun SearchBarWrapper(activeFilters: SnapshotStateList<Filter>) {
-    /*Modify this height based on number of applied filters*/
-    var searchbarHeight = 120.dp
-    if (activeFilters.size > 3) {
-        searchbarHeight = 140.dp
-    }
+private fun SearchBarWrapper(viewModel: MarketplaceViewModel) {
+    var filtersExpanded = remember { mutableStateOf(false) }
+
     Box(modifier = Modifier
-        .height(searchbarHeight)
         .background(color = Color.White)) {
-        SearchBar(activeFilters)
-    }
-}
-
-@Composable
-private fun ActiveFilters() {
-    Row() {
-        for (filter in filters) {
-            if (filter.enabled){
-                Text(text = filter.filterLabel)
-            }
+        SearchBar(viewModel, filtersExpanded) {
+            MarketplaceFilters(
+                state=filtersExpanded.value,
+                onDismissRequest = { filtersExpanded.value = false },
+                viewModel = viewModel
+            )
         }
     }
 }
 
-@Composable
-private fun Marketplace(
-    navController: NavHostController,
-    viewModel: MarketplaceViewModel
-) {
-    val state = viewModel.state.value
-    Surface(shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .background(color = Color.Transparent))
-    {
-        Column(
-            modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, top = 34.dp, bottom = 94.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            for (marketplaceItem in state.results) {
-                MarketplaceCard(
-                    title = marketplaceItem.postTitle,
-                    price = marketplaceItem.price,
-                    city = marketplaceItem.city,
-                    province = marketplaceItem.province,
-                    userName = marketplaceItem.authorId,
-                    navController = navController
-                )
-            }
-        }
-    }
-}
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MarketplaceCard(
     title: String,
     price: Number,
     city: String,
     province: String,
-    userName: String,
+    imageUrl: String,
+    author: Author,
     navController: NavHostController
 ) {
-    Card(
-        modifier = Modifier
-            .height(160.dp)
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
-        elevation =  CardDefaults.cardElevation(
-            defaultElevation = 8.dp
-        ),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White,
-        ),
-        onClick = { navigateToItem("123", navController)}
+    SearchResultCard(
+        image= imageUrl,
+        onClick = { navigateToItem("123", navController) }
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Column(modifier = Modifier.width(135.dp)) {
-                Image(
-                    painterResource(id = R.drawable.coffee_image_1),
-                    contentDescription = "Recipe Banner",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Row() {
-                    Text(text = title, style = MaterialTheme.typography.titleMedium, fontSize = 20.sp)
+        Row() {
+            Text(text = title, style = MaterialTheme.typography.titleMedium, fontSize = 20.sp)
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(28.dp),
+            verticalAlignment = Alignment.Bottom,
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(bottom = 8.dp)
+        ) {
+            Column() {
+                Row(modifier = Modifier.padding(bottom = 16.dp)) {
+                    Text(text = "$ $price", fontSize = 20.sp)
                 }
+                Row() {
+                    Text(
+                        text = "$city, $province",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Light,
+                        color = Color.DarkGray
+                    )
+                }
+            }
+            Column(horizontalAlignment = Alignment.End) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(28.dp),
-                    verticalAlignment = Alignment.Bottom,
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(bottom = 8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column() {
-                        Row(modifier = Modifier.padding(bottom = 16.dp)) {
-                            Text(text = "$ $price", fontSize = 20.sp)
-                        }
-                        Row() {
-                            Text(
-                                text = "$city, $province",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Light,
-                                color = Color.DarkGray
-                            )
-                        }
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = userName,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Light,
-                                color = Color.DarkGray
-                            )
-                            Box(contentAlignment = Alignment.Center) {
-                                Canvas(modifier = Modifier.size(22.dp)) {
-                                    drawCircle(color = Color.Gray)
-                                }
-                                Icon(
-                                    painterResource(id = R.drawable.icon_user),
-                                    contentDescription = "User image placeholder",
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-                    }
+                    AuthorCardDisplay(author, textColor = Color.Black)
+//                    Text(
+//                        text = userName,
+//                        fontSize = 12.sp,
+//                        fontWeight = FontWeight.Light,
+//                        color = Color.DarkGray
+//                    )
+//                    Box(contentAlignment = Alignment.Center) {
+//                        Canvas(modifier = Modifier.size(22.dp)) {
+//                            drawCircle(color = Color.Gray)
+//                        }
+//                        Icon(
+//                            painterResource(id = R.drawable.icon_user),
+//                            contentDescription = "User image placeholder",
+//                            modifier = Modifier.size(20.dp)
+//                        )
+//                    }
                 }
             }
         }
@@ -487,7 +347,7 @@ private fun MarketplaceCard(
 //    MarketplaceItem(postTitle = "Used industrial espresso machine, good condition", price = "$50", city = "Kitchener", province = "ON", userName = "Jane Doe")
 //)
 
-val filters = mutableListOf<Filter>(
+private val SortFilters = listOf(
     Filter(filterLabel = "Equipment", enabled = false, name="equipment"),
     Filter(filterLabel = "Ingredients", enabled = false, name="ingredients"),
     Filter(filterLabel = "Newest to Oldest", enabled = false, name="dateDesc"),

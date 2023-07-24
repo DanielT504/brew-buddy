@@ -502,14 +502,14 @@ private fun LabelledIcon(@DrawableRes img: Int, label: String) {
     }
 }
 
-private fun generateTags(recipe: Recipe?): List<TagDto> {
-    var recipeTags = mutableListOf<TagDto>()
+private fun generateTags(recipe: Recipe?): List<RecipeTagDto> {
+    var recipeTags = mutableListOf<RecipeTagDto>()
     var isDairyFree = recipe?.dairyFree
     var isGlutenFree = recipe?.glutenFree
     var isVegan = recipe?.vegan
     var isVegetarian = recipe?.vegetarian
 
-    TagList.forEach { tagInfo ->
+    RecipeTagList.forEach { tagInfo ->
         if(recipe!!.tags.contains(tagInfo.name)) {
             val tag = createTag(tagInfo)
             recipeTags.add(tag);

@@ -1,22 +1,27 @@
 package com.example.brewbuddy.data.remote.dto
 
+import com.example.brewbuddy.common.Constants
 import com.example.brewbuddy.domain.model.MarketplaceItemMetadata
 
 data class MarketplaceItemMetadataDto(
-    val authorId: String,
+    val author: AuthorDto,
     val city: String,
-    val postTitle: String,
+    val title: String,
     val price: Number,
-    val province: String
+    val province: String,
+    val tags: List<String>,
+    val imageUrl: String
 ) {
     companion object {
         fun from(map: HashMap<String, Object>) = object {
             val data = MarketplaceItemMetadataDto(
-                authorId=map["authorId"] as? String ?: "",
+                author=AuthorDto.from(map["author"] as? HashMap<String, Object> ?: hashMapOf()),
                 city=map["city"] as? String ?: "",
-                postTitle=map["postTitle"] as? String ?: "Untitled Listing",
+                title=map["title"] as? String ?: "Untitled Listing",
                 price=map["price"] as? Number ?: 0,
-                province=map["province"] as? String ?: ""
+                province=map["province"] as? String ?: "",
+                tags=map["tags"] as? List<String> ?: emptyList(),
+                imageUrl=map["imageUrl"] as? String ?: Constants.DEFAULT_IMAGE_URL
             )
         }.data
     }
@@ -24,10 +29,12 @@ data class MarketplaceItemMetadataDto(
 
 fun MarketplaceItemMetadataDto.toMarketplaceItemMetadata(): MarketplaceItemMetadata {
     return MarketplaceItemMetadata(
-        authorId=authorId,
+        author=author.toAuthor(),
         city=city,
-        postTitle=postTitle,
+        title=title,
         price=price,
-        province=province
+        province=province,
+        tags=tags,
+        imageUrl=imageUrl
     )
 }
