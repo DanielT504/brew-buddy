@@ -230,10 +230,10 @@ fun ImageGrid(
 //        R.drawable.x_recipe9,
 //    )
 //    var itemCount = images.size
-
+    Log.d("TEST_IMAGE_GRID2", recipes.size.toString())
     val imageUrls = recipes.map { it.bannerUrl }
     var itemCount = imageUrls.size
-    Log.d("TEST", itemCount.toString())
+    Log.d("TEST_IMAGE_GRID", itemCount.toString())
     Column(modifier = modifier) {
         var rows = (itemCount / columns)
         if (itemCount.mod(columns) > 0) {

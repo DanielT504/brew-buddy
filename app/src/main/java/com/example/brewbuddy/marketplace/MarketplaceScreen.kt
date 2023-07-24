@@ -84,30 +84,30 @@ fun MarketplaceScreen (
     viewModel: MarketplaceViewModel = hiltViewModel()
 ) {
     var activeFilters =  remember { mutableStateListOf<Filter>() }
-//    var state = viewModel.marketplaceState.value
+    var state = viewModel.marketplaceState.value
     var marketplaceSectionOffset = 20.dp
     if (activeFilters.size >= 3) {
         marketplaceSectionOffset = -(5.dp)
     }
-//    if(state.error.isNotBlank()) {
-//        Text(
-//            text = state.error,
-//            color = MaterialTheme.colorScheme.error,
-//            textAlign = TextAlign.Center,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(horizontal = 20.dp)
-//        )
-//    }
-//    if(state.isLoading){
-//        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-//            Box() {
-//                CircularProgressIndicator(modifier = Modifier
-//                    .align(Alignment.Center)
-//                    .size(34.dp))
-//            }
-//        }
-//    }
+    if(state.error.isNotBlank()) {
+        Text(
+            text = state.error,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+    }
+    if(state.isLoading){
+        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+            Box() {
+                CircularProgressIndicator(modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(34.dp))
+            }
+        }
+    }
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(modifier = Modifier
             .fillMaxSize()) {
@@ -119,7 +119,7 @@ fun MarketplaceScreen (
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
             ) {
-//                Marketplace(navController, viewModel)
+                Marketplace(navController, viewModel)
             }
         }
     }
@@ -142,96 +142,96 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
-            ) {
-                Column() {
-                    TextField(
-                        value = text,
-                        onValueChange = { text = it },
-                        label = { Text("Search") },
-                        colors = TextFieldDefaults
-                            .textFieldColors(
-                                containerColor = Color.White,
-                                textColor = Color.DarkGray,
-                                unfocusedIndicatorColor = Color.LightGray,
-                                focusedIndicatorColor = Color.Gray,
-                                disabledLeadingIconColor = Color.DarkGray,
-                                disabledIndicatorColor = Color.DarkGray
-                            ),
-                        leadingIcon = {
-                            Icon(
-                                painterResource(id = R.drawable.icon_search),
-                                contentDescription = null
-                            )
-                        },
-                        modifier = Modifier
-                            .width(300.dp)
-                            .padding(start = 16.dp),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(onSearch = {
-                            /*onSearch(text)*/
-                            // Hide the keyboard after submitting the search
-                            keyboardController?.hide()
-                            //or hide keyboard
-                            focusManager.clearFocus()
+        ) {
+            Column() {
+                TextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text("Search") },
+                    colors = TextFieldDefaults
+                        .textFieldColors(
+                            containerColor = Color.White,
+                            textColor = Color.DarkGray,
+                            unfocusedIndicatorColor = Color.LightGray,
+                            focusedIndicatorColor = Color.Gray,
+                            disabledLeadingIconColor = Color.DarkGray,
+                            disabledIndicatorColor = Color.DarkGray
+                        ),
+                    leadingIcon = {
+                        Icon(
+                            painterResource(id = R.drawable.icon_search),
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier
+                        .width(300.dp)
+                        .padding(start = 16.dp),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = {
+                        /*onSearch(text)*/
+                        // Hide the keyboard after submitting the search
+                        keyboardController?.hide()
+                        //or hide keyboard
+                        focusManager.clearFocus()
 
-                        })
-                    )
-                }
-                Column(modifier = Modifier.background(color = Color.White)) {
-                    Row(
-                        modifier = Modifier.padding(top = 4.dp, end = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(1.dp)
+                    })
+                )
+            }
+            Column(modifier = Modifier.background(color = Color.White)) {
+                Row(
+                    modifier = Modifier.padding(top = 4.dp, end = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(1.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .height(52.dp)
+                            .padding(top = 8.dp)
+                            .align(Alignment.CenterVertically)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .height(52.dp)
-                                .padding(top = 8.dp)
-                                .align(Alignment.CenterVertically)
-                        ) {
-                            IconButton(onClick = { filtersExpanded = !filtersExpanded }) {
-                                BadgedBox(
-                                    badge = {
-                                        Badge(containerColor = GreenMedium) {
-                                            Text(
-                                                text = activeFilters.size.toString(),
-                                                color = Color.White
-                                            )
-                                        }
+                        IconButton(onClick = { filtersExpanded = !filtersExpanded }) {
+                            BadgedBox(
+                                badge = {
+                                    Badge(containerColor = GreenMedium) {
+                                        Text(
+                                            text = activeFilters.size.toString(),
+                                            color = Color.White
+                                        )
                                     }
-                                ) {
-                                    Icon(
-                                        painterResource(id = R.drawable.icon_tune),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(28.dp),
-                                        tint = Color.Gray,
-                                    )
                                 }
-                            }
-                        }
-                        DropdownMenu(
-                            expanded = filtersExpanded,
-                            onDismissRequest = { filtersExpanded = false },
-                            modifier = Modifier.background(color = Color.White)
-                        ) {
-                            for (filter in filters) {
-                                DropdownMenuItem(
-                                    text = { Text(filter.filterLabel) },
-                                    onClick = {
-                                        canAddToActiveFilters(
-                                            filter,
-                                            activeFilters
-                                        ) && activeFilters.add(filter)
-                                    }
+                            ) {
+                                Icon(
+                                    painterResource(id = R.drawable.icon_tune),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(28.dp),
+                                    tint = Color.Gray,
                                 )
                             }
                         }
-                        Box(
-                            modifier = Modifier
-                                .height(52.dp)
-                                .padding(top = 8.dp, start = 2.dp, end = 8.dp)
-                                .align(Alignment.CenterVertically)
-                        ) {
-                            IconButton(onClick = { /*TODO*/ }) {
+                    }
+                    DropdownMenu(
+                        expanded = filtersExpanded,
+                        onDismissRequest = { filtersExpanded = false },
+                        modifier = Modifier.background(color = Color.White)
+                    ) {
+                        for (filter in filters) {
+                            DropdownMenuItem(
+                                text = { Text(filter.filterLabel) },
+                                onClick = {
+                                    canAddToActiveFilters(
+                                        filter,
+                                        activeFilters
+                                    ) && activeFilters.add(filter)
+                                }
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .height(52.dp)
+                            .padding(top = 8.dp, start = 2.dp, end = 8.dp)
+                            .align(Alignment.CenterVertically)
+                    ) {
+                        IconButton(onClick = { /*TODO*/ }) {
 /*                                BadgedBox(
                                     badge = {
                                         Badge(containerColor = GreenMedium) {
@@ -239,27 +239,27 @@ private fun SearchBar(activeFilters: SnapshotStateList<Filter>) {
                                         }
                                     }
                                 ) {*/
-                                    Icon(
-                                        painterResource(id = R.drawable.icon_add_outline),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(36.dp),
-                                        tint = Color.Gray,
-                                    )
-                                /*}*/
-                            }
+                            Icon(
+                                painterResource(id = R.drawable.icon_add_outline),
+                                contentDescription = null,
+                                modifier = Modifier.size(36.dp),
+                                tint = Color.Gray,
+                            )
+                            /*}*/
                         }
                     }
                 }
             }
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.padding(start = 12.dp, end = 12.dp)
-            ) {
-                for (filter in activeFilters) {
-                    FilterTag(filter = filter, activeFilters = activeFilters)
-                }
+        }
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(start = 12.dp, end = 12.dp)
+        ) {
+            for (filter in activeFilters) {
+                FilterTag(filter = filter, activeFilters = activeFilters)
             }
         }
+    }
 }
 
 private fun canAddToActiveFilters(
@@ -427,7 +427,7 @@ private fun MarketplaceCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
-               verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Row() {
                     Text(text = title, style = MaterialTheme.typography.titleMedium, fontSize = 20.sp)
