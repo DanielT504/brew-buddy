@@ -121,3 +121,6 @@
 | 2023/07/23 |         |        | 5    |        |         |        | Update API calls, add uploads to firebase storage, finish "Your Recipes" component|
 | 2023/07/23 |        |         |      |        | 2       |        | Redeploy firebase functions, set up permissions, add safety accessors to the data classes. Refactor author to have author dto |
 | 2023/07/23 |        |         | 3    |        |         |        | Add navigation to image grid, update data strucutres and recipe upload|
+| 2023/07/23 |        |         |      |        | 2       |        | Generalize search and post view models for reusability |
+| 2023/07/24 |        |         |      |        | 4       |        | Add filtering functionality of marketplace, allow users to create their own listings |
+
