@@ -131,7 +131,7 @@ fun StoreListSheet(currentLocation: Location) {
         val url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
                 "?location=${location.latitude}%2C${location.longitude}" +
                 "&radius=2000" +
-                "&type=cafe" +
+                "&type=cafe|grocery|convenience_store" +
                 "&keyword=independent"+
                 "&keyword=organic|fair+trade|eco-friendly"+
                 "&key=$apiKey"
