@@ -1,15 +1,6 @@
 package com.example.brewbuddy.requests
 
 import android.util.Log
-import androidx.compose.foundation.Image
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.ImageBitmap
-import com.example.brewbuddy.recipes.createIngredientsFromJSON
-import com.example.brewbuddy.recipes.createPreparationStepsFromJSON
-import com.google.firebase.functions.FirebaseFunctions
-import com.google.firebase.functions.ktx.functions
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.tasks.await

@@ -12,8 +12,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brewbuddy.common.Constants
 import com.example.brewbuddy.common.Resource
+import com.example.brewbuddy.domain.model.PostState
+import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.use_case.get_recipes.GetRecipeUseCase
 import com.example.brewbuddy.profile.db
+import com.example.brewbuddy.templates.PostViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,10 +32,7 @@ import javax.inject.Inject
 class IndividualRecipeScreenViewModel  @Inject constructor(
     private val getRecipeUseCase: GetRecipeUseCase,
     savedStateHandle: SavedStateHandle
-): ViewModel(){
-    private val _state = mutableStateOf(RecipeState())
-    val state: State<RecipeState> = _state
-
+): PostViewModel<Recipe>(Constants.PARAM_RECIPE_ID, savedStateHandle){
     private val _isFavourite = mutableStateOf<Boolean>(false)
     val isFavourite: State<Boolean> get() = _isFavourite
 
@@ -44,30 +44,25 @@ class IndividualRecipeScreenViewModel  @Inject constructor(
 
 
     init {
-        Log.d("IndividualRecipeScreenViewModel", savedStateHandle.toString())
-        savedStateHandle.get<String>(Constants.PARAM_RECIPE_ID)?.let { recipeId ->
-            Log.d("IndividualRecipeScreenViewModel", recipeId)
-            val id = recipeId.substringAfter("}")
-            getRecipeById(id)
-        }
+        fetchPost()
     }
 
     fun onTextChanged(newText: String) {
         _feedbackState.value = newText
     }
 
-    fun getRecipeById(recipeId: String) {
+    override fun getPostById(recipeId: String) {
         getRecipeUseCase(recipeId).onEach { result ->
             when(result) {
                 is Resource.Success -> {
-                    _state.value = RecipeState(recipe = result.data)
+                    _state.value = PostState(post = result.data)
                     _numberOfLikes.value = result.data!!.likes
                 }
                 is Resource.Error -> {
-                    _state.value = RecipeState(error = result.message ?: "An unexpected error occurred.")
+                    _state.value = PostState(error = result.message ?: "An unexpected error occurred.")
                 }
                 is Resource.Loading -> {
-                    _state.value = RecipeState(isLoading = true)
+                    _state.value = PostState(isLoading = true)
                 }
             }
         }.launchIn(viewModelScope)
