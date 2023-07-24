@@ -1,23 +1,22 @@
-package com.example.brewbuddy.marketplace
+package com.example.brewbuddy.recipes
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.brewbuddy.common.Resource
 import com.example.brewbuddy.common.createQueryString
-import com.example.brewbuddy.domain.model.MarketplaceItemMetadata
+import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.domain.model.SearchResultState
-import com.example.brewbuddy.domain.use_case.get_marketplace.GetMarketplaceItemsUseCase
-import com.example.brewbuddy.recipes.SearchViewModel
+import com.example.brewbuddy.domain.use_case.get_recipes.GetRecipeResultsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 @HiltViewModel
-class MarketplaceViewModel @Inject constructor(
-    private val getMarketplaceItemsUseCase: GetMarketplaceItemsUseCase,
+class RecipesViewModel  @Inject constructor(
+    private val getRecipeResultsUseCase: GetRecipeResultsUseCase,
     savedStateHandle: SavedStateHandle
-): SearchViewModel<MarketplaceItemMetadata>(savedStateHandle) {
+): SearchViewModel<RecipeMetadata>(savedStateHandle) {
 
     init {
         getResults()
@@ -27,8 +26,9 @@ class MarketplaceViewModel @Inject constructor(
 
         getResults(_query.value)
     }
+
     private fun getResults(query: String = "") {
-        getMarketplaceItemsUseCase(query).onEach { result ->
+        getRecipeResultsUseCase(query).onEach { result ->
             when(result) {
                 is Resource.Success -> {
                     _state.value = SearchResultState(results = result.data ?: emptyList())
@@ -42,4 +42,5 @@ class MarketplaceViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
+
 }

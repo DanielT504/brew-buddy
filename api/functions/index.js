@@ -38,7 +38,11 @@ const {
   calculateSimilarityScore,
 } = require("./utils/recommendation_engine.js");
 
-const { getMarketplaceItems } = require("./utils/marketplace.js");
+const {
+  getMarketplaceItemsMetadataByQuery,
+  getMarketplaceItemsMetadata,
+  getMarketplaceItemById,
+} = require("./utils/marketplace.js");
 
 const {
   getUserById,
@@ -148,18 +152,14 @@ exports.pinRecipe = onCall(async ({ data }, context) => {
   }
 });
 
-const getRecipesMetadataWithAuthor = async (metadatas, db) => {
+const getMetadataWithAuthor = async (metadatas, db) => {
   const res = [];
   for (let i = 0; i < metadatas.length; i++) {
     const metadata = metadatas[i];
     if (metadata.authorId) {
       const author = await getUserById(metadata.authorId, db);
       res.push({
-        id: metadata.id,
-        bannerUrl: metadata.bannerUrl,
-        likes: metadata.likes,
-        title: metadata.title,
-        tags: metadata.tags,
+        ...metadata,
         author,
       });
     }
@@ -169,10 +169,7 @@ const getRecipesMetadataWithAuthor = async (metadatas, db) => {
 
 exports.getUserRecipes = onCall(async ({ data }, context) => {
   const metadatas = await getRecipesMetadata(db);
-  const recipeAuthorMetadatas = await getRecipesMetadataWithAuthor(
-    metadatas,
-    db
-  );
+  const recipeAuthorMetadatas = await getMetadataWithAuthor(metadatas, db);
   var recipes = [];
   console.log(data);
   const { authorId } = data;
@@ -214,16 +211,16 @@ exports.getRecipesMetadata = onCall(async ({ data }, context) => {
       db
     );
     console.log(metadatas);
-    return await getRecipesMetadataWithAuthor(metadatas, db);
+    return await getMetadataWithAuthor(metadatas, db);
   }
   const metadatas = await getRecipesMetadata(db);
-  return await getRecipesMetadataWithAuthor(metadatas, db);
+  return await getMetadataWithAuthor(metadatas, db);
 });
 
 exports.getPopularRecipes = onCall(async ({ data }, context) => {
   const metadatas = await getRecipesMetadata(db);
 
-  const popularRecipes = await getRecipesMetadataWithAuthor(metadatas, db);
+  const popularRecipes = await getMetadataWithAuthor(metadatas, db);
 
   popularRecipes.sort((a, b) => b.likes - a.likes);
   /* console.log("Popular Recipes: ", popularRecipes);*/
@@ -236,7 +233,7 @@ exports.getRecommendedRecipes = onCall(async ({ data }, context) => {
   const userPreferences = await getUserPreferences(userId, db);
   const { id, ...preferences } = userPreferences;
 
-  const recipeMetadatas = await getRecipesMetadataWithAuthor(metadatas, db);
+  const recipeMetadatas = await getMetadataWithAuthor(metadatas, db);
 
   const recommendedRecipesWithScores = [];
   let recommendedRecipesToReturn = [];
@@ -275,23 +272,67 @@ exports.getUserPreferences = onCall(async ({ data }, context) => {
   return prefs;
 });
 
-exports.getMarketplaceItems = onCall(async ({ data }, context) => {
-  return await getMarketplaceItems(db);
+exports.getMarketplaceItemById = onCall(async ({ data }, context) => {
+  console.log("GET ITEM BY ID");
+  const { itemId } = data;
+  log("getMarketplaceItemById Request: ", data);
+  console.log("getMarketplaceItemById Request: ", data);
+
+  if (!itemId) {
+    // Throwing an HttpsError so that the client gets the error details.
+    throw new HttpsError(
+      "failed-precondition",
+      "getMarketplaceItemById: No item ID provided"
+    );
+  }
+  var item = await getMarketplaceItemById(itemId, db);
+
+  var author = null;
+  try {
+    author = await getUserById(item.authorId, db);
+  } catch (e) {
+    author = null;
+  }
+
+  console.log("Author of getMarketplaceItemById: ", author);
+  return {
+    ...item,
+    author,
+  };
 });
 
-// exports.createRecipe = onRequest(async ({ body }, response) => {
-//   console.log(body);
-//   const { recipes, users } = body;
-//   recipes.forEach((recipe) => {
-//     db.collection("recipes").doc().set(recipe);
-//   });
+exports.getMarketplaceItemsMetadata = onCall(async ({ data }, context) => {
+  const { query } = data || {};
+  if (query) {
+    const queryParams = getQueryParams(query);
+    console.log(queryParams);
+    const metadatas = await getMarketplaceItemsMetadataByQuery(
+      queryParams.keywords,
+      queryParams.filters,
+      db
+    );
+    console.log(metadatas);
+    return await getMetadataWithAuthor(metadatas, db);
+  }
+  const metadatas = await getMarketplaceItemsMetadata(db);
+  return await getMetadataWithAuthor(metadatas, db);
+});
 
-//   users.forEach((user) => {
-//     db.collection("users").doc(user["uid"]).set(user);
-//   });
-//   // const res = await db.collection("recipes").doc().set(body);
-//   response.status(200).send();
-// });
+exports.createItem = onRequest(async ({ body }, response) => {
+  console.log(body);
+  const { obj } = body;
+  obj.forEach((recipe) => {
+    db.collection("marketplace")
+      .doc()
+      .set({ ...recipe, date: Date(recipe.date) });
+  });
+
+  // users.forEach((user) => {
+  //   db.collection("users").doc(user["uid"]).set(user);
+  // });
+  // const res = await db.collection("recipes").doc().set(body);
+  response.status(200).send();
+});
 
 exports.updateRecipes = onRequest(async ({ body }, response) => {
   const blacklistWords = [
