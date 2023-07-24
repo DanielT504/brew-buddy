@@ -92,6 +92,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
+import com.example.brewbuddy.common.Constants.DEFAULT_BANNER_URL
 import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.recipes.IndividualIngredient
 import com.example.brewbuddy.recipes.IndividualRecipeScreenViewModel
@@ -111,6 +112,8 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
@@ -121,6 +124,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.json.JSONException
 import org.json.JSONObject
+import java.util.UUID
 
 private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
     val diff = currentIndex - startIndex;
@@ -129,24 +133,25 @@ private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
     }
     return diff % pageCount
 }
-fun postRecipe(recipe: IngredientsList?, title: String?, summary: String?, imageUri: Uri?) {
+fun postRecipe(recipe: IngredientsList?, title: String?, summary: String?, imageUri: String) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
+    Log.d("Upload Image Success2", imageUri)
     userId?.let {
         val recipesRef = db.collection("recipes").document(userId)
         val recipeInfo = hashMapOf(
-            "bannerUrl" to imageUri?.toString(),
+            "bannerUrl" to imageUri,
             "ingredientLists" to recipe,
             "title" to title,
             "summary" to summary,
+            "authorId" to userId,
 //            "summary" to lactoseFree
         )
         recipesRef.set(recipeInfo)
         .addOnSuccessListener {
-            // Successfully updated the radius in Firestore
-            Log.d("EDIT_PREFS", "Recipe uploaded to Firestore")
+            Log.d("Upload Image Success", imageUri)
         }
         .addOnFailureListener { exception ->
-            Log.d("EDIT_PREFS", "Error uploading recipe: $exception")
+            Log.d("Upload Image", "Error uploading recipe: $exception")
         }
     }
 }
@@ -258,16 +263,14 @@ fun ImageGrid(
 //                                    .clickable( onClick = { navController.navigate(AccessScreens.Login.route)} )
                             ) {
                                 val imageUrl = imageUrls[index]
-                                val painter = rememberAsyncImagePainter(imageUrl)
-
-                                Image(
-                                    painter = painter,
+                                AsyncImage(
+                                    model = imageUrl,
                                     contentDescription = "Recipe Image",
+                                    contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .padding(4.dp)
                                         .aspectRatio(1F),
-                                    contentScale = ContentScale.Crop
                                 )
                             }
                         }
@@ -365,6 +368,32 @@ fun IngredientInput(ingredientData: IndividualIngredient? = null, onIngredientCh
                     .padding(4.dp),
             )
         }
+    }
+}
+
+fun uploadImageToFirebaseStorage(imageUri: Uri?, onUrlReady: (String) -> Unit) {
+    if (imageUri != null) {
+        val filename = "recipe_image_${UUID.randomUUID()}"
+        val storage = Firebase.storage
+        val storageRef = storage.reference
+
+        val imageRef = storageRef.child("images/$filename")
+        val uploadTask = imageRef.putFile(imageUri)
+        uploadTask.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                task.exception?.let { throw it }
+            }
+            imageRef.downloadUrl
+        }.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val downloadUrl = task.result.toString()
+                onUrlReady(downloadUrl)
+            } else {
+                onUrlReady(DEFAULT_BANNER_URL)
+            }
+        }
+    } else {
+        onUrlReady(DEFAULT_BANNER_URL)
     }
 }
 
@@ -503,8 +532,15 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                 }
 
                                 val completedRecipe = IngredientsList(quantityList, unitList, labelList)
-
-                                postRecipe(completedRecipe, title, description, uri)
+                                var uriAsString = ""
+                                uploadImageToFirebaseStorage(
+                                    uri
+                                ) { newValue: String ->
+                                    uriAsString = newValue
+                                    postRecipe(completedRecipe, title, description, newValue)
+                                    Log.d("NEWVAL", newValue)
+                                    Log.d("URIASSTRING", uriAsString)
+                                }
                                 onClose()
                             }
                         ) {
