@@ -1,6 +1,6 @@
-package com.example.brewbuddy.domain.use_case.get_marketplace_items
+package com.example.brewbuddy.domain.use_case.get_marketplace
 
-import com.example.brewbuddy.data.remote.dto.MarketplaceItemMetadata
+import com.example.brewbuddy.domain.model.MarketplaceItemMetadata
 import com.example.brewbuddy.data.remote.dto.toMarketplaceItemMetadata
 import com.example.brewbuddy.common.Resource
 import com.example.brewbuddy.domain.repository.RecipeRepository

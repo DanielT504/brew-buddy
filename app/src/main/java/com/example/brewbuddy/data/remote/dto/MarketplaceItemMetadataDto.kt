@@ -1,7 +1,6 @@
 package com.example.brewbuddy.data.remote.dto
 
-import com.example.brewbuddy.domain.model.Author
-import com.example.brewbuddy.domain.model.RecipeMetadata
+import com.example.brewbuddy.domain.model.MarketplaceItemMetadata
 
 data class MarketplaceItemMetadataDto(
     val authorId: String,

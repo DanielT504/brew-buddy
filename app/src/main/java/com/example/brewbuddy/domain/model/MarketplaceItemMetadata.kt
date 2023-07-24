@@ -1,4 +1,4 @@
-package com.example.brewbuddy.data.remote.dto
+package com.example.brewbuddy.domain.model
 
 import com.example.brewbuddy.common.Constants
 import com.example.brewbuddy.domain.model.Author

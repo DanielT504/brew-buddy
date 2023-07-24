@@ -61,8 +61,8 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.marketplace.Filter
+import com.example.brewbuddy.recipes.RecipeTagList
 import com.example.brewbuddy.recipes.RecipesViewModel
-import com.example.brewbuddy.recipes.TagList
 import com.example.brewbuddy.ui.theme.AuthorCardDisplay
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenLight
@@ -210,7 +210,7 @@ private fun RecipeFilters(state: Boolean, onDismissRequest: () -> Unit, viewMode
         Row(modifier = Modifier.fillMaxWidth()) {
             Column(modifier=Modifier.width(200.dp)) {
                 Label("Filters")
-                TagList.forEach { tagInfo ->
+                RecipeTagList.forEach { tagInfo ->
                     val filter = Filter(name=tagInfo.name, filterLabel = tagInfo.label, enabled=true)
                     DropdownMenuItem(
                         leadingIcon = {if(viewModel.filters.contains(filter)) {
@@ -478,12 +478,6 @@ private fun ResultCard(
         }
     }
 }
-//
-private val PreferenceFilters = listOf(
-    TagList.forEach {tagInfo ->
-        Filter(tagInfo.name, tagInfo.label, false);
-    }
-)
 
 private val SortFilters = listOf(
     Filter("dateAsce", "Oldest to Newest", false),
@@ -491,5 +485,3 @@ private val SortFilters = listOf(
     Filter("likesAsce", "Popularity (Low to High)", false),
     Filter("likesDesc", "Popularity (High to Low)", false)
 )
-//
-//data class PreferenceFilter

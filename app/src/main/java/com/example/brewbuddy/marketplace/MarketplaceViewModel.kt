@@ -1,14 +1,11 @@
 package com.example.brewbuddy.marketplace
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brewbuddy.common.Resource
-import com.example.brewbuddy.data.remote.dto.MarketplaceItemMetadata
+import com.example.brewbuddy.domain.model.MarketplaceItemMetadata
 import com.example.brewbuddy.domain.model.SearchResultState
-import com.example.brewbuddy.domain.use_case.get_marketplace_items.GetMarketplaceItemsUseCase
+import com.example.brewbuddy.domain.use_case.get_marketplace.GetMarketplaceItemsUseCase
 import com.example.brewbuddy.recipes.SearchViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
