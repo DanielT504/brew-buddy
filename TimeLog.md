@@ -113,3 +113,4 @@
 | 2023/07/23 |        | 1       |      |        |         |        | Update likes field on recipe doc + real time update in UI                                                                 |
 | 2023/07/23 |        |         |      |        |         | 4      | Email verification                                                                                                        |
 | 2023/07/23 |4        |         |      |        |         |        | debug + refactor maps/settings                                                                                                     |
+| 2023/07/23 |         |2        |      |        |         |        | Added ability for user to provide feedback on a recipe                                                                                                    |
