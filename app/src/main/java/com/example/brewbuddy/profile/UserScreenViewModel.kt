@@ -25,14 +25,6 @@ class UserScreenViewModel  @Inject constructor(
     val state: State<UserScreenState> = _state
 
     private val userId = FirebaseAuth.getInstance().currentUser!!.uid
-//    init {
-//        Log.d("UserScreenViewModel", savedStateHandle.toString())
-//        savedStateHandle.get<String>(Constants.PARAM_USER_ID)?.let { userId ->
-//            Log.d("UserScreenViewModel Value", userId.substringAfter("}"))
-//            val userId = userId.substringAfter("}")
-//            getRecipesByUserId(userId)
-//        }
-//    }
 
     init {
         getRecipesByUserId(userId)
@@ -43,6 +35,7 @@ class UserScreenViewModel  @Inject constructor(
             when(result) {
                 is Resource.Success -> {
                     if (result.data != null){
+                        Log.d("getrecipes result banner", result.data[0].bannerUrl)
                         _state.value = UserScreenState(data = result.data)
                     }
                 }

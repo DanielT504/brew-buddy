@@ -147,10 +147,11 @@ private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
 fun postRecipe(recipe: Recipe) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     userId?.let {
-        val recipesRef = db.collection("recipes").document(userId)
+        val recipesRef = db.collection("recipes").document()
         val recipeInfo = hashMapOf(
+            "id" to "testing testing",
             "authorId" to recipe.author.id,
-            "bannerId" to recipe.bannerUrl,
+            "bannerUrl" to recipe.bannerUrl,
             "ingredientLists" to recipe.ingredientLists,
             "instructions" to recipe.instructions,
             "preparationMinutes" to recipe.preparationMinutes,
@@ -241,6 +242,7 @@ fun ImageGrid(
 ) {
     var itemCount = recipes.size
     Log.d("ITEMCOUNT", itemCount.toString())
+    Log.d("RECIPE BANNER", recipes[0].bannerUrl)
     Column(modifier = modifier) {
         var rows = (itemCount / columns)
         if (itemCount.mod(columns) > 0) {
