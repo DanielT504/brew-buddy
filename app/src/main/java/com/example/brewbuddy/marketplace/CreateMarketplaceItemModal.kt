@@ -117,7 +117,6 @@ fun MarketplaceItemModal(viewModel: MarketplaceViewModel, openDialog: MutableSta
                                     Log.d("NEWVAL", newValue)
                                     Log.d("URIASSTRING", uriAsString)
                                 }
-                                viewModel.search()
                                 onClose()
                             }
                         ) {

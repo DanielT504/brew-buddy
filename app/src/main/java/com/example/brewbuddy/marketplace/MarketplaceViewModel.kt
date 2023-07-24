@@ -84,6 +84,7 @@ class MarketplaceViewModel @Inject constructor(
             ref.set(itemInfo)
                 .addOnSuccessListener {
                     Log.d("Upload Image Success", imageUrl)
+                    search()
                 }
                 .addOnFailureListener { exception ->
                     Log.d("Upload Image", "Error uploading recipe: $exception")
