@@ -480,7 +480,7 @@ fun UserScreen(menuButton: @Composable () -> Unit) {
 
 @Composable
 fun MapWrapper(stores: List<Store>) {
-    val savedStore = LatLng(stores[0].latitude, stores[0].longitude)
+    val savedStore = LatLng(stores[stores.size-1].latitude, stores[stores.size-1].longitude)
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(savedStore, 15f)
