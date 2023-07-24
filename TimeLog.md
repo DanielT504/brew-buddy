@@ -96,6 +96,7 @@
 | 2023/07/21 |        |         | 2    |        |         |        | Code review                                                                                                               |
 | 2023/07/21 |        |         | 4    |        |         |        | Get user recipe data from firestore, update imagegrid                                                                     |
 | 2023/07/21 |        |         | 2    |        |         |        | Debug attempt                                                                                                             |
+| 2023/07/21 |4        |         |     |        |         |        | Debugging featured and profile map                                                                                                             |
 | 2023/07/22 |        |         |      |        |         | 2      | Account deletion from firebase done, but not from firestore                                                               |
 | 2023/07/22 |        | 2       |      |        |         |        | MarketplaceItemScreen, viewmodel scaffold, routing                                                                        |
 | 2023/07/22 |        | 4       |      |        |         |        | Refactor recommendation engine to live in api layer                                                                       |
@@ -111,3 +112,4 @@
 | 2023/07/23 |        |         |      |        |         | 1      | .env bug patch                                                                                                            |
 | 2023/07/23 |        | 1       |      |        |         |        | Update likes field on recipe doc + real time update in UI                                                                 |
 | 2023/07/23 |        |         |      |        |         | 4      | Email verification                                                                                                        |
+| 2023/07/23 |4        |         |      |        |         |        | debug + refactor maps/settings                                                                                                     |
