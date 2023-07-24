@@ -48,62 +48,6 @@ import java.util.Date
 import java.util.TimeZone
 
 
-fun postMarketplaceItem(
-    isEquipment: Boolean,
-    isIngredients: Boolean,
-    contact: String,
-    city: String,
-    province: String,
-    title: String,
-    description: String,
-    imageUrl: String,
-    price: Number) {
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-    Log.d("Upload Image Success2", imageUrl)
-    var tagArr = ArrayList<String>()
-
-    if(isEquipment) {
-        tagArr.add("equipment")
-    }
-    if(isIngredients) {
-        tagArr.add("ingredients")
-    }
-
-    val tz: TimeZone = TimeZone.getTimeZone("UTC")
-    val df: DateFormat =
-        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'") // Quoted "Z" to indicate UTC, no timezone offset 2023-07-18T09:09:11
-
-    df.setTimeZone(tz)
-    val nowAsISO: String = df.format(Date())
-    val tags = tagArr.toList()
-    val keyArr = title.lowercase().split(" ").toTypedArray()
-    val keywords = keyArr.toList()
-    userId?.let {
-        val ref = db.collection("marketplace").document()
-        val itemInfo = hashMapOf(
-            "imageUrl" to imageUrl,
-            "city" to city,
-            "title" to title,
-            "description" to description,
-            "keywords" to keywords,
-            "tags" to tags,
-            "equipment" to isEquipment,
-            "ingredients" to isIngredients,
-            "price" to price,
-            "authorId" to userId,
-            "contact" to contact,
-            "province" to province,
-            "date" to nowAsISO
-        )
-        ref.set(itemInfo)
-            .addOnSuccessListener {
-                Log.d("Upload Image Success", imageUrl)
-            }
-            .addOnFailureListener { exception ->
-                Log.d("Upload Image", "Error uploading recipe: $exception")
-            }
-    }
-}
 
 @Composable
 private fun Label(text: String) {
@@ -159,7 +103,7 @@ fun MarketplaceItemModal(viewModel: MarketplaceViewModel, openDialog: MutableSta
                                     uri
                                 ) { newValue: String ->
                                     uriAsString = newValue
-                                    postMarketplaceItem(
+                                    viewModel.post(
                                         isEquipment=isEquipment,
                                         isIngredients=isIngredients,
                                         contact=contact,
@@ -169,12 +113,10 @@ fun MarketplaceItemModal(viewModel: MarketplaceViewModel, openDialog: MutableSta
                                         title=title,
                                         description = description,
                                         price=price.toFloat()
-
                                     )
                                     Log.d("NEWVAL", newValue)
                                     Log.d("URIASSTRING", uriAsString)
                                 }
-                                viewModel.search()
                                 onClose()
                             }
                         ) {
