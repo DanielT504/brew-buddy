@@ -114,3 +114,5 @@
 | 2023/07/23 |        |         |      |        |         | 4      | Email verification                                                                                                        |
 | 2023/07/23 |4        |         |      |        |         |        | debug + refactor maps/settings                                                                                                     |
 | 2023/07/23 |         |2        |      |        |         |        | Added ability for user to provide feedback on a recipe                                                                                                    |
+| 2023/07/23 |         | 1      | 1    |        | 1       |        | Knowledge transfer session |
+| 2023/07/23 |         |        | 5    |        |         |        | Update API calls, add uploads to firebase storage, finish "Your Recipes" component|
