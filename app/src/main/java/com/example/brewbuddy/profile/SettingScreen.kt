@@ -50,7 +50,7 @@ val db = FirebaseFirestore.getInstance()
 var currRadius: Float = 10f;
 var currVegan: Boolean = false;
 var currVegetarian: Boolean = false;
-var currLactoseFree: Boolean = false;
+var currDairyFree: Boolean = false;
 var currKosher: Boolean = false;
 var currHalal: Boolean = false;
 var currGlutenFree: Boolean = false;
@@ -69,7 +69,7 @@ private fun retrieveSettings() {
                 currRadius = snapshot.getDouble("radius")?.toFloat() ?: 0f;
                 currVegan= snapshot.getBoolean("vegan")?: false;
                 currVegetarian = snapshot.getBoolean("vegetarian")?: false;
-                currLactoseFree = snapshot.getBoolean("lactoseFree")?: false;
+                currDairyFree = snapshot.getBoolean("dairyFree")?: false;
                 currKeto = snapshot.getBoolean("keto")?: false;
                 currKosher = snapshot.getBoolean("kosher")?: false;
                 currHalal = snapshot.getBoolean("halal")?: false;
@@ -82,7 +82,7 @@ private fun retrieveSettings() {
         }
     }
 }
-fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, lactoseFree: Boolean?, keto: Boolean?, kosher: Boolean?, halal: Boolean?, glutenFree: Boolean?, nutFree: Boolean?) {
+fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, dairyFree: Boolean?, keto: Boolean?, kosher: Boolean?, halal: Boolean?, glutenFree: Boolean?, nutFree: Boolean?) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     userId?.let {
         val preferencesRef = db.collection("user_preferences").document(userId)
@@ -90,7 +90,7 @@ fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, lactos
             "radius" to radius,
             "vegan" to vegan,
             "vegetarian" to vegetarian,
-            "lactoseFree" to lactoseFree,
+            "dairyFree" to dairyFree,
             "keto" to keto,
             "kosher" to kosher,
             "halal" to halal,
@@ -126,7 +126,7 @@ fun SettingScreen(
     var sliderPosition by remember { mutableStateOf(currRadius) }
     val (veganState, onVeganChange) = remember { mutableStateOf(currVegan) }
     val (vegetarianState, onVegetarianChange) = remember { mutableStateOf(currVegetarian) }
-    val (lactoseState, onLactoseChange) = remember { mutableStateOf(currLactoseFree) }
+    val (dairyState, onDairyChange) = remember { mutableStateOf(currDairyFree) }
     val (ketoState, onKetoChange) = remember { mutableStateOf(currKeto) }
     val (kosherState, onKosherChange) = remember { mutableStateOf(currKosher) }
     val (halalState, onHalalChange) = remember { mutableStateOf(currHalal) }
@@ -247,19 +247,19 @@ fun SettingScreen(
                             .fillMaxWidth()
                             .height(56.dp)
                             .toggleable(
-                                value = lactoseState,
-                                onValueChange = { onLactoseChange(!lactoseState) },
+                                value = dairyState,
+                                onValueChange = { onDairyChange(!dairyState) },
                                 role = Role.Checkbox
                             )
                             .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
-                            checked = lactoseState,
+                            checked = dairyState,
                             onCheckedChange = null // null recommended for accessibility with screenreaders
                         )
                         Text(
-                            text = "Lactose-free",
+                            text = "Dairy-free",
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(start = 16.dp)
                         )
@@ -402,7 +402,7 @@ fun SettingScreen(
                 Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 32.dp)) {
                     Button(
                         onClick = {
-                            updateSettings(sliderPosition, veganState, vegetarianState, lactoseState, ketoState, kosherState, halalState, glutenState, nutState );
+                            updateSettings(sliderPosition, veganState, vegetarianState, dairyState, ketoState, kosherState, halalState, glutenState, nutState );
                         },
                         shape = RoundedCornerShape(50.dp),
                         modifier = Modifier
