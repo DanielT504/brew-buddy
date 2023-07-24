@@ -1,6 +1,7 @@
 package com.example.brewbuddy.profile
 
 import android.content.Intent
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
@@ -58,7 +59,74 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.tasks.await
 
+val db = FirebaseFirestore.getInstance()
+
+var currRadius: Float = 10f;
+var currVegan: Boolean = false;
+var currVegetarian: Boolean = false;
+var currLactoseFree: Boolean = false;
+var currKosher: Boolean = false;
+var currHalal: Boolean = false;
+var currGlutenFree: Boolean = false;
+var currNutFree: Boolean = false;
+var currKeto: Boolean = false;
+
+private fun retrieveSettings() {
+    val firestore = FirebaseFirestore.getInstance()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val preferencesRef = userId?.let { firestore.collection("user_preferences").document(it) }
+
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val snapshot = preferencesRef?.get()?.await()
+            if (snapshot != null) {
+                currRadius = snapshot.getDouble("radius")?.toFloat() ?: 0f;
+                currVegan= snapshot.getBoolean("vegan")?: false;
+                currVegetarian = snapshot.getBoolean("vegetarian")?: false;
+                currLactoseFree = snapshot.getBoolean("lactoseFree")?: false;
+                currKeto = snapshot.getBoolean("keto")?: false;
+                currKosher = snapshot.getBoolean("kosher")?: false;
+                currHalal = snapshot.getBoolean("halal")?: false;
+                currGlutenFree = snapshot.getBoolean("glutenFree")?: false;
+                currNutFree = snapshot.getBoolean("nutFree")?: false;
+            }
+
+        } catch (e: Exception) {
+            // Handle exceptions, such as network errors or document retrieval failures
+        }
+    }
+}
+fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, lactoseFree: Boolean?, keto: Boolean?, kosher: Boolean?, halal: Boolean?, glutenFree: Boolean?, nutFree: Boolean?) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val preferencesRef = db.collection("user_preferences").document(userId)
+        val prefs = hashMapOf(
+            "radius" to radius,
+            "vegan" to vegan,
+            "vegetarian" to vegetarian,
+            "lactoseFree" to lactoseFree,
+            "keto" to keto,
+            "kosher" to kosher,
+            "halal" to halal,
+            "glutenFree" to glutenFree,
+            "nutFree" to nutFree
+        )
+        preferencesRef.set(prefs)
+            .addOnSuccessListener {
+                // Successfully updated the radius in Firestore
+                Log.d("EDIT_PREFS", "User prefs changed in user pref")
+            }
+            .addOnFailureListener { exception ->
+                Log.d("EDIT_PREFS", "Error changing user prefs: $exception")
+            }
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
@@ -69,16 +137,21 @@ fun SettingScreen(
 ) {
     val currentUserRepository = CurrentUserRepository()
     val currentUserViewModel: CurrentUserViewModel = viewModel()
+    retrieveSettings()
 
     // Get the coroutine scope
     val coroutineScope = rememberCoroutineScope()
 
     val scrollState = rememberScrollState()
-    var sliderPosition by remember { mutableStateOf(0f) }
-    val (checkedState, onStateChange) = remember { mutableStateOf(false) }
-    val (checkedState1, onStateChange1) = remember { mutableStateOf(false) }
-    val (checkedState2, onStateChange2) = remember { mutableStateOf(false) }
-    val (checkedState3, onStateChange3) = remember { mutableStateOf(false) }
+    var sliderPosition by remember { mutableStateOf(currRadius) }
+    val (veganState, onVeganChange) = remember { mutableStateOf(currVegan) }
+    val (vegetarianState, onVegetarianChange) = remember { mutableStateOf(currVegetarian) }
+    val (lactoseState, onLactoseChange) = remember { mutableStateOf(currLactoseFree) }
+    val (ketoState, onKetoChange) = remember { mutableStateOf(currKeto) }
+    val (kosherState, onKosherChange) = remember { mutableStateOf(currKosher) }
+    val (halalState, onHalalChange) = remember { mutableStateOf(currHalal) }
+    val (glutenState, onGlutenChange) = remember { mutableStateOf(currGlutenFree) }
+    val (nutState, onNutChange) = remember { mutableStateOf(currNutFree) }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -108,7 +181,7 @@ fun SettingScreen(
                         },
                         value = sliderPosition,
                         onValueChange = { sliderPosition = it },
-                        valueRange = 0f..100f,
+                        valueRange = 0f..50f,
                         onValueChangeFinished = {
                             //todo
                         },
@@ -140,15 +213,15 @@ fun SettingScreen(
                             .fillMaxWidth()
                             .height(56.dp)
                             .toggleable(
-                                value = checkedState,
-                                onValueChange = { onStateChange(!checkedState) },
+                                value = veganState,
+                                onValueChange = { onVeganChange(!veganState) },
                                 role = Role.Checkbox
                             )
                             .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
-                            checked = checkedState,
+                            checked = veganState,
                             onCheckedChange = null // null recommended for accessibility with screenreaders
                         )
                         Text(
@@ -167,15 +240,15 @@ fun SettingScreen(
                             .fillMaxWidth()
                             .height(56.dp)
                             .toggleable(
-                                value = checkedState1,
-                                onValueChange = { onStateChange1(!checkedState1) },
+                                value = vegetarianState,
+                                onValueChange = { onVegetarianChange(!vegetarianState) },
                                 role = Role.Checkbox
                             )
                             .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
-                            checked = checkedState1,
+                            checked = vegetarianState,
                             onCheckedChange = null // null recommended for accessibility with screenreaders
                         )
                         Text(
@@ -194,15 +267,15 @@ fun SettingScreen(
                             .fillMaxWidth()
                             .height(56.dp)
                             .toggleable(
-                                value = checkedState2,
-                                onValueChange = { onStateChange2(!checkedState2) },
+                                value = lactoseState,
+                                onValueChange = { onLactoseChange(!lactoseState) },
                                 role = Role.Checkbox
                             )
                             .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
-                            checked = checkedState2,
+                            checked = lactoseState,
                             onCheckedChange = null // null recommended for accessibility with screenreaders
                         )
                         Text(
@@ -221,15 +294,15 @@ fun SettingScreen(
                             .fillMaxWidth()
                             .height(56.dp)
                             .toggleable(
-                                value = checkedState3,
-                                onValueChange = { onStateChange3(!checkedState3) },
+                                value = ketoState,
+                                onValueChange = { onKetoChange(!ketoState) },
                                 role = Role.Checkbox
                             )
                             .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
-                            checked = checkedState3,
+                            checked = ketoState,
                             onCheckedChange = null // null recommended for accessibility with screenreaders
                         )
                         Text(
@@ -240,11 +313,117 @@ fun SettingScreen(
                     }
                 }
             }
+            item {
+                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .toggleable(
+                                value = kosherState,
+                                onValueChange = { onKosherChange(!kosherState) },
+                                role = Role.Checkbox
+                            )
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = kosherState,
+                            onCheckedChange = null // null recommended for accessibility with screenreaders
+                        )
+                        Text(
+                            text = "Kosher",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+                }
+            }
+            item {
+                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .toggleable(
+                                value = halalState,
+                                onValueChange = { onHalalChange(!halalState) },
+                                role = Role.Checkbox
+                            )
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = halalState,
+                            onCheckedChange = null // null recommended for accessibility with screenreaders
+                        )
+                        Text(
+                            text = "Halal",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+                }
+            }
+            item {
+                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .toggleable(
+                                value = glutenState,
+                                onValueChange = { onGlutenChange(!glutenState) },
+                                role = Role.Checkbox
+                            )
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = glutenState,
+                            onCheckedChange = null // null recommended for accessibility with screenreaders
+                        )
+                        Text(
+                            text = "Gluten-free",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+                }
+            }
+            item {
+                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .toggleable(
+                                value = nutState,
+                                onValueChange = { onNutChange(!nutState) },
+                                role = Role.Checkbox
+                            )
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = nutState,
+                            onCheckedChange = null // null recommended for accessibility with screenreaders
+                        )
+                        Text(
+                            text = "Nut-free",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+                }
+            }
 
             item {
                 Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 32.dp)) {
                     Button(
-                        onClick = {},
+                        onClick = {
+                            updateSettings(sliderPosition, veganState, vegetarianState, lactoseState, ketoState, kosherState, halalState, glutenState, nutState );
+                        },
                         shape = RoundedCornerShape(50.dp),
                         modifier = Modifier
                             .fillMaxWidth()
