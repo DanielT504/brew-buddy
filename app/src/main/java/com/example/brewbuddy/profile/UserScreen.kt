@@ -266,7 +266,12 @@ fun ImageGrid(
                                     .fillMaxWidth()
                                     .aspectRatio(1f)
                                     .padding(4.dp)
-                                    .clickable( onClick = { navigateToRecipe(recipes[index].id, navController)  } )
+                                    .clickable(onClick = {
+                                        navigateToRecipe(
+                                            recipes[index].id,
+                                            navController
+                                        )
+                                    })
                             ) {
                                 val imageUrl = recipes[index].bannerUrl
                                 AsyncImage(
@@ -489,7 +494,7 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
     var prepMinutes by remember { mutableStateOf("") }
     var uri by remember { mutableStateOf<Uri?>(null) }
 
-    val currentUser = FirebaseAuth.getInstance().currentUser
+    val currentUser = getUser()
 
     if (openDialog.value) {
         AlertDialog(
@@ -551,7 +556,11 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                 summary = description,
                                 instructions = listOf(Instructions(name = title, steps = instructions)),
                                 ingredientLists = listOf(IngredientList("title", ingredients)),
-                                author = Author(id = currentUser!!.uid)     // todo: populate author profile picture, username
+                                author = Author(
+                                    id = currentUser.getUserId(),
+                                    username = currentUser.getUsername(),
+                                    avatarUrl = currentUser.getAvatarUrl()
+                                )
                             )
                                 uploadImageToFirebaseStorage(
                                     completedRecipe,
