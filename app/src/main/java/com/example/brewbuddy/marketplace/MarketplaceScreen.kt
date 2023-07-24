@@ -84,7 +84,7 @@ fun MarketplaceScreen (
     viewModel: MarketplaceViewModel = hiltViewModel()
 ) {
     var activeFilters =  remember { mutableStateListOf<Filter>() }
-    var state = viewModel.marketplaceState.value
+    var state = viewModel.state.value
     var marketplaceSectionOffset = 20.dp
     if (activeFilters.size >= 3) {
         marketplaceSectionOffset = -(5.dp)
@@ -366,7 +366,7 @@ private fun Marketplace(
     navController: NavHostController,
     viewModel: MarketplaceViewModel
 ) {
-    val state = viewModel.marketplaceState.value
+    val state = viewModel.state.value
     Surface(shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -378,7 +378,7 @@ private fun Marketplace(
                 .padding(start = 16.dp, end = 16.dp, top = 34.dp, bottom = 94.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-            for (marketplaceItem in state.data) {
+            for (marketplaceItem in state.results) {
                 MarketplaceCard(
                     title = marketplaceItem.postTitle,
                     price = marketplaceItem.price,

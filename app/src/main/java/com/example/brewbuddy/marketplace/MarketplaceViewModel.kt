@@ -2,10 +2,14 @@ package com.example.brewbuddy.marketplace
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brewbuddy.common.Resource
+import com.example.brewbuddy.data.remote.dto.MarketplaceItemMetadata
+import com.example.brewbuddy.domain.model.SearchResultState
 import com.example.brewbuddy.domain.use_case.get_marketplace_items.GetMarketplaceItemsUseCase
+import com.example.brewbuddy.recipes.SearchViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -13,11 +17,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MarketplaceViewModel @Inject constructor(
-    private val getMarketplaceItemsUseCase: GetMarketplaceItemsUseCase
-): ViewModel() {
-
-    private val _marketplaceState = mutableStateOf(MarketplaceState())
-    val marketplaceState: State<MarketplaceState> = _marketplaceState
+    private val getMarketplaceItemsUseCase: GetMarketplaceItemsUseCase,
+    savedStateHandle: SavedStateHandle
+): SearchViewModel<MarketplaceItemMetadata>(savedStateHandle) {
 
     init {
         getMarketplaceItems()
@@ -27,13 +29,13 @@ class MarketplaceViewModel @Inject constructor(
         getMarketplaceItemsUseCase().onEach { result ->
             when(result) {
                 is Resource.Success -> {
-                    _marketplaceState.value = MarketplaceState(data = result.data ?: emptyList())
+                    _state.value = SearchResultState(results = result.data ?: emptyList())
                 }
                 is Resource.Error -> {
-                    _marketplaceState.value = MarketplaceState(error = result.message ?: "An unexpected error occurred.")
+                    _state.value = SearchResultState(error = result.message ?: "An unexpected error occurred.")
                 }
                 is Resource.Loading -> {
-                    _marketplaceState.value = MarketplaceState(isLoading = true)
+                    _state.value = SearchResultState(isLoading = true)
                 }
             }
         }.launchIn(viewModelScope)
