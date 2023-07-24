@@ -478,15 +478,6 @@ fun StoreInfo(storeName: String, address: String, latitude: Double, longitude: D
     }
 }
 
-public val store1 =
-    Store(storeName = "C&D",
-        address = "188 University Ave.",
-        latitude = 43.471701,
-        longitude = -80.543566,
-        items= listOf("Coffee", "Espresso"),
-        rating=4.9, saved = false)
-
-
 @Preview(showBackground = true)
 @Composable
 fun ShopLocatorPreview() {
