@@ -94,6 +94,7 @@ import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.example.brewbuddy.common.Constants.DEFAULT_BANNER_URL
+import com.example.brewbuddy.data.remote.dto.Step
 import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.navigateToRecipe
 import com.example.brewbuddy.recipes.IndividualIngredient
@@ -269,7 +270,7 @@ fun ImageGrid(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StepInput(stepNumber: Number, inputStep: String? = null, onStepChange: (IndividualStep) -> Unit) {
+fun StepInput(stepNumber: Number, inputStep: String? = null, onStepChange: (Step) -> Unit) {
     var step by remember { mutableStateOf("") }
     if (inputStep != null) {
         step = inputStep
@@ -281,7 +282,7 @@ fun StepInput(stepNumber: Number, inputStep: String? = null, onStepChange: (Indi
                 value = step,
                 onValueChange = { newValue ->
                     step = newValue
-                    onStepChange(IndividualStep(stepNumber, step))
+                    onStepChange(Step(stepNumber as Int, step))
                 },
                 label = { Text("Add Step", style = TextStyle(fontSize = 12.sp, color = Color.Gray)) },
                 modifier = Modifier
@@ -454,7 +455,7 @@ fun ImageUpload(returnImageUri: (Uri?) -> Unit) {
 @Composable
 fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
     val ingredients = remember { mutableStateListOf<IndividualIngredient>(IndividualIngredient(0, "", "")) }
-    val instructions = remember { mutableStateListOf<IndividualStep>(IndividualStep(0, "")) }
+    val instructions = remember { mutableStateListOf<Step>(Step(0, "")) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var servings by remember { mutableStateOf("") }
@@ -480,7 +481,7 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                         Button(
                             modifier = Modifier.weight(0.4f),
                             colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
-                            onClick = { instructions.add(IndividualStep(0, "")) }
+                            onClick = { instructions.add(Step(0, "")) }
                         ) {
                             Text("Add Step")
                         }
@@ -495,7 +496,7 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                 ingredients.clear()
                                 ingredients.add(IndividualIngredient(0, "", ""))
                                 instructions.clear()
-                                instructions.add(IndividualStep(0, ""))
+                                instructions.add(Step(0, ""))
                                 title = ""
                                 description = ""
                                 uri = null
@@ -672,7 +673,7 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                             Row(modifier = Modifier.padding(bottom = 8.dp)) {
                                 StepInput(
                                     index + 1,
-                                    inputStep = instruction.stepInfo,
+                                    inputStep = instruction.step,
                                     onStepChange = { updatedStep ->
                                         instructions[index] = updatedStep
                                     }
