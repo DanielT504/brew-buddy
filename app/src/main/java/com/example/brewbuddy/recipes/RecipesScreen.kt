@@ -159,53 +159,35 @@ private fun updateActiveFilters(
     viewModel: RecipesViewModel
 ) {
 
-//    val oldestToNewest = SortFilters.last { filter: Filter -> filter.name == "dateAsce" }
-//    val newestToOldest = SortFilters.last { filter: Filter -> filter.name == "dateDesc" }
-    val likesLowToHigh = SortFilters.last { filter: Filter -> filter.name == "likesAsce"}
-    val likesHighToLow = SortFilters.last { filter: Filter -> filter.name == "likesDesc" }
-    if (viewModel.filters.contains(filterToAdd)) {
-        viewModel.removeFilter(filterToAdd)
-        return
-    }
-//    if (filterToAdd.name == "dateDesc"
-//        && viewModel.filters.contains(oldestToNewest))
-//    {
-//        viewModel.removeFilter(oldestToNewest)
-//        viewModel.addFilter(filterToAdd)
-//        viewModel.sort(filterToAdd.name)
+//    val likesLowToHigh = SortFilters.last { filter: Filter -> filter.name == "likesAsce"}
+//    val likesHighToLow = SortFilters.last { filter: Filter -> filter.name == "likesDesc" }
+//    if (viewModel.filters.contains(filterToAdd)) {
+//        viewModel.removeFilter(filterToAdd)
 //        return
 //    }
-//    if (filterToAdd.name == "dateAsce"
-//        && viewModel.filters.contains(newestToOldest))
+//
+//    if (filterToAdd.name == "likesAsce"
+//        && viewModel.filters.contains(likesHighToLow))
 //    {
-//        viewModel.removeFilter(newestToOldest)
+//        viewModel.removeFilter(likesHighToLow)
 //        viewModel.addFilter(filterToAdd)
 //        viewModel.sort(filterToAdd.name)
 //
 //        return
 //    }
-    if (filterToAdd.name == "likesAsce"
-        && viewModel.filters.contains(likesHighToLow))
-    {
-        viewModel.removeFilter(likesHighToLow)
-        viewModel.addFilter(filterToAdd)
-        viewModel.sort(filterToAdd.name)
-
-        return
-    }
-    if (filterToAdd.name == "likesDesc"
-        && viewModel.filters.contains(likesLowToHigh))
-    {
-        viewModel.removeFilter(likesLowToHigh)
-        viewModel.addFilter(filterToAdd)
-        viewModel.sort(filterToAdd.name)
-
-        return
-    }
-    viewModel.addFilter(filterToAdd)
-    viewModel.sort(filterToAdd.name)
-
-    return
+//    if (filterToAdd.name == "likesDesc"
+//        && viewModel.filters.contains(likesLowToHigh))
+//    {
+//        viewModel.removeFilter(likesLowToHigh)
+//        viewModel.addFilter(filterToAdd)
+//        viewModel.sort(filterToAdd.name)
+//
+//        return
+//    }
+//    viewModel.addFilter(filterToAdd)
+//    viewModel.sort(filterToAdd.name)
+//
+//    return
 }
 
 
@@ -271,8 +253,6 @@ private fun ResultCard(
 }
 
 private val SortFilters = listOf(
-//    Filter("dateAsce", "Oldest to Newest", false),
-//    Filter("dateDesc", "Newest to Oldest", false),
     Filter("likesAsce", "Popularity (Low to High)", false),
     Filter("likesDesc", "Popularity (High to Low)", false)
 )

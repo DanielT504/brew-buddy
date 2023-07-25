@@ -80,7 +80,6 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             Log.d("GET_RECIPES_BY_USER_ID3", user_id)
             val data = task.data as List<HashMap<String, Object>>
             Log.d("GET_RECIPES_BY_USER_ID4", user_id)
-            Log.d("RecipeRepository", data[0].toString())
             return@withContext data.map{RecipeMetadataDto.from(it)}
 
         }
@@ -134,6 +133,21 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             val task = dataDeferred.await()
             val data = task.data as HashMap<String, Object>
             return@withContext MarketplaceItemDto.from(data)
+        }
+    }
+
+    override suspend fun getMarketplaceItemsByUserId(userId: String): List<MarketplaceItemMetadataDto> {
+        Log.d("GET_MARKETPLACE_ITEM_BY_USER_ID", userId)
+
+        return withContext(Dispatchers.IO) {
+            val dataDeferred = async {
+                getFunctions()
+                    .getHttpsCallable("getMarketplaceItemsByUserId")
+                    .call(hashMapOf("userId" to userId)).await()
+            }
+            val task = dataDeferred.await()
+            val data = task.data as List<HashMap<String, Object>>
+            return@withContext data.map{MarketplaceItemMetadataDto.from(it)}
         }
     }
 }
