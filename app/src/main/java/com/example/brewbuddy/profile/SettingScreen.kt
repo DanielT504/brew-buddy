@@ -1,6 +1,7 @@
 package com.example.brewbuddy.profile
 
 import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
@@ -39,11 +40,21 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.core.net.toUri
+import com.example.brewbuddy.common.Constants.DEFAULT_BANNER_URL
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Color
+import com.example.brewbuddy.ui.theme.Brown
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 
 val db = FirebaseFirestore.getInstance()
 
@@ -107,6 +118,218 @@ fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, dairyF
             }
     }
 }
+
+
+fun updateBanner(bannerUrl: String) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val userRef = db.collection("users").document(userId)
+        val prefs = hashMapOf<String, Any>(
+            "bannerUrl" to bannerUrl
+        )
+        userRef.update(prefs)
+            .addOnSuccessListener {
+                Log.d("EDIT_PROFILE_BANNER", "User banner updated")
+            }
+            .addOnFailureListener { exception ->
+                Log.d("EDIT_PROFILE_BANNER", "Error changing banner: $exception")
+            }
+    }
+}
+
+fun updateAvatar(avatarUrl: String) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val userRef = db.collection("users").document(userId)
+        val prefs = hashMapOf<String, Any>(
+            "avatarUrl" to avatarUrl
+        )
+        userRef.update(prefs)
+            .addOnSuccessListener {
+                Log.d("EDIT_PROFILE_AVATAR", "User avatar updated")
+            }
+            .addOnFailureListener { exception ->
+                Log.d("EDIT_PROFILE_AVATAR", "Error changing avatar: $exception")
+            }
+    }
+}
+
+fun uploadSettingsImageToFirebaseStorage(imageUri: Uri, onUrlReady: (String) -> Unit) {
+    if (imageUri != DEFAULT_BANNER_URL.toUri()) {
+        val filename = "recipe_image_${UUID.randomUUID()}"
+        val storage = Firebase.storage
+        val storageRef = storage.reference
+
+        val imageRef = storageRef.child("images/$filename")
+        val uploadTask = imageRef.putFile(imageUri)
+        uploadTask.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                task.exception?.let { throw it }
+            }
+            imageRef.downloadUrl
+        }.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val downloadUrl = task.result.toString()
+                onUrlReady(downloadUrl)
+            } else {
+                onUrlReady(DEFAULT_BANNER_URL)
+            }
+        }
+    } else {
+        onUrlReady(DEFAULT_BANNER_URL)
+    }
+}
+
+val coffeeIngredients = listOf(
+    "Coffee beans",
+    "Water",
+    "Milk",
+    "Cream",
+    "Sugar",
+    "Sweetener",
+    "Honey",
+    "Cocoa powder",
+    "Cinnamon",
+    "Nutmeg",
+    "Whipped cream",
+    "Ground cinnamon",
+    "Ground nutmeg",
+    "Ice cubes",
+    "Espresso",
+    "Condensed milk",
+    "Evaporated milk",
+    "Coconut milk",
+    "Almond milk",
+    "Soy milk",
+    "Oat milk",
+    "Cardamom",
+    "Agave syrup",
+    "Maple syrup",
+    "Lemon zest",
+    "Ginger",
+    "Lavender",
+    "Mint leaves",
+    "Turmeric",
+    "Coconut oil",
+    "Brown sugar",
+    "Vanilla extract",
+    "Almond extract"
+)
+
+private fun retrieveIngredients(onIngredientsLoaded: (List<String>) -> Unit) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val preferencesRef = db.collection("user_preferences").document(userId)
+        preferencesRef.get()
+            .addOnSuccessListener { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    val ingredients = documentSnapshot.get("ingredients") as? List<String> ?: emptyList()
+                    onIngredientsLoaded(ingredients)
+                } else {
+                    onIngredientsLoaded(emptyList())
+                }
+            }
+            .addOnFailureListener { e ->
+                // Handle failure
+            }
+    }
+    }
+
+
+
+fun updateIngredients(ingredient: String, add: Boolean) {
+    //add ingredient to ingredients array in db
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val preferencesRef = db.collection("user_preferences").document(userId)
+        if (add) {
+            preferencesRef.update("ingredients", FieldValue.arrayUnion(ingredient))
+                .addOnSuccessListener {
+                    // Handle success
+                }
+                .addOnFailureListener { e ->
+                    // Handle failure
+                }
+        }
+        else {
+            preferencesRef.update("ingredients", FieldValue.arrayRemove(ingredient))
+                .addOnSuccessListener {
+                    // Handle success
+                }
+                .addOnFailureListener { e ->
+                    // Handle failure
+                }
+        }
+        }
+}
+
+@Composable
+fun IngredientButton(ingredient: String) {
+    var selectedIngredientsList by remember { mutableStateOf(emptyList<String>()) }
+    var ingredientsFetched by remember {
+        mutableStateOf(false)
+    }
+    // Fetch ingredients from Firestore when the composable is first recomposed
+    LaunchedEffect(Unit) {
+        retrieveIngredients() { ingredients ->
+            selectedIngredientsList = ingredients
+            ingredientsFetched = true
+
+        }
+    }
+    if (ingredientsFetched) {
+        var isSelected = selectedIngredientsList.contains(ingredient)
+        var selected by remember { mutableStateOf(isSelected) }
+
+        Button(
+            onClick = {
+                updateIngredients(ingredient, !selected)
+
+                selected = !selected
+            },
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (selected) Brown else Color.White,
+                contentColor = if (selected) Color.White else Color.Black,
+            ),
+            modifier = Modifier
+                .padding(8.dp)
+                .wrapContentWidth()
+                .height(50.dp)
+        ) {
+            Text(text = ingredient)
+        }
+    }
+}
+
+@Composable
+fun CoffeeIngredientsRow(ingredientList: List<String>) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        for (ingredient in ingredientList) {
+            IngredientButton(ingredient = ingredient)
+        }
+    }
+}
+
+@Composable
+fun CoffeeIngredientsCluster() {
+    val rows = 4 // Number of rows in the cluster
+    val columns = 3 // Number of ingredients per row
+
+    Column {
+        repeat(rows) { rowIndex ->
+            val startIndex = rowIndex * columns
+            val endIndex = minOf(startIndex + columns, coffeeIngredients.size)
+            val rowIngredients = coffeeIngredients.subList(startIndex, endIndex)
+            CoffeeIngredientsRow(ingredientList = rowIngredients)
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
@@ -132,6 +355,9 @@ fun SettingScreen(
     val (halalState, onHalalChange) = remember { mutableStateOf(currHalal) }
     val (glutenState, onGlutenChange) = remember { mutableStateOf(currGlutenFree) }
     val (nutState, onNutChange) = remember { mutableStateOf(currNutFree) }
+
+    var profilePictureUri by remember { mutableStateOf<Uri?>(DEFAULT_BANNER_URL.toUri()) }
+    var bannerPictureUri by remember { mutableStateOf<Uri?>(DEFAULT_BANNER_URL.toUri()) }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -397,12 +623,62 @@ fun SettingScreen(
                     }
                 }
             }
+            item {
+                Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
+                    Text(
+                        text = "What ingredients do you have?",
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
+            }
+            item {
+                Box{
+                    CoffeeIngredientsCluster()
+                }
+            }
+            item {
+//              update profile picture
+                ImageUpload("Select New Profile Picture", returnImageUri = {newUri -> profilePictureUri = newUri})
+            }
+
+            item {
+                ImageUpload("Select New Banner Picture", returnImageUri = {newUri -> bannerPictureUri = newUri})
+            }
+
 
             item {
                 Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 32.dp)) {
                     Button(
                         onClick = {
-                            updateSettings(sliderPosition, veganState, vegetarianState, dairyState, ketoState, kosherState, halalState, glutenState, nutState );
+                            profilePictureUri?.let {
+                                uploadSettingsImageToFirebaseStorage(
+                                    it
+                                ) { newValue: String ->
+                                    Log.d("NEWAVATARVALUE", newValue)
+                                    updateAvatar(newValue)
+                                }
+                            }
+
+                            bannerPictureUri?.let {
+                                uploadSettingsImageToFirebaseStorage(
+                                    it
+                                ) { newValue: String ->
+                                    updateBanner(newValue)
+                                }
+                            }
+
+                            updateSettings(
+                                sliderPosition,
+                                veganState,
+                                vegetarianState,
+                                dairyState,
+                                ketoState,
+                                kosherState,
+                                halalState,
+                                glutenState,
+                                nutState,
+                            );
                         },
                         shape = RoundedCornerShape(50.dp),
                         modifier = Modifier
