@@ -1,20 +1,14 @@
 package com.example.brewbuddy
 
-import android.graphics.Paint.Align
 import android.util.Log
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -23,14 +17,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 
@@ -40,7 +30,6 @@ import androidx.compose.ui.unit.dp
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
@@ -49,35 +38,25 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.brewbuddy.profile.CurrentUserViewModel
-import kotlinx.coroutines.coroutineScope
+import com.example.brewbuddy.profile.LoginUserViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -88,9 +67,6 @@ import com.example.brewbuddy.domain.model.Recipe
 //import com.example.brewbuddy.profile.SettingsScreen
 import com.example.brewbuddy.profile.User
 import com.example.brewbuddy.profile.UserScreen
-import com.example.brewbuddy.ui.theme.OrangeBrownMedium
-import com.example.brewbuddy.ui.theme.TitleLarge
-import com.example.brewbuddy.ui.theme.currentRoute
 import kotlinx.coroutines.CoroutineScope
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.*
@@ -99,8 +75,6 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.brewbuddy.profile.CurrentUserRepository
 import com.example.brewbuddy.profile.SettingScreen
-import com.example.brewbuddy.recipes.IndividualRecipeScreen
-import com.example.brewbuddy.recipes.Screen
 
 val LocalNavController = compositionLocalOf<NavController> { error("No NavController provided") }
 
@@ -113,8 +87,8 @@ sealed class ProfileScreens(val route: String, val label: String) {
 
 @Composable
 fun getUser(): User {
-    val currentUserViewModel: CurrentUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
-    return currentUserViewModel.getUser()
+    val loginUserViewModel: LoginUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
+    return loginUserViewModel.getUser()
 }
 @Composable
 fun PinnedCard(modifier: Modifier, recipe: Recipe) {
@@ -175,7 +149,7 @@ fun ProfilePicture(avatarUrl: String, size: Dp) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(navController: NavController) {
-    val currentUserViewModel = viewModel<CurrentUserViewModel>() // Get the view model instance
+    val loginUserViewModel = viewModel<LoginUserViewModel>() // Get the view model instance
     val currentUserRepository = CurrentUserRepository()
     val coroutineScope = rememberCoroutineScope()
     var menuDrawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -221,7 +195,7 @@ fun ProfileScreen(navController: NavController) {
                     composable(ProfileScreens.Settings.route) {
                         SettingScreen(
                             navController = navController,
-                            currentUserViewModel = currentUserViewModel,
+                            loginUserViewModel = loginUserViewModel,
                             currentUserRepository = currentUserRepository,
                             menuButton = { MenuButton(coroutineScope, menuDrawerState) }
                         )

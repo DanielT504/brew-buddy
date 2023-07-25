@@ -159,35 +159,35 @@ private fun updateActiveFilters(
     viewModel: RecipesViewModel
 ) {
 
-//    val likesLowToHigh = SortFilters.last { filter: Filter -> filter.name == "likesAsce"}
-//    val likesHighToLow = SortFilters.last { filter: Filter -> filter.name == "likesDesc" }
-//    if (viewModel.filters.contains(filterToAdd)) {
-//        viewModel.removeFilter(filterToAdd)
-//        return
-//    }
-//
-//    if (filterToAdd.name == "likesAsce"
-//        && viewModel.filters.contains(likesHighToLow))
-//    {
-//        viewModel.removeFilter(likesHighToLow)
-//        viewModel.addFilter(filterToAdd)
-//        viewModel.sort(filterToAdd.name)
-//
-//        return
-//    }
-//    if (filterToAdd.name == "likesDesc"
-//        && viewModel.filters.contains(likesLowToHigh))
-//    {
-//        viewModel.removeFilter(likesLowToHigh)
-//        viewModel.addFilter(filterToAdd)
-//        viewModel.sort(filterToAdd.name)
-//
-//        return
-//    }
-//    viewModel.addFilter(filterToAdd)
-//    viewModel.sort(filterToAdd.name)
-//
-//    return
+    val likesLowToHigh = SortFilters.last { filter: Filter -> filter.name == "likesAsce"}
+    val likesHighToLow = SortFilters.last { filter: Filter -> filter.name == "likesDesc" }
+    if (viewModel.filters.contains(filterToAdd)) {
+        viewModel.removeFilter(filterToAdd)
+        return
+    }
+
+    if (filterToAdd.name == "likesAsce"
+        && viewModel.filters.contains(likesHighToLow))
+    {
+        viewModel.removeFilter(likesHighToLow)
+        viewModel.addFilter(filterToAdd)
+        viewModel.sort(filterToAdd.name)
+
+        return
+    }
+    if (filterToAdd.name == "likesDesc"
+        && viewModel.filters.contains(likesLowToHigh))
+    {
+        viewModel.removeFilter(likesLowToHigh)
+        viewModel.addFilter(filterToAdd)
+        viewModel.sort(filterToAdd.name)
+
+        return
+    }
+    viewModel.addFilter(filterToAdd)
+    viewModel.sort(filterToAdd.name)
+
+    return
 }
 
 

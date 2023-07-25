@@ -7,13 +7,11 @@ import GoogleSignInButton
 import android.app.Activity
 import android.util.Log
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,11 +48,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.brewbuddy.profile.CurrentUserViewModel
+import com.example.brewbuddy.profile.LoginUserViewModel
 import com.example.brewbuddy.ui.theme.GreenMedium
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.focus.FocusRequester
@@ -63,36 +59,15 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.res.painterResource
 import com.example.brewbuddy.profile.CurrentUserRepository
-import com.example.brewbuddy.requests.getUserById
-import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.AuthResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Context
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.fragment.app.FragmentActivity
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.appcompat.app.AlertDialog
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.unit.dp
-import android.app.Dialog
 import android.util.Patterns
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -119,12 +94,12 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
 fun LoginScreen(
     navController: NavController,
     currentUserRepository: CurrentUserRepository,
-    currentUserViewModel: CurrentUserViewModel,
-    activity: Activity,
+    viewModel: LoginUserViewModel = hiltViewModel(),
+    activity: MainActivity,
     context: Context
 ) {
 
-    val currentUserViewModel: CurrentUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
+//    val currentUserViewModel: CurrentUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     val nonWhitespaceFilter = remember { Regex("^[^\n ]*\$")}
     val alphanumericFilter = remember { Regex("[a-zA-Z0-9]*")}
 
@@ -193,13 +168,13 @@ fun LoginScreen(
                             if (isLoginEnabled) {
                                 // Launch a coroutine in the CoroutineScope
                                 CoroutineScope(Dispatchers.Main).launch {
-                                    val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                                    val loginResult = loginUser(username.text, password.text, errorMsg, activity)
                                     Log.d("UPDATE_UI", "User is signed in: 1")
                                     if (!loginResult.first) {
                                         password = TextFieldValue("") // Clear the password field
                                         errorMsg.value = "Incorrect password or username."
                                     } else {
-                                        currentUserViewModel.loginUser(username.text, loginResult.second!!)
+                                        activity.setLogin(true)
                                     }
                                 }
                             }
@@ -212,14 +187,15 @@ fun LoginScreen(
                         Log.d("LOGIN_USER", "Attempting login for username: ${username.text}")
                         // Launch a coroutine in the CoroutineScope
                         CoroutineScope(Dispatchers.Main).launch {
-                            val loginResult = loginUser(username.text, password.text, errorMsg, currentUserViewModel, activity)
+                            val loginResult = loginUser(username.text, password.text, errorMsg, activity)
                             if (!loginResult.first) {
                                 password = TextFieldValue("") // Clear the password field
                                 errorMsg.value = "Incorrect password or username."
                             } else {
                                 Log.d("UPDATE_UI", "User is signed in: 2")
-                                val user = getUserById(loginResult.second!!)
-                                currentUserViewModel.setUser(user)
+                                activity.setLogin(true)
+//                                val user = getUserById(loginResult.second!!)
+//                                currentUserViewModel.setUser(user)
                             }
                         }
                     },
@@ -244,11 +220,11 @@ fun LoginScreen(
                     onGoogleSignInSuccess = { account ->
                         Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
                         CoroutineScope(Dispatchers.Main).launch {
-                            currentUserViewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!)
+                            viewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!)
                         }
                     },
                     currentUserRepository = currentUserRepository,
-                    currentUserViewModel = currentUserViewModel,
+                    loginUserViewModel = viewModel,
                     navController = navController
                 )
             }
@@ -261,11 +237,11 @@ fun LoginScreen(
 fun RegisterScreen(
     navController: NavController,
     currentUserRepository: CurrentUserRepository,
-    currentUserViewModel: CurrentUserViewModel,
-    activity: Activity,
+    loginUserViewModel: LoginUserViewModel,
+    activity: MainActivity,
     context: Context
 ) {
-    val currentUserViewModel: CurrentUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
+    val loginUserViewModel: LoginUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     val nonWhitespaceFilter = remember { Regex("^[^\n]*\$")}
     val alphanumericFilter = remember { Regex("[a-zA-Z0-9]*")}
 
@@ -384,7 +360,6 @@ fun RegisterScreen(
                                             username.text,
                                             password.text,
                                             errorMsg,
-                                            currentUserViewModel,
                                             activity
                                         )
                                         Log.d("UPDATE_UI", "User is signed in: 1")
@@ -394,7 +369,7 @@ fun RegisterScreen(
                                             errorMsg.value = "Incorrect password or username."
                                             passwordFocusRequester.requestFocus()
                                         } else {
-                                            currentUserViewModel.loginUser(
+                                            loginUserViewModel.loginUser(
                                                 username.text,
                                                 loginResult.second!!
                                             )
@@ -445,7 +420,6 @@ fun RegisterScreen(
                                             username.text,
                                             password.text,
                                             errorMsg,
-                                            currentUserViewModel,
                                             activity
                                         )
                                         Log.d("UPDATE_UI", "User is signed in: 1")
@@ -454,7 +428,7 @@ fun RegisterScreen(
                                             errorMsg.value = "Incorrect password or username."
                                             passwordFocusRequester.requestFocus()
                                         } else {
-                                            currentUserViewModel.loginUser(
+                                            loginUserViewModel.loginUser(
                                                 username.text,
                                                 loginResult.second!!
                                             )
@@ -477,8 +451,8 @@ fun RegisterScreen(
             GoogleRegisterButton(
                 onGoogleSignInSuccess = { account ->
                     Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: ${account.id}")
-                    currentUserViewModel.viewModelScope.launch {
-                        currentUserViewModel.registerUserWithGoogle(
+                    loginUserViewModel.viewModelScope.launch {
+                        loginUserViewModel.registerUserWithGoogle(
                             context,
                             account.displayName!!,
                             account.email!!
@@ -486,7 +460,7 @@ fun RegisterScreen(
                     }
                 },
                 currentUserRepository = currentUserRepository,
-                currentUserViewModel = currentUserViewModel,
+                loginUserViewModel = loginUserViewModel,
                 navController = navController
             )
         }
@@ -521,16 +495,13 @@ fun Title(color: Color = OrangeBrownMedium) {
                 letterSpacing = 0.sp
             ),
             color= color
-        )
+        )F
     }
 }
 @Composable
 fun AccessScreen(
-    navController: NavController,
     currentUserRepository: CurrentUserRepository,
-    currentUserViewModel: CurrentUserViewModel,
-    activity: Activity,
-    handleLogout: () -> Unit
+    activity: MainActivity,
 ) {
     val navController = rememberNavController()
     val vmStoreOwner = rememberViewModelStoreOwner()
@@ -540,10 +511,10 @@ fun AccessScreen(
         ) {
             NavHost(navController, startDestination = AccessScreens.Login.route) {
                 composable(AccessScreens.Login.route) {
-                    LoginScreen(navController, currentUserRepository, currentUserViewModel, activity, context = LocalContext.current)
+                    LoginScreen(navController, currentUserRepository, activity, context = LocalContext.current)
                 }
                 composable(AccessScreens.Register.route) {
-                    RegisterScreen(navController, currentUserRepository, currentUserViewModel, activity, context = LocalContext.current)
+                    RegisterScreen(navController, currentUserRepository, activity, context = LocalContext.current)
                 }
             }
         }
@@ -555,7 +526,6 @@ private suspend fun loginUser(
     username: String,
     password: String,
     errorMsg: MutableState<String>,
-    currentUserViewModel: CurrentUserViewModel,
     activity: Activity
 ): Pair<Boolean, String?> {
     val signInResult = signIn(username, password, activity)

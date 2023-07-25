@@ -13,26 +13,20 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.brewbuddy.profile.CurrentUserRepository
-import com.example.brewbuddy.profile.CurrentUserViewModel
-import com.google.android.gms.auth.api.Auth
+import com.example.brewbuddy.profile.LoginUserViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -53,7 +47,7 @@ private val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_I
 fun GoogleSignInButton(
     onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit,
     currentUserRepository: CurrentUserRepository,
-    currentUserViewModel: CurrentUserViewModel,
+    loginUserViewModel: LoginUserViewModel,
     navController: NavController
 ) {
     val context = LocalContext.current
@@ -75,8 +69,8 @@ fun GoogleSignInButton(
     LaunchedEffect(signInResult.value) {
         signInResult.value?.let { account ->
             handleSignInResult(account, onGoogleSignInSuccess, currentUserRepository, navController)            // Now that we successfully signed in with Google, we can call the suspend function here.
-            currentUserViewModel.viewModelScope.launch {
-                val success = currentUserViewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!)
+            loginUserViewModel.viewModelScope.launch {
+                val success = loginUserViewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!)
             }
         }
     }
@@ -122,7 +116,7 @@ fun GoogleSignInButton(
 fun GoogleRegisterButton(
     onGoogleSignInSuccess: suspend (GoogleSignInAccount) -> Unit,
     currentUserRepository: CurrentUserRepository,
-    currentUserViewModel: CurrentUserViewModel,
+    loginUserViewModel: LoginUserViewModel,
     navController: NavController
 ) {
     val context = LocalContext.current

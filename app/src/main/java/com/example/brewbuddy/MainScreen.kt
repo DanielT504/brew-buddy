@@ -1,5 +1,4 @@
 package com.example.brewbuddy
-import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.padding
@@ -14,21 +13,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.*
-import androidx.navigation.navArgument
 import com.example.brewbuddy.marketplace.MarketplaceItemScreen
-import com.example.brewbuddy.profile.CurrentUserViewModel
 import com.example.brewbuddy.recipes.IndividualRecipeScreen
 import com.example.brewbuddy.recipes.Screen
-import com.example.brewbuddy.ui.theme.BrewBuddyTheme
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 
 @Composable

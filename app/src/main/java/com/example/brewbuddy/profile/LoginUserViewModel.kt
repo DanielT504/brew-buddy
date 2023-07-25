@@ -2,25 +2,18 @@ package com.example.brewbuddy.profile
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import androidx.navigation.compose.*
-import com.example.brewbuddy.profile.User
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import com.example.brewbuddy.common.Constants
 
 
 // global state view model to get currently logged in user.
 // if this is null, then we are looking at the login screen
-class CurrentUserViewModel : ViewModel() {
+class LoginUserViewModel : ViewModel() {
     val currentUser =  MutableLiveData<User?>()
 
     fun setUser(user: User?) {

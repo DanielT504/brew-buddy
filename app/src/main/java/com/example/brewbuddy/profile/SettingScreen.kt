@@ -111,12 +111,12 @@ fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, dairyF
 @Composable
 fun SettingScreen(
     navController: NavController,
-    currentUserViewModel: CurrentUserViewModel,
+    loginUserViewModel: LoginUserViewModel,
     currentUserRepository: CurrentUserRepository,
     menuButton: @Composable () -> Unit
 ) {
     val currentUserRepository = CurrentUserRepository()
-    val currentUserViewModel: CurrentUserViewModel = viewModel()
+    val loginUserViewModel: LoginUserViewModel = viewModel()
     retrieveSettings()
 
     // Get the coroutine scope
@@ -445,7 +445,7 @@ fun SettingScreen(
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                handleAccountDeletion(currentUserRepository, currentUserViewModel, navController)
+                                handleAccountDeletion(currentUserRepository, loginUserViewModel, navController)
                             }
                         },
                         shape = RoundedCornerShape(50.dp),
@@ -463,7 +463,7 @@ fun SettingScreen(
 
 private suspend fun handleAccountDeletion(
     currentUserRepository: CurrentUserRepository,
-    currentUserViewModel: CurrentUserViewModel,
+    loginUserViewModel: LoginUserViewModel,
     navController: NavController
 ) {
     val currentUser = currentUserRepository.getCurrentUser()
@@ -471,7 +471,7 @@ private suspend fun handleAccountDeletion(
         val deleteResult = currentUserRepository.deleteAccount(currentUser.uid)
 
         if (deleteResult) {
-            currentUserViewModel.setUser(null)
+            loginUserViewModel.setUser(null)
 
             val intent = Intent(navController.context, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
