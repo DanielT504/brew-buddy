@@ -5,4 +5,4 @@ PROJECT_ID=brew-buddy-ece452
 STORAGE_BUCKET=brew-buddy-ece452.appspot.com
 MESSAGING_SENDER_ID=915144908139
 APP_ID=1:915144908139:android:1dea8c46ee12fe99bc402e
-DEBUG=False
+DEBUG=True

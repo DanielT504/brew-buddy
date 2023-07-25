@@ -156,35 +156,35 @@ private fun updateActiveFilters(
     viewModel: MarketplaceViewModel
 ) {
 
-    val oldestToNewest = SortFilters.last { filter: Filter -> filter.name == "dateAsce" }
-    val newestToOldest = SortFilters.last { filter: Filter -> filter.name == "dateDesc" }
+//    val oldestToNewest = SortFilters.last { filter: Filter -> filter.name == "dateAsce" }
+//    val newestToOldest = SortFilters.last { filter: Filter -> filter.name == "dateDesc" }
     val priceLowToHigh = SortFilters.last { filter: Filter -> filter.name == "priceAsce"}
     val priceHighToLow = SortFilters.last { filter: Filter -> filter.name == "priceDesc" }
     if (viewModel.filters.contains(filterToAdd)) {
         viewModel.removeFilter(filterToAdd)
         return
     }
-    if (filterToAdd.name == "dateDesc"
-        && viewModel.filters.contains(oldestToNewest))
-    {
-        viewModel.removeFilter(oldestToNewest)
-        viewModel.addFilter(filterToAdd)
-        return
-    }
-    if (filterToAdd.name == "dateAsce"
-        && viewModel.filters.contains(newestToOldest))
-    {
-        viewModel.removeFilter(newestToOldest)
-        viewModel.addFilter(filterToAdd)
-
-        return
-    }
+//    if (filterToAdd.name == "dateDesc"
+//        && viewModel.filters.contains(oldestToNewest))
+//    {
+//        viewModel.removeFilter(oldestToNewest)
+//        viewModel.addFilter(filterToAdd)
+//        return
+//    }
+//    if (filterToAdd.name == "dateAsce"
+//        && viewModel.filters.contains(newestToOldest))
+//    {
+//        viewModel.removeFilter(newestToOldest)
+//        viewModel.addFilter(filterToAdd)
+//
+//        return
+//    }
     if (filterToAdd.name == "priceAsce"
         && viewModel.filters.contains(priceHighToLow))
     {
         viewModel.removeFilter(priceHighToLow)
         viewModel.addFilter(filterToAdd)
-
+        viewModel.sort(filterToAdd.name)
         return
     }
     if (filterToAdd.name == "priceDesc"
@@ -192,10 +192,12 @@ private fun updateActiveFilters(
     {
         viewModel.removeFilter(priceLowToHigh)
         viewModel.addFilter(filterToAdd)
+        viewModel.sort(filterToAdd.name)
 
         return
     }
     viewModel.addFilter(filterToAdd)
+    viewModel.sort(filterToAdd.name)
     return
 }
 
@@ -294,9 +296,9 @@ private val MarketplaceCategories = listOf(
 )
 
 private val SortFilters = listOf(
-    Filter(filterLabel = "Newest to Oldest", enabled = false, name="dateDesc"),
-    Filter(filterLabel = "Oldest to Newest", enabled = false, name="dateAsce"),
+//    Filter(filterLabel = "Newest to Oldest", enabled = false, name="dateDesc"),
+//    Filter(filterLabel = "Oldest to Newest", enabled = false, name="dateAsce"),
     Filter(filterLabel = "Price (Low to High)", enabled = false, name="priceAsce"),
     Filter(filterLabel = "Price (High to Low)", enabled = false, name="priceDesc"),
-    Filter(filterLabel = "Range (10km-25km)", enabled = false, name="range"),
+//    Filter(filterLabel = "Range (10km-25km)", enabled = false, name="range"),
 )

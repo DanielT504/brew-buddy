@@ -1,14 +1,19 @@
 package com.example.brewbuddy.marketplace
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.brewbuddy.R
+import com.example.brewbuddy.domain.model.MarketplaceItem
 import com.example.brewbuddy.ui.theme.Cream
 
 @Composable
@@ -56,14 +62,17 @@ fun MarketplaceItemScreen(
             }
         }
     } else {
-        var itemName = state.post!!.title
-        var city = state.post!!.city
-        var province = state.post!!.province
-        var userName = state.post!!.author!!.username
-        var contact = state.post!!.contact
-        Surface(modifier = Modifier.fillMaxSize()) {
+        var item = state.post ?: MarketplaceItem()
+        var itemName = item.title
+        var userName = item.author.username
+        var description = item.description
+        Surface(
+            modifier=Modifier.verticalScroll(rememberScrollState()).fillMaxSize(),
+            color = Cream
+        ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier=Modifier.fillMaxSize()
             ) {
                 Row() {
                     Box() {
@@ -82,31 +91,56 @@ fun MarketplaceItemScreen(
                     }
                 }
                 Column(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp).padding(start = 8.dp, end=8.dp),
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp, vertical = 16.dp)
+                        .padding(start = 8.dp, end = 8.dp, top = 16.dp, bottom=16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         text = itemName,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleLarge
                     )
                     Text("Posted by $userName", style = MaterialTheme.typography.bodyMedium)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painterResource(id = R.drawable.icon_locator),
-                            modifier = Modifier.size(24.dp),
-                            contentDescription = null,
-                        )
-                        Text(text = "$city, $province", style = MaterialTheme.typography.bodyMedium)
-                        Icon(
-                            painterResource(id = R.drawable.icon_phone),
-                            modifier = Modifier.size(24.dp),
-                            contentDescription = null,
-                        )
-                        Text(text = "$contact", style = MaterialTheme.typography.bodyMedium)
-
-                    }
+                    ItemDetails(item)
+                    Text(text="Description", style=MaterialTheme.typography.titleMedium)
+                    Text(description)
                 }
             }
         }
+    }
+}
+
+
+@Composable
+private fun ItemMetadata(icon: Int, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            painterResource(id = icon),
+            modifier = Modifier.size(16.dp),
+            contentDescription = null,
+        )
+        Text(
+            modifier = Modifier.padding(start = 16.dp),
+
+            text = text,
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
+
+}
+@Composable
+private fun ItemDetails(item: MarketplaceItem) {
+    Column(modifier= Modifier
+        .border(0.dp, Color.Transparent, shape = RoundedCornerShape(4.dp))
+        .fillMaxWidth()
+    ) {
+        Text(text="Details", style=MaterialTheme.typography.titleMedium)
+        ItemMetadata(R.drawable.icon_locator, "${item.city}, ${item.province}")
+        ItemMetadata(R.drawable.icon_phone, item.contact)
+        ItemMetadata(R.drawable.icon_dollar, if (item.price.toDouble() < 0) {
+            "Contact seller"
+        } else {
+            item.price.toString()
+        })
     }
 }
