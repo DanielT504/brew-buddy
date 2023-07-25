@@ -30,27 +30,21 @@ exports.getMarketplaceItemsMetadataByQuery = (keywords, filters, db) => {
   });
 };
 
-exports.getListingByAuthorId = async (userId, db) => {
+exports.getListingsByAuthorId = (author, userId, db) => {
   // Get all recipes from specified author ID.
-  var items = [];
 
   if (!userId) {
     // Throwing an HttpsError so that the client gets the error details.
     throw new HttpsError("failed-precondition", "No user ID provided");
   }
 
-  const author = await getUserById(userId);
-  await db
+  return db
     .collection("marketplace")
     .where("authorId", "==", userId)
     .get()
     .then((snapshot) => {
-      snapshot.forEach((doc) => {
-        const data = extractMetadata(doc);
-        items.push({ ...data, author });
-      });
+      return snapshot.docs.map((doc) => ({ ...extractMetadata(doc), author }));
     });
-  return items;
 };
 exports.getMarketplaceItemsMetadata = (db) => {
   return db
