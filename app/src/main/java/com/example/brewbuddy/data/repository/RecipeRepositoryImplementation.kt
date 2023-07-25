@@ -80,7 +80,6 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             Log.d("GET_RECIPES_BY_USER_ID3", user_id)
             val data = task.data as List<HashMap<String, Object>>
             Log.d("GET_RECIPES_BY_USER_ID4", user_id)
-            Log.d("RecipeRepository", data[0].toString())
             return@withContext data.map{RecipeMetadataDto.from(it)}
 
         }

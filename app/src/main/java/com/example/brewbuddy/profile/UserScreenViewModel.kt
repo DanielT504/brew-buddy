@@ -63,7 +63,6 @@ class UserScreenViewModel  @Inject constructor(
             when(result) {
                 is Resource.Success -> {
                     if (result.data != null){
-                        Log.d("getrecipes result banner", result.data[0].bannerUrl)
                         _state.value = UserScreenState(data = result.data)
                     }
                 }
