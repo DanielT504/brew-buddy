@@ -20,4 +20,7 @@ interface RecipeRepository {
     suspend fun getMarketplaceItems(query: String?): List<MarketplaceItemMetadataDto>
     suspend fun getMarketplaceItemById(itemId: String): MarketplaceItemDto
 
+    suspend fun getMarketplaceItemsByUserId(userId: String): List<MarketplaceItemMetadataDto>
+
+
 }

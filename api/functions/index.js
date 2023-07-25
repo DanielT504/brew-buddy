@@ -58,24 +58,26 @@ const DEFAULT_BANNER_URL =
 const DEFAULT_AVATAR_URL =
   "https://firebasestorage.googleapis.com/v0/b/brew-buddy-ece452.appspot.com/o/placeholder_avatar.jpg?alt=media&token=38f93e98-58d1-4076-8262-1dc5c340cac7";
 
-exports.getRecipesByAuthor = onCall(async ({ data }, context) => {
+exports.getMarketplaceItemByUserId = onCall(async ({ data }, context) => {
   // Get all recipes from specified author ID.
-  var recipes = [];
-  const { authorId } = data;
+  var items = [];
+  const { userId } = data;
 
-  if (!authorId) {
+  if (!userId) {
     // Throwing an HttpsError so that the client gets the error details.
-    throw new HttpsError("failed-precondition", "No author ID provided");
+    throw new HttpsError("failed-precondition", "No user ID provided");
   }
+
+  const user = await getUserById(userId);
   await db
-    .collection("recipes")
+    .collection("marketplace")
     .where("authorId", "==", authorId)
     .get()
     .then((snapshot) => {
       snapshot.forEach((doc) => {
         const data = {
           id: doc.id,
-          author: doc.data().author,
+          author: user,
           ingredients: doc.data().ingredients,
         };
         recipes.push(data);
