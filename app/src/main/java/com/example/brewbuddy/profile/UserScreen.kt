@@ -47,6 +47,7 @@ import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -56,6 +57,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -80,6 +82,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -155,8 +158,56 @@ private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
     }
     return diff % pageCount
 }
+fun mapTags(recipe: Recipe): List<String> {
+    var tags = mutableListOf<String>()
+    if(recipe.vegan){
+        tags.add("vegan")
+    }
+    if (recipe.vegetarian){
+        tags.add("vegetarian")
+    }
+    if(recipe.glutenFree){
+        tags.add("glutenFree")
+    }
+    if(recipe.dairyFree){
+        tags.add("dairyFree")
+    }
+    if(recipe.sustainable){
+        tags.add("sustainable")
+    }
+    return tags
+}
+
+fun generateKeywords(recipe: Recipe): List<String> {
+    val allWords = recipe.title.split(" ")
+    val normalizedWords = allWords.map { word ->
+        word.toLowerCase().replace(Regex("[^a-zA-Z0-9]"), "")
+    }
+    val blackListWords = listOf(
+        "as",
+        "the",
+        "is",
+        "at",
+        "in",
+        "with",
+        "a",
+        "&",
+        "and",
+        "to",
+        "how",
+        "you",
+        "all"
+    )
+    val keywords = normalizedWords.filter { word ->
+        word !in blackListWords
+    }
+    return keywords
+}
+
 fun postRecipe(recipe: Recipe) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val tags = mapTags(recipe)
+    val keywords = generateKeywords(recipe)
     userId?.let {
         val recipesRef = db.collection("recipes").document()
         val recipeInfo = hashMapOf(
@@ -169,14 +220,13 @@ fun postRecipe(recipe: Recipe) {
             "servings" to recipe.servings,
             "summary" to recipe.summary,
             "title" to recipe.title,
-//        todo: stop using defaults for these fields
             "dairyFree" to recipe.dairyFree,
             "glutenFree" to recipe.glutenFree,
             "sustainable" to recipe.sustainable,
             "vegan" to recipe.vegan,
             "vegetarian" to recipe.vegetarian,
-            "tags" to recipe.tags,
-//         todo: write keyword function, map keywords
+            "tags" to tags,
+            "keywords" to keywords
         )
         recipesRef.set(recipeInfo)
         .addOnSuccessListener {
@@ -525,6 +575,8 @@ fun convertToIngredientDto(ingredient: IndividualIngredient) : Ingredient{
     return Ingredient(name = ingredient.label, quantity = measures)
 }
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeModal(user: User, openDialog: MutableState<Boolean>, onClose: () -> Unit) {
@@ -535,6 +587,19 @@ fun RecipeModal(user: User, openDialog: MutableState<Boolean>, onClose: () -> Un
     var servings by remember { mutableStateOf("") }
     var prepMinutes by remember { mutableStateOf("") }
     var uri by remember { mutableStateOf<Uri?>(null) }
+
+    var isVegan: Boolean = false;
+    var isVegetarian: Boolean = false;
+    var isDairyFree: Boolean = false;
+    var isGlutenFree: Boolean = false;
+    var isKeto: Boolean = false;
+    var isSustainable: Boolean = false;
+    val (veganState, onVeganChange) = remember { mutableStateOf(isVegan) }
+    val (vegetarianState, onVegetarianChange) = remember { mutableStateOf(isVegetarian) }
+    val (dairyState, onDairyChange) = remember { mutableStateOf(isDairyFree) }
+    val (ketoState, onKetoChange) = remember { mutableStateOf(isKeto) }
+    val (glutenState, onGlutenChange) = remember { mutableStateOf(isGlutenFree) }
+    val (sustainableState, onSustainableChange) = remember { mutableStateOf(isSustainable) }
 
     if (openDialog.value) {
         AlertDialog(
@@ -587,9 +652,13 @@ fun RecipeModal(user: User, openDialog: MutableState<Boolean>, onClose: () -> Un
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(containerColor = GreenDark),
                             onClick = {
-                                val ingredientList = IngredientList(name = title, ingredients = ingredients )
-                                var uriAsString = ""
                                 var completedRecipe = Recipe(
+                                    likes = 0,
+                                    vegetarian = vegetarianState,
+                                    vegan = veganState,
+                                    glutenFree = glutenState,
+                                    dairyFree = dairyState,
+                                    sustainable = sustainableState,
                                     preparationMinutes = prepMinutes.toInt(),
                                     title = title,
                                     servings = servings.toInt(),
@@ -782,6 +851,145 @@ fun RecipeModal(user: User, openDialog: MutableState<Boolean>, onClose: () -> Un
                                 value = description,
                                 onValueChange = { newValue: String -> description = newValue },
                                 label = { Text(text = "Description") },
+                            )
+                        }
+
+                        Row(Modifier.fillMaxWidth().padding(4.dp)) {
+                            Text(
+                                text = "Select all tags that apply",
+                                style = TextStyle(fontSize = 20.sp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = veganState,
+                                    onValueChange = { onVeganChange(!veganState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = veganState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Vegan",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = vegetarianState,
+                                    onValueChange = { onVegetarianChange(!vegetarianState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = vegetarianState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Vegetarian",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = dairyState,
+                                    onValueChange = { onDairyChange(!dairyState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = dairyState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Dairy-free",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = ketoState,
+                                    onValueChange = { onKetoChange(!ketoState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = ketoState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Keto",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = glutenState,
+                                    onValueChange = { onGlutenChange(!glutenState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = glutenState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Gluten-free",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = sustainableState,
+                                    onValueChange = { onSustainableChange(!sustainableState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = sustainableState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Sustainable",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
                             )
                         }
                         Row() {
