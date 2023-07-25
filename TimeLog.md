@@ -132,4 +132,5 @@
 | 2023/07/24 |        |         | 2    |        |         |        | Expand on author data in recipe uploads |
 | 2023/07/24 |        |         | 1    |        |         |        | Bug fixes in main, user profile updates |
 | 2023/07/24 |        |         | 2    |        |         |        | Add profile picture + banner uploads |
+| 2023/07/24 |        |3        |      |        |         |        | Add pinned/liked recipes to profiles page + debugging |
 
