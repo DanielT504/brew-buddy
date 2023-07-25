@@ -17,7 +17,10 @@ interface RecipeRepository {
 
     suspend fun getRecommended(userId: String): List<RecipeMetadataDto>
 
+    suspend fun getUserLikedRecipes(userId: String): List<RecipeMetadataDto>
+
     suspend fun getMarketplaceItems(query: String?): List<MarketplaceItemMetadataDto>
+    
     suspend fun getMarketplaceItemById(itemId: String): MarketplaceItemDto
 
     suspend fun getMarketplaceItemsByUserId(userId: String): List<MarketplaceItemMetadataDto>

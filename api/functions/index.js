@@ -247,6 +247,24 @@ exports.getRecommendedRecipes = onCall(async ({ data }, context) => {
   return recommendedRecipesToReturn;
 });
 
+exports.getUserLikedRecipes = onCall(async ({ data }, context) => {
+   const { userId } = data;
+   const metadatas = await getRecipesMetadata(db);
+    const recipeAuthorMetadatas = await getRecipesMetadataWithAuthor(
+       metadatas,
+       db
+     );
+   const userMetadata = await getUserById(userId);
+   var likedRecipes = []
+   userMetadata.likedRecipeIds.forEach((likedRecipeId) => {
+        var recipe = recipeAuthorMetadatas.find((recipe) => recipe.id === likedRecipeId);
+        if (recipe) {
+            likedRecipes.push(recipe)
+        }
+   })
+   return likedRecipes;
+});
+
 exports.getFeaturedRecipes = onCall(async ({ data }, context) => {
   const metadatas = await getRecipesMetadata(db);
 });
