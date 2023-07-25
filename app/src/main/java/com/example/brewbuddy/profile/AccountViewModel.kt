@@ -49,7 +49,9 @@ class AccountViewModel @Inject constructor(
             when(result) {
                 is Resource.Success -> {
                     _loginState.value = AccountState(success = result.data ?: false)
-                    onSuccess()
+                    if(result.data ?: false) {
+                        onSuccess()
+                    }
                 }
                 is Resource.Error -> {
                     _loginState.value = AccountState(error = result.message ?: "An unexpected error occurred.")

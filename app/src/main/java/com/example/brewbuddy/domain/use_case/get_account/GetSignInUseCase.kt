@@ -4,6 +4,7 @@ import com.example.brewbuddy.common.Resource
 import com.example.brewbuddy.data.remote.dto.toRecipeMetadata
 import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.domain.repository.RecipeRepository
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
@@ -18,7 +19,9 @@ class GetSignInUseCase @Inject constructor(
             emit(Resource.Loading())
             val success = repository.signIn(username, password)
             emit(Resource.Success(success))
-        } catch(e: HttpException) {
+        } catch(e: FirebaseAuthInvalidCredentialsException) {
+            emit(Resource.Success(false))
+        }catch(e: HttpException) {
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred."))
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))

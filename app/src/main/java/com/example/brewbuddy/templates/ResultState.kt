@@ -1,4 +1,6 @@
 package com.example.brewbuddy.templates
 
-class ResultState {
+abstract class ResultState {
+    abstract val isLoading: Boolean
+    abstract val error: String
 }
