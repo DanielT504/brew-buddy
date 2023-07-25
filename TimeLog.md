@@ -125,5 +125,5 @@
 | 2023/07/24 |        |         |      |        | 4       |        | Add filtering functionality of marketplace, allow users to create their own listings |
 | 2023/07/24 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync                                                                                                     |
 | 2023/07/24 |2        |         |      |        |         |        | refactor maps/add grocery stores to complete FPs                                                                                                     |
-
+| 2023/07/24 |3        |         |      |        |         |        | Add ingredients list ui and functionality.                                                                                                     |
 
