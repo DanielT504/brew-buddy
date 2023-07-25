@@ -31,7 +31,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.brewbuddy.MainActivity
 import com.example.brewbuddy.ui.theme.TitleLarge
@@ -44,9 +43,14 @@ import androidx.core.net.toUri
 import com.example.brewbuddy.common.Constants.DEFAULT_BANNER_URL
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.brewbuddy.recipes.UserScreenViewModel
+import com.example.brewbuddy.components.Content
+import com.example.brewbuddy.components.ErrorModal
+import com.example.brewbuddy.components.LoadingModal
+import com.example.brewbuddy.marketplace.Filter
+import com.example.brewbuddy.recipes.SettingViewModel
 import com.example.brewbuddy.ui.theme.Brown
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -59,85 +63,6 @@ import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
 val db = FirebaseFirestore.getInstance()
-
-var currRadius: Float = 10f;
-var currVegan: Boolean = false;
-var currVegetarian: Boolean = false;
-var currDairyFree: Boolean = false;
-var currKosher: Boolean = false;
-var currHalal: Boolean = false;
-var currGlutenFree: Boolean = false;
-var currNutFree: Boolean = false;
-var currKeto: Boolean = false;
-
-private fun retrieveSettings() {
-    val firestore = FirebaseFirestore.getInstance()
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-    val preferencesRef = userId?.let { firestore.collection("user_preferences").document(it) }
-
-    CoroutineScope(Dispatchers.IO).launch {
-        try {
-            val snapshot = preferencesRef?.get()?.await()
-            if (snapshot != null) {
-                currRadius = snapshot.getDouble("radius")?.toFloat() ?: 0f;
-                currVegan= snapshot.getBoolean("vegan")?: false;
-                currVegetarian = snapshot.getBoolean("vegetarian")?: false;
-                currDairyFree = snapshot.getBoolean("dairyFree")?: false;
-                currKeto = snapshot.getBoolean("keto")?: false;
-                currKosher = snapshot.getBoolean("kosher")?: false;
-                currHalal = snapshot.getBoolean("halal")?: false;
-                currGlutenFree = snapshot.getBoolean("glutenFree")?: false;
-                currNutFree = snapshot.getBoolean("nutFree")?: false;
-            }
-
-        } catch (e: Exception) {
-            // Handle exceptions, such as network errors or document retrieval failures
-        }
-    }
-}
-fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, dairyFree: Boolean?, keto: Boolean?, kosher: Boolean?, halal: Boolean?, glutenFree: Boolean?, nutFree: Boolean?) {
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-    userId?.let {
-        val preferencesRef = db.collection("user_preferences").document(userId)
-        val prefs = hashMapOf(
-            "radius" to radius,
-            "vegan" to vegan,
-            "vegetarian" to vegetarian,
-            "dairyFree" to dairyFree,
-            "keto" to keto,
-            "kosher" to kosher,
-            "halal" to halal,
-            "glutenFree" to glutenFree,
-            "nutFree" to nutFree
-        )
-        preferencesRef.set(prefs)
-            .addOnSuccessListener {
-                // Successfully updated the radius in Firestore
-                Log.d("EDIT_PREFS", "User prefs changed in user pref")
-            }
-            .addOnFailureListener { exception ->
-                Log.d("EDIT_PREFS", "Error changing user prefs: $exception")
-            }
-    }
-}
-
-
-fun updateBanner(bannerUrl: String) {
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-    userId?.let {
-        val userRef = db.collection("users").document(userId)
-        val prefs = hashMapOf<String, Any>(
-            "bannerUrl" to bannerUrl
-        )
-        userRef.update(prefs)
-            .addOnSuccessListener {
-                Log.d("EDIT_PROFILE_BANNER", "User banner updated")
-            }
-            .addOnFailureListener { exception ->
-                Log.d("EDIT_PROFILE_BANNER", "Error changing banner: $exception")
-            }
-    }
-}
 
 fun updateAvatar(avatarUrl: String) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
@@ -218,24 +143,24 @@ val coffeeIngredients = listOf(
     "Almond extract"
 )
 
-private fun retrieveIngredients(onIngredientsLoaded: (List<String>) -> Unit) {
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-    userId?.let {
-        val preferencesRef = db.collection("user_preferences").document(userId)
-        preferencesRef.get()
-            .addOnSuccessListener { documentSnapshot ->
-                if (documentSnapshot.exists()) {
-                    val ingredients = documentSnapshot.get("ingredients") as? List<String> ?: emptyList()
-                    onIngredientsLoaded(ingredients)
-                } else {
-                    onIngredientsLoaded(emptyList())
-                }
-            }
-            .addOnFailureListener { e ->
-                // Handle failure
-            }
-    }
-    }
+//private fun retrieveIngredients(onIngredientsLoaded: (List<String>) -> Unit) {
+//    val userId = FirebaseAuth.getInstance().currentUser?.uid
+//    userId?.let {
+//        val preferencesRef = db.collection("user_preferences").document(userId)
+//        preferencesRef.get()
+//            .addOnSuccessListener { documentSnapshot ->
+//                if (documentSnapshot.exists()) {
+//                    val ingredients = documentSnapshot.get("ingredients") as? List<String> ?: emptyList()
+//                    onIngredientsLoaded(ingredients)
+//                } else {
+//                    onIngredientsLoaded(emptyList())
+//                }
+//            }
+//            .addOnFailureListener { e ->
+//                // Handle failure
+//            }
+//    }
+//    }
 
 
 
@@ -262,63 +187,47 @@ fun updateIngredients(ingredient: String, add: Boolean) {
                     // Handle failure
                 }
         }
-        }
-}
-
-@Composable
-fun IngredientButton(ingredient: String) {
-    var selectedIngredientsList by remember { mutableStateOf(emptyList<String>()) }
-    var ingredientsFetched by remember {
-        mutableStateOf(false)
-    }
-    // Fetch ingredients from Firestore when the composable is first recomposed
-    LaunchedEffect(Unit) {
-        retrieveIngredients() { ingredients ->
-            selectedIngredientsList = ingredients
-            ingredientsFetched = true
-
-        }
-    }
-    if (ingredientsFetched) {
-        var isSelected = selectedIngredientsList.contains(ingredient)
-        var selected by remember { mutableStateOf(isSelected) }
-
-        Button(
-            onClick = {
-                updateIngredients(ingredient, !selected)
-
-                selected = !selected
-            },
-            shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (selected) Brown else Color.White,
-                contentColor = if (selected) Color.White else Color.Black,
-            ),
-            modifier = Modifier
-                .padding(8.dp)
-                .wrapContentWidth()
-                .height(50.dp)
-        ) {
-            Text(text = ingredient)
-        }
     }
 }
 
 @Composable
-fun CoffeeIngredientsRow(ingredientList: List<String>) {
+fun IngredientButton(ingredient: String, selectedIngredients: List<String>, onSelect: (ingredient: String) -> Unit) {
+    var selected by remember { mutableStateOf(selectedIngredients.contains(ingredient)) }
+
+    Button(
+        onClick = {
+            onSelect(ingredient)
+            selected = !selected
+        },
+        shape = RoundedCornerShape(20.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (selected) Brown else Color.White,
+            contentColor = if (selected) Color.White else Color.Black,
+        ),
+        modifier = Modifier
+            .padding(8.dp)
+            .wrapContentWidth()
+            .height(50.dp)
+    ) {
+        Text(text = ingredient)
+    }
+}
+
+@Composable
+fun CoffeeIngredientsRow(ingredientList: List<String>, selectedIngredients: List<String>, onSelect: (ingredient: String) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
         for (ingredient in ingredientList) {
-            IngredientButton(ingredient = ingredient)
+            IngredientButton(ingredient = ingredient, selectedIngredients=selectedIngredients, onSelect=onSelect)
         }
     }
 }
 
 @Composable
-fun CoffeeIngredientsCluster() {
+fun CoffeeIngredientsCluster(selectedIngredients: List<String>, onSelect: (ingredient: String) -> Unit) {
     val rows = 4 // Number of rows in the cluster
     val columns = 3 // Number of ingredients per row
 
@@ -327,377 +236,407 @@ fun CoffeeIngredientsCluster() {
             val startIndex = rowIndex * columns
             val endIndex = minOf(startIndex + columns, coffeeIngredients.size)
             val rowIngredients = coffeeIngredients.subList(startIndex, endIndex)
-            CoffeeIngredientsRow(ingredientList = rowIngredients)
+            CoffeeIngredientsRow(ingredientList = rowIngredients, selectedIngredients=selectedIngredients, onSelect=onSelect)
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
     navController: NavController,
     activity: MainActivity,
-    menuButton: @Composable () -> Unit
+    menuButton: @Composable () -> Unit,
+    viewModel: SettingViewModel = hiltViewModel()
 ) {
     val currentUserRepository = CurrentUserRepository()
-    retrieveSettings()
+    var initialLoad by remember { mutableStateOf(true) }
+    val preferenceState = viewModel.preferenceState.value
+    if(preferenceState.error.isNotBlank()) {
+        ErrorModal(preferenceState.error)
+    } else if(preferenceState.isLoading && initialLoad) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            LoadingModal()
+        }
+    } else {
+        initialLoad = false
+        // Get the coroutine scope
+        val coroutineScope = rememberCoroutineScope()
 
-    // Get the coroutine scope
-    val coroutineScope = rememberCoroutineScope()
+        val scrollState = rememberScrollState()
+        var sliderPosition by remember { mutableStateOf(preferenceState.data.radius) }
+        val (veganState, onVeganChange) = remember { mutableStateOf(preferenceState.data.vegan) }
+        val (vegetarianState, onVegetarianChange) = remember { mutableStateOf(preferenceState.data.vegetarian) }
+        val (dairyState, onDairyChange) = remember { mutableStateOf(preferenceState.data.dairyFree) }
+        val (ketoState, onKetoChange) = remember { mutableStateOf(preferenceState.data.keto) }
+        val (kosherState, onKosherChange) = remember { mutableStateOf(preferenceState.data.kosher) }
+        val (halalState, onHalalChange) = remember { mutableStateOf(preferenceState.data.halal) }
+        val (glutenState, onGlutenChange) = remember { mutableStateOf(preferenceState.data.glutenFree) }
+        val (nutState, onNutChange) = remember { mutableStateOf(preferenceState.data.nutFree) }
 
-    val scrollState = rememberScrollState()
-    var sliderPosition by remember { mutableStateOf(currRadius) }
-    val (veganState, onVeganChange) = remember { mutableStateOf(currVegan) }
-    val (vegetarianState, onVegetarianChange) = remember { mutableStateOf(currVegetarian) }
-    val (dairyState, onDairyChange) = remember { mutableStateOf(currDairyFree) }
-    val (ketoState, onKetoChange) = remember { mutableStateOf(currKeto) }
-    val (kosherState, onKosherChange) = remember { mutableStateOf(currKosher) }
-    val (halalState, onHalalChange) = remember { mutableStateOf(currHalal) }
-    val (glutenState, onGlutenChange) = remember { mutableStateOf(currGlutenFree) }
-    val (nutState, onNutChange) = remember { mutableStateOf(currNutFree) }
+        var ingredientsState =
+            remember { mutableStateListOf(*preferenceState.data.ingredients.toTypedArray()) }
 
-    var profilePictureUri by remember { mutableStateOf<Uri?>(DEFAULT_BANNER_URL.toUri()) }
-    var bannerPictureUri by remember { mutableStateOf<Uri?>(DEFAULT_BANNER_URL.toUri()) }
-
-    Surface(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(0.dp, 0.dp, 0.dp, 128.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            item {
-                menuButton()
-                TitleLarge(text = "Settings")
+        fun onIngredientSelect(ingredient: String) {
+            if (ingredientsState.contains(ingredient)) {
+                ingredientsState.remove(ingredient)
+            } else {
+                ingredientsState.add(ingredient)
             }
-            item {
-                Box(modifier = Modifier.padding(40.dp, 16.dp, 40.dp, 0.dp)) {
-                    Text(
-                        text = "Set your maximum shop radius",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
+        }
+
+        var profilePictureUri by remember { mutableStateOf<Uri?>(DEFAULT_BANNER_URL.toUri()) }
+        var bannerPictureUri by remember { mutableStateOf<Uri?>(DEFAULT_BANNER_URL.toUri()) }
+
+        Surface(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(0.dp, 0.dp, 0.dp, 128.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                item {
+                    menuButton()
+                    TitleLarge(text = "Settings")
                 }
-            }
-
-            item {
-                Box(modifier = Modifier.padding(40.dp, 16.dp, 40.dp, 0.dp)) {
-                    Slider(
-                        modifier = Modifier.semantics {
-                            contentDescription = "Localized Description"
-                        },
-                        value = sliderPosition,
-                        onValueChange = { sliderPosition = it },
-                        valueRange = 0f..50f,
-                        onValueChangeFinished = {
-                            //todo
-                        },
-                        steps = 9
-                    )
-                }
-            }
-
-            item {
-                Box(modifier = Modifier.padding(40.dp, 16.dp, 40.dp, 0.dp)) {
-                    Text(text = sliderPosition.roundToInt().toString() + " km")
-                }
-            }
-
-            item {
-                Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
-                    Text(
-                        text = "Choose your dietary preferences",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
-            }
-
-            item {
-                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .toggleable(
-                                value = veganState,
-                                onValueChange = { onVeganChange(!veganState) },
-                                role = Role.Checkbox
-                            )
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = veganState,
-                            onCheckedChange = null // null recommended for accessibility with screenreaders
-                        )
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 16.dp, 40.dp, 0.dp)) {
                         Text(
-                            text = "Vegan",
-                            style = MaterialTheme.typography.bodyLarge,
+                            text = "Set your maximum shop radius",
+                            style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.padding(start = 16.dp)
                         )
                     }
                 }
-            }
 
-            item {
-                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .toggleable(
-                                value = vegetarianState,
-                                onValueChange = { onVegetarianChange(!vegetarianState) },
-                                role = Role.Checkbox
-                            )
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = vegetarianState,
-                            onCheckedChange = null // null recommended for accessibility with screenreaders
-                        )
-                        Text(
-                            text = "Vegetarian",
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(start = 16.dp)
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 16.dp, 40.dp, 0.dp)) {
+                        Slider(
+                            modifier = Modifier.semantics {
+                                contentDescription = "Localized Description"
+                            },
+                            value = sliderPosition,
+                            onValueChange = { sliderPosition = it },
+                            valueRange = 0f..50f,
+                            onValueChangeFinished = {
+                                //todo
+                            },
+                            steps = 9
                         )
                     }
                 }
-            }
 
-            item {
-                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .toggleable(
-                                value = dairyState,
-                                onValueChange = { onDairyChange(!dairyState) },
-                                role = Role.Checkbox
-                            )
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = dairyState,
-                            onCheckedChange = null // null recommended for accessibility with screenreaders
-                        )
-                        Text(
-                            text = "Dairy-free",
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(start = 16.dp)
-                        )
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 16.dp, 40.dp, 0.dp)) {
+                        Text(text = sliderPosition.roundToInt().toString() + " km")
                     }
                 }
-            }
 
-            item {
-                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .toggleable(
-                                value = ketoState,
-                                onValueChange = { onKetoChange(!ketoState) },
-                                role = Role.Checkbox
-                            )
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = ketoState,
-                            onCheckedChange = null // null recommended for accessibility with screenreaders
-                        )
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
                         Text(
-                            text = "Keto",
-                            style = MaterialTheme.typography.bodyLarge,
+                            text = "Choose your dietary preferences",
+                            style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.padding(start = 16.dp)
                         )
                     }
                 }
-            }
-            item {
-                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .toggleable(
-                                value = kosherState,
-                                onValueChange = { onKosherChange(!kosherState) },
-                                role = Role.Checkbox
+
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = veganState,
+                                    onValueChange = { onVeganChange(!veganState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = veganState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
                             )
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = kosherState,
-                            onCheckedChange = null // null recommended for accessibility with screenreaders
-                        )
+                            Text(
+                                text = "Vegan",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = vegetarianState,
+                                    onValueChange = { onVegetarianChange(!vegetarianState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = vegetarianState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Vegetarian",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = dairyState,
+                                    onValueChange = { onDairyChange(!dairyState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = dairyState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Dairy-free",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = ketoState,
+                                    onValueChange = { onKetoChange(!ketoState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = ketoState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Keto",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                    }
+                }
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = kosherState,
+                                    onValueChange = { onKosherChange(!kosherState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = kosherState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Kosher",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                    }
+                }
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = halalState,
+                                    onValueChange = { onHalalChange(!halalState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = halalState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Halal",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                    }
+                }
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = glutenState,
+                                    onValueChange = { onGlutenChange(!glutenState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = glutenState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Gluten-free",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                    }
+                }
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = nutState,
+                                    onValueChange = { onNutChange(!nutState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = nutState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Nut-free",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                    }
+                }
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
                         Text(
-                            text = "Kosher",
-                            style = MaterialTheme.typography.bodyLarge,
+                            text = "What ingredients do you have?",
+                            style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.padding(start = 16.dp)
                         )
                     }
                 }
-            }
-            item {
-                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .toggleable(
-                                value = halalState,
-                                onValueChange = { onHalalChange(!halalState) },
-                                role = Role.Checkbox
-                            )
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = halalState,
-                            onCheckedChange = null // null recommended for accessibility with screenreaders
-                        )
-                        Text(
-                            text = "Halal",
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(start = 16.dp)
-                        )
+                item {
+                    Box {
+                        CoffeeIngredientsCluster(
+                            ingredientsState,
+                            { ingredient -> onIngredientSelect(ingredient) })
                     }
                 }
-            }
-            item {
-                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .toggleable(
-                                value = glutenState,
-                                onValueChange = { onGlutenChange(!glutenState) },
-                                role = Role.Checkbox
-                            )
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = glutenState,
-                            onCheckedChange = null // null recommended for accessibility with screenreaders
-                        )
-                        Text(
-                            text = "Gluten-free",
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(start = 16.dp)
-                        )
-                    }
-                }
-            }
-            item {
-                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .toggleable(
-                                value = nutState,
-                                onValueChange = { onNutChange(!nutState) },
-                                role = Role.Checkbox
-                            )
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = nutState,
-                            onCheckedChange = null // null recommended for accessibility with screenreaders
-                        )
-                        Text(
-                            text = "Nut-free",
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(start = 16.dp)
-                        )
-                    }
-                }
-            }
-            item {
-                Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
-                    Text(
-                        text = "What ingredients do you have?",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
-            }
-            item {
-                Box{
-                    CoffeeIngredientsCluster()
-                }
-            }
-            item {
+                item {
 //              update profile picture
-                ImageUpload("Select New Profile Picture", returnImageUri = {newUri -> profilePictureUri = newUri})
-            }
+                    ImageUpload(
+                        "Select New Profile Picture",
+                        returnImageUri = { newUri -> profilePictureUri = newUri })
+                }
 
-            item {
-                ImageUpload("Select New Banner Picture", returnImageUri = {newUri -> bannerPictureUri = newUri})
-            }
+                item {
+                    ImageUpload(
+                        "Select New Banner Picture",
+                        returnImageUri = { newUri -> bannerPictureUri = newUri })
+                }
 
 
-            item {
-                Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 32.dp)) {
-                    Button(
-                        onClick = {
-                            profilePictureUri?.let {
-                                uploadSettingsImageToFirebaseStorage(
-                                    it
-                                ) { newValue: String ->
-                                    Log.d("NEWAVATARVALUE", newValue)
-                                    updateAvatar(newValue)
-                                }
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 32.dp)) {
+                        Button(
+                            onClick = {
+//                            profilePictureUri?.let {
+//                                uploadSettingsImageToFirebaseStorage(
+//                                    it
+//                                ) { newValue: String ->
+//                                    Log.d("NEWAVATARVALUE", newValue)
+//                                    updateAvatar(newValue)
+//                                }
+//                            }
+//
+//                            bannerPictureUri?.let {
+//                                uploadSettingsImageToFirebaseStorage(
+//                                    it
+//                                ) { newValue: String ->
+//                                    updateBanner(newValue)
+//                                }
+//                            }
+
+                                viewModel.updatePreferencesById(
+                                    sliderPosition,
+                                    veganState,
+                                    vegetarianState,
+                                    dairyState,
+                                    ketoState,
+                                    kosherState,
+                                    halalState,
+                                    glutenState,
+                                    nutState,
+                                    ingredientsState
+                                );
+                            },
+                            shape = RoundedCornerShape(50.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                        ) {
+                            if(preferenceState.isLoading) {
+                                LoadingModal(size=24.dp, color=Color.White)
+                            } else {
+                                Text(text = "Save preferences")
                             }
-
-                            bannerPictureUri?.let {
-                                uploadSettingsImageToFirebaseStorage(
-                                    it
-                                ) { newValue: String ->
-                                    updateBanner(newValue)
-                                }
-                            }
-
-                            updateSettings(
-                                sliderPosition,
-                                veganState,
-                                vegetarianState,
-                                dairyState,
-                                ketoState,
-                                kosherState,
-                                halalState,
-                                glutenState,
-                                nutState,
-                            );
-                        },
-                        shape = RoundedCornerShape(50.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                    ) {
-                        Text(text = "Save preferences")
+                        }
                     }
                 }
-            }
 
-            item {
-                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                    Button(
-                        onClick = {
-                            // Logout the user and navigate back to the main activity
-                            // currentUserViewModel.setUser(null)
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Button(
+                            onClick = {
+                                // Logout the user and navigate back to the main activity
+                                // currentUserViewModel.setUser(null)
 
-                            // Start the MainActivity to simulate a restart
+                                // Start the MainActivity to simulate a restart
 //                            val intent = Intent(navController.context, MainActivity::class.java)
 //                            intent.flags =
 //                                Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
@@ -705,32 +644,37 @@ fun SettingScreen(
 //
 //                            // Finish the current activity to clear it from the back stack
 //                            (navController.context as? ComponentActivity)?.finish()
-                            activity.setLogin(false)
-                        },
-                        shape = RoundedCornerShape(50.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                    ) {
-                        Text(text = "Logout")
+                                activity.setLogin(false)
+                            },
+                            shape = RoundedCornerShape(50.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                        ) {
+                            Text(text = "Logout")
+                        }
                     }
                 }
-            }
 
-            item {
-                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                    Button(
-                        onClick = {
-                            coroutineScope.launch {
-                                handleAccountDeletion(currentUserRepository, activity, navController)
-                            }
-                        },
-                        shape = RoundedCornerShape(50.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                    ) {
-                        Text(text = "Delete Account")
+                item {
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    handleAccountDeletion(
+                                        currentUserRepository,
+                                        activity,
+                                        navController
+                                    )
+                                }
+                            },
+                            shape = RoundedCornerShape(50.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                        ) {
+                            Text(text = "Delete Account")
+                        }
                     }
                 }
             }

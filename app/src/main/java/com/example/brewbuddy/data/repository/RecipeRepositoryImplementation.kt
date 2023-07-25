@@ -1,30 +1,32 @@
 package com.example.brewbuddy.data.repository
-import android.app.Activity
 import android.content.Context
 import android.util.Log
-import com.example.brewbuddy.common.Constants
-import com.example.brewbuddy.data.remote.dto.Instructions
 import com.example.brewbuddy.data.remote.dto.MarketplaceItemDto
 import com.example.brewbuddy.data.remote.dto.MarketplaceItemMetadataDto
+import com.example.brewbuddy.data.remote.dto.PreferencesDto
 import com.example.brewbuddy.data.remote.dto.RecipeDto
 import com.example.brewbuddy.data.remote.dto.RecipeMetadataDto
 import com.example.brewbuddy.data.remote.dto.UserDto
+import com.example.brewbuddy.domain.model.Preferences
 import com.example.brewbuddy.domain.repository.RecipeRepository
 import com.example.brewbuddy.requests.getFunctions
-import com.example.brewbuddy.domain.model.Author
-import com.example.brewbuddy.domain.model.Recipe
-import com.example.brewbuddy.domain.model.User
 import com.example.brewbuddy.profile.db
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.firebase.FirebaseError.ERROR_INVALID_CREDENTIAL
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import okhttp3.internal.toImmutableMap
+import java.util.Collections
 import javax.inject.Inject
 
 class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
@@ -86,13 +88,25 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
                     .getHttpsCallable("getUserRecipes")
                     .call(hashMapOf("authorId" to user_id)).await()
             }
-            Log.d("GET_RECIPES_BY_USER_ID2", user_id)
             val task = dataDeferred.await()
-            Log.d("GET_RECIPES_BY_USER_ID3", user_id)
             val data = task.data as List<HashMap<String, Object>>
-            Log.d("GET_RECIPES_BY_USER_ID4", user_id)
             return@withContext data.map{RecipeMetadataDto.from(it)}
 
+        }
+    }
+
+    override suspend fun getUserLikedRecipes(userId: String): List<RecipeMetadataDto> {
+        Log.d("GET_USER_LIKED_RECIPES", "Running")
+
+        return withContext(Dispatchers.IO) {
+            val dataDeferred = async {
+                getFunctions()
+                    .getHttpsCallable("getUserLikedRecipes")
+                    .call(hashMapOf("userId" to userId)).await()
+            }
+            val task = dataDeferred.await()
+            val data = task.data as List<HashMap<String, Object>>
+            return@withContext data.map{RecipeMetadataDto.from(it)}
         }
     }
     override suspend fun getRecommended(userId: String): List<RecipeMetadataDto> {
@@ -162,7 +176,11 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
         }
     }
 
-    override suspend fun signIn(username: String, password: String): Boolean {
+    override suspend fun signInWithUsername(username: String, password: String): Boolean {
+        if(username.isEmpty() || password.isEmpty()) {
+            val msg = if (username.isEmpty()) "Please provide a username" else "Please provide a password"
+            throw FirebaseAuthInvalidCredentialsException(ERROR_INVALID_CREDENTIAL.toString(), msg)
+        }
         val auth = Firebase.auth
         val db = FirebaseFirestore.getInstance()
 
@@ -186,11 +204,21 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
                     }
                 }
             }
-
-            return@withContext false
+            throw FirebaseAuthInvalidCredentialsException(ERROR_INVALID_CREDENTIAL.toString(), "User does not exist")
         }
     }
-    override suspend fun registerUserWithGoogle(context: Context, username: String, email: String): Boolean {
+
+    override suspend fun getUserPreferencesById(id: String): PreferencesDto {
+        val firestore = FirebaseFirestore.getInstance()
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        val preferencesRef = id?.let { firestore.collection("user_preferences").document(it) }
+
+        return withContext(Dispatchers.IO) {
+            val snapshot = preferencesRef?.get()?.await()
+            return@withContext PreferencesDto.from(snapshot?.getData() ?: hashMapOf<String, Any>())
+        }
+    }
+    override suspend fun signInWithGoogle(context: Context, username: String, email: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
                 val account = GoogleSignIn.getLastSignedInAccount(context)
@@ -240,4 +268,25 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
         }
 
     }
+
+    override suspend fun setUserPreferencesById(id: String, preferences: Preferences): Boolean {
+        return withContext(Dispatchers.IO) {
+            val preferencesRef = db.collection("user_preferences").document(id)
+            val prefs = hashMapOf(
+                "radius" to preferences.radius,
+                "vegan" to preferences.vegan,
+                "vegetarian" to preferences.vegetarian,
+                "dairyFree" to preferences.dairyFree,
+                "keto" to preferences.keto,
+                "kosher" to preferences.kosher,
+                "halal" to preferences.halal,
+                "glutenFree" to preferences.glutenFree,
+                "nutFree" to preferences.nutFree,
+                "ingredients" to preferences.ingredients
+            )
+            val task = preferencesRef.set(prefs).await()
+            return@withContext true
+        }
+    }
+
 }

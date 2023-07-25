@@ -12,18 +12,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.brewbuddy.MainActivity
 import com.example.brewbuddy.profile.CurrentUserRepository
-import com.example.brewbuddy.profile.AccountViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -45,29 +40,6 @@ private val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_I
     .requestEmail()
     .build()
 
-fun addGoogleUserToFirestore(account: GoogleSignInAccount) {
-    val authUser = auth.currentUser
-    Log.d("FIRESTORE", "User data stored in Firestore: ${account.displayName}")
-    val user = hashMapOf(
-        "email" to account.email,
-        "username" to account.displayName,
-        "uid" to authUser!!.uid,
-        "avatarUrl" to account.photoUrl.toString(),
-    )
-
-    val documentRef = db.collection("users").document(authUser!!.uid)
-    documentRef.get().addOnSuccessListener{
-        if(!it.exists()) {
-            documentRef.set(user)
-                .addOnSuccessListener {
-                    Log.d("addGoogleUserToFirestore", "User ${authUser!!.uid} added to Firestore successfully")
-                }
-                .addOnFailureListener { exception ->
-                    Log.d("addGoogleUserToFirestore", "Error adding user to Firestore: $exception")
-                }
-        }
-    }
-}
 @Composable
 fun GoogleSignInButton(
     onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit,

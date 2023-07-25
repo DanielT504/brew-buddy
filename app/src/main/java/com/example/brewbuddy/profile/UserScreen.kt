@@ -4,9 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
-import androidx.annotation.DrawableRes
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,32 +17,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.BoxWithConstraints
-import android.provider.CalendarContract
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.FlingBehavior
-import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
@@ -62,7 +46,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -75,7 +58,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -85,23 +67,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.brewbuddy.AccessScreens
 import com.example.brewbuddy.PinnedCard
 import com.example.brewbuddy.ProfilePicture
 import com.example.brewbuddy.R
 import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
-import com.example.brewbuddy.common.Constants.DEFAULT_BANNER_URL
 import com.example.brewbuddy.data.remote.dto.Imperial
 import com.example.brewbuddy.data.remote.dto.Ingredient
 import com.example.brewbuddy.data.remote.dto.IngredientList
@@ -112,27 +88,18 @@ import com.example.brewbuddy.data.remote.dto.Step
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.PostMetadata
 import com.example.brewbuddy.domain.model.Recipe
-import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.domain.model.User
 import com.example.brewbuddy.marketplace.MarketplaceItemModal
 import com.example.brewbuddy.marketplace.MarketplaceViewModel
 import com.example.brewbuddy.navigateToItem
 import com.example.brewbuddy.navigateToRecipe
 import com.example.brewbuddy.recipes.IndividualIngredient
-import com.example.brewbuddy.recipes.IndividualRecipeScreenViewModel
-import com.example.brewbuddy.recipes.IndividualStep
-import com.example.brewbuddy.recipes.IngredientsList
-//import com.example.brewbuddy.recipes.RecipeBanner
-//import com.example.brewbuddy.recipes.RecipeSection
-import com.example.brewbuddy.recipes.UserScreenViewModel
+import com.example.brewbuddy.recipes.ProfileViewModel
 import com.example.brewbuddy.shoplocator.Store
-//import com.example.brewbuddy.store1
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
-import com.example.brewbuddy.ui.theme.SlateDark
-import com.example.brewbuddy.ui.theme.SlateLight
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
@@ -240,17 +207,18 @@ fun postRecipe(recipe: Recipe) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
-    val pageCount = 5
+fun Carousel(
+    pagerState: PagerState = remember{ PagerState() },
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val pageCount = viewModel.userLikedRecipes.value.size
     val bounds = 100 // arbitrarily large # to give the illusion of infinite scroll
     val startIndex = bounds / 2
 
     val focusColor = GreyMedium
     val unfocusedColor = GreyLight
-//    val tempRecipe = Recipe("Latte")
 
     Column(modifier=Modifier.fillMaxWidth()) {
-
         HorizontalPager(
             modifier = Modifier,
             state = pagerState,
@@ -261,15 +229,14 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
             beyondBoundsPageCount = 1,
             pageCount = pageCount,
             pageContent = { index ->
-                val page = getIndex(index, startIndex, pageCount)
-
-                // TODO: Temporarily commented out because there is no pinned recipes data being returned by a user
-//                Box(contentAlignment = Alignment.Center) {
-//                    PinnedCard(modifier = Modifier
-//                        .width(210.dp)
-//                        .height(150.dp), tempRecipe)
-//
-//                }
+               /* val page = getIndex(index, startIndex, pageCount)*/
+              Box(contentAlignment = Alignment.Center) {
+                   PinnedCard(modifier = Modifier
+                       .width(210.dp)
+                       .height(150.dp),
+                       viewModel.userLikedRecipes.value[index]
+                   )
+                }
             },
         )
 
@@ -1075,7 +1042,7 @@ private fun retrieveSavedStores() {
 }
 
 @Composable
-private fun <T>UserPostsGrid(state: UserScreenState<T>, title: String, content: @Composable () -> Unit) {
+private fun <T>UserPostsGrid(state: UserState<T>, title: String, content: @Composable () -> Unit) {
     Box(modifier = Modifier.padding(top = 35.dp)) {
         TitleLarge(text =  title)
     }
@@ -1105,7 +1072,7 @@ private fun <T>UserPostsGrid(state: UserScreenState<T>, title: String, content: 
 fun UserScreen(
     menuButton: @Composable () -> Unit,
     navController: NavHostController,
-    viewModel: UserScreenViewModel = hiltViewModel(),
+    viewModel: ProfileViewModel = hiltViewModel(),
     marketplaceViewModel: MarketplaceViewModel = hiltViewModel()
 ) {
     val userState = viewModel.userState.value
@@ -1121,7 +1088,14 @@ fun UserScreen(
 
         Column(modifier = Modifier.fillMaxSize()) {
             TitleLarge(text="Pinned Recipes")
-            Carousel()
+            if(viewModel.userLikedRecipes.value.isNotEmpty()) {
+                Carousel()
+            } else {
+                Text(
+                    text="You haven't liked any recipes yet!",
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
             UserPostsGrid(state=recipesState, title="Your Recipes") {
                 Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                     ImageGrid(

@@ -1,6 +1,5 @@
 package com.example.brewbuddy
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.border
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.foundation.layout.Row
@@ -38,8 +36,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.brewbuddy.profile.AccountViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.material3.Card
 import androidx.compose.material3.DrawerState
@@ -68,32 +64,22 @@ import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.profile.UserScreen
 import kotlinx.coroutines.CoroutineScope
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavType
-import androidx.navigation.compose.*
-import androidx.navigation.navArgument
+import com.example.brewbuddy.components.Content
 import com.example.brewbuddy.domain.model.User
-import com.example.brewbuddy.profile.CurrentUserRepository
 import com.example.brewbuddy.profile.SettingScreen
-import com.example.brewbuddy.recipes.UserScreenViewModel
+import com.example.brewbuddy.recipes.ProfileViewModel
 import com.example.brewbuddy.ui.theme.LoadingScreen
 
 val LocalNavController = compositionLocalOf<NavController> { error("No NavController provided") }
 
 sealed class ProfileScreens(val route: String, val label: String) {
     object User : ProfileScreens("profile/user/", "Profile")
-    object PinnedRecipes : ProfileScreens("profile/pinned_recipes", "Pinned Recipes")
     object Settings : ProfileScreens("profile/settings", "Settings")
 
 }
 
-//@Composable
-//fun getUser(): User {
-//    val loginUserViewModel: AccountViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
-//    return loginUserViewModel.getUser()
-//}
 @Composable
 fun PinnedCard(modifier: Modifier, recipe: Recipe) {
     Card(modifier) {
@@ -163,10 +149,9 @@ fun ProfilePicture(avatarUrl: String, size: Dp) {
 fun ProfileScreen(
     activity: MainActivity,
     navController: NavController,
-    viewModel: UserScreenViewModel = hiltViewModel()
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val userState = viewModel.userState.value
-    val currentUserRepository = CurrentUserRepository()
     val coroutineScope = rememberCoroutineScope()
     var menuDrawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val localNavController = rememberNavController()
@@ -175,19 +160,7 @@ fun ProfileScreen(
         ProfileScreens.User,
         ProfileScreens.Settings
     )
-    if(userState.error.isNotBlank()) {
-        Text(
-            text = userState.error,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        )
-    } else if(userState.isLoading){
-        LoadingScreen()
-    } else {
-//    val user = getUser()
+    Content(userState) {
         ModalNavigationDrawer(
             drawerContent = {
                 ProfileMenu(
@@ -233,15 +206,13 @@ fun ProfileScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 private fun toggleMenu(menuDrawerState: DrawerState, coroutineScope: CoroutineScope) {
     coroutineScope.launch {
         if(menuDrawerState.isClosed) menuDrawerState.open() else menuDrawerState.close()
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
+ @Composable
 private fun MenuButton(
     coroutineScope: CoroutineScope,
     menuDrawerState: DrawerState,
@@ -265,7 +236,6 @@ private fun MenuButton(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProfileMenu(
     navController: NavHostController,

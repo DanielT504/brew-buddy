@@ -1,18 +1,15 @@
 package com.example.brewbuddy
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import com.example.brewbuddy.profile.CurrentUserRepository
-import com.example.brewbuddy.profile.AccountViewModel
+import com.example.brewbuddy.access.AccessScreen
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -24,7 +21,6 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val currentUserRepository = CurrentUserRepository()
     private lateinit var auth: FirebaseAuth
     private var isLoggedIn = MutableLiveData(false)
 
@@ -61,10 +57,7 @@ class MainActivity : ComponentActivity() {
             } else {
                 setContent {
                     BrewBuddyTheme {
-                        AccessScreen(
-                            currentUserRepository,
-                            this
-                        )
+                        AccessScreen(this)
                     }
                 }
             }

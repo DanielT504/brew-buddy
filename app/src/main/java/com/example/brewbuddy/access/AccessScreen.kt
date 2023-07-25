@@ -1,9 +1,8 @@
-package com.example.brewbuddy
+package com.example.brewbuddy.access
 
 import createAccount
 import GoogleRegisterButton
 import GoogleSignInButton
-import addGoogleUserToFirestore
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
@@ -49,20 +48,23 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.brewbuddy.profile.AccountViewModel
 import com.example.brewbuddy.ui.theme.GreenMedium
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.res.painterResource
-import com.example.brewbuddy.profile.CurrentUserRepository
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.*
 import android.util.Patterns
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.brewbuddy.LocalNavGraphViewModelStoreOwner
+import com.example.brewbuddy.MainActivity
+import com.example.brewbuddy.R
+import com.example.brewbuddy.components.LoadingModal
+import com.example.brewbuddy.rememberViewModelStoreOwner
 import com.example.brewbuddy.ui.theme.LoadingScreen
 import com.google.firebase.auth.FirebaseAuth
 
@@ -89,10 +91,9 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 fun LoginScreen(
     navController: NavController,
-    currentUserRepository: CurrentUserRepository,
     activity: MainActivity,
     context: Context,
-    viewModel: AccountViewModel = hiltViewModel(),
+    viewModel: AccessViewModel = hiltViewModel(),
 ) {
     val state = viewModel.loginState.value
     val nonWhitespaceFilter = remember { Regex("^[^\n ]*\$")}
@@ -108,117 +109,105 @@ fun LoginScreen(
     val passwordFocusRequester = remember {FocusRequester()}
     var isLoginEnabled by remember {mutableStateOf(false)}
 
-    if(state.error.isNotBlank()) {
-        Text(
-            text = state.error,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        )
-    } else if(state.isLoading){
-        LoadingScreen()
-    } else {
-        if(state.success == false) {
-            errorMsg.value = "Incorrect username or password"
-        }
-        Surface(
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Column(
             modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                FormWrapper() {
-                    Box(modifier = Modifier.padding(bottom = 20.dp))
-                    Title()
-                    TextField(
-                        value = username,
-                        onValueChange = {
-                            if (it.text.matches(alphanumericFilter)) {
-                                username = it
-                            }
-                        },
-                        placeholder = { Text(text = "Username") },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                        keyboardActions = KeyboardActions(
-                            onNext = {
-                                passwordFocusRequester.requestFocus()
-                            }
-                        ),
-                        modifier = Modifier.focusRequester(focusRequester)
-                    )
-                    TextField(
-                        value = password,
-                        onValueChange = {
-                            if (it.text.matches(nonWhitespaceFilter)) {
-                                password = it
-                            }
+            FormWrapper() {
+                Box(modifier = Modifier.padding(bottom = 20.dp))
+                Title()
+                TextField(
+                    value = username,
+                    onValueChange = {
+                        if (it.text.matches(alphanumericFilter)) {
+                            username = it
+                        }
+                    },
+                    placeholder = { Text(text = "Username") },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = {
+                            passwordFocusRequester.requestFocus()
+                        }
+                    ),
+                    modifier = Modifier.focusRequester(focusRequester)
+                )
+                TextField(
+                    value = password,
+                    onValueChange = {
+                        if (it.text.matches(nonWhitespaceFilter)) {
+                            password = it
+                        }
 
-                            isLoginEnabled =
-                                username.text.isNotBlank() && password.text.isNotBlank()
-                        },
-                        placeholder = { Text(text = "Password") },
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(
-                                onClick = { passwordVisible = !passwordVisible },
-                                modifier = Modifier.padding(end = 4.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(if (passwordVisible) R.drawable.baseline_visibility_off_24 else R.drawable.baseline_visibility_24),
-                                    contentDescription = if (passwordVisible) "Hide password" else "Show password"
-                                )
-                            }
-                        },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                if (isLoginEnabled) {
-                                    viewModel.signIn(username.text, password.text) {
-                                        activity.setLogin(true)
-                                    }
+                        isLoginEnabled =
+                            username.text.isNotBlank() && password.text.isNotBlank()
+                    },
+                    placeholder = { Text(text = "Password") },
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(
+                            onClick = { passwordVisible = !passwordVisible },
+                            modifier = Modifier.padding(end = 4.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(if (passwordVisible) R.drawable.baseline_visibility_off_24 else R.drawable.baseline_visibility_24),
+                                contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                            )
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            if (isLoginEnabled) {
+                                viewModel.signIn(username.text, password.text) {
+                                    activity.setLogin(true)
                                 }
                             }
-                        ),
-                        modifier = Modifier.focusRequester(passwordFocusRequester)
-                    )
-                    Button(
-                        onClick = {
-                            Log.d("LOGIN_USER", "Attempting login for username: ${username.text}")
-                            // Launch a coroutine in the CoroutineScope
-                            viewModel.signIn(username.text, password.text) {
-                                activity.setLogin(true)
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
-                        modifier = Modifier.size(width = 280.dp, height = 40.dp),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
+                        }
+                    ),
+                    modifier = Modifier.focusRequester(passwordFocusRequester)
+                )
+                Button(
+                    onClick = {
+                        Log.d("LOGIN_USER", "Attempting login for username: ${username.text}")
+                        // Launch a coroutine in the CoroutineScope
+                        viewModel.signIn(username.text, password.text) {
+                            activity.setLogin(true)
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenMedium),
+                    modifier = Modifier.size(width = 280.dp, height = 40.dp),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    if(state.isLoading) {
+                        LoadingModal(24.dp, Color.White)
+                    } else {
                         Text("LOGIN")
                     }
-                    ErrorMessage(errorMsg.value)
-                    Button(
-                        onClick = { navController.navigate(AccessScreens.Register.route) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            contentColor = MaterialTheme.colorScheme.primary
-                        ),
-                        modifier = Modifier.padding(top = 16.dp)
-                    ) {
-                        Text(text = "Sign up")
-                    }
-                    GoogleSignInButton(
-                        onGoogleSignInSuccess = { account ->
-                            Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
-                            viewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!) {
-                                activity.setLogin(true)
-                            }
-                        },
-                    )
                 }
+                ErrorMessage(if(state.error.isNotEmpty()) state.error else errorMsg.value)
+                Button(
+                    onClick = { navController.navigate(AccessScreens.Register.route) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    Text(text = "Sign up")
+                }
+                GoogleSignInButton(
+                    onGoogleSignInSuccess = { account ->
+                        Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
+                        viewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!) {
+                            activity.setLogin(true)
+                        }
+                    },
+                )
             }
         }
     }
@@ -228,7 +217,7 @@ fun LoginScreen(
 @Composable
 fun RegisterScreen(
     navController: NavController,
-    viewModel: AccountViewModel = hiltViewModel(),
+    viewModel: AccessViewModel = hiltViewModel(),
     activity: MainActivity,
     context: Context
 ) {
@@ -470,7 +459,6 @@ fun Title(color: Color = OrangeBrownMedium) {
 }
 @Composable
 fun AccessScreen(
-    currentUserRepository: CurrentUserRepository,
     activity: MainActivity,
 ) {
     val navController = rememberNavController()
@@ -481,7 +469,7 @@ fun AccessScreen(
         ) {
             NavHost(navController, startDestination = AccessScreens.Login.route) {
                 composable(AccessScreens.Login.route) {
-                    LoginScreen(navController=navController, currentUserRepository=currentUserRepository, activity=activity, context = LocalContext.current)
+                    LoginScreen(navController=navController, activity=activity, context = LocalContext.current)
                 }
                 composable(AccessScreens.Register.route) {
                     RegisterScreen(navController=navController, context = LocalContext.current, activity=activity)
