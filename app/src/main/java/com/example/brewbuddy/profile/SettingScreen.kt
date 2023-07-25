@@ -199,34 +199,39 @@ fun updateIngredients(ingredient: String, add: Boolean) {
 @Composable
 fun IngredientButton(ingredient: String) {
     var selectedIngredientsList by remember { mutableStateOf(emptyList<String>()) }
-
+    var ingredientsFetched by remember {
+        mutableStateOf(false)
+    }
     // Fetch ingredients from Firestore when the composable is first recomposed
     LaunchedEffect(Unit) {
         retrieveIngredients() { ingredients ->
             selectedIngredientsList = ingredients
+            ingredientsFetched = true
+
         }
     }
+    if (ingredientsFetched) {
+        var isSelected = selectedIngredientsList.contains(ingredient)
+        var selected by remember { mutableStateOf(isSelected) }
 
-    var isSelected = selectedIngredientsList.contains(ingredient)
-    var selected by remember { mutableStateOf(isSelected) }
+        Button(
+            onClick = {
+                updateIngredients(ingredient, !selected)
 
-    Button(
-        onClick = {
-            updateIngredients(ingredient, !selected)
-
-            selected = !selected
-        },
-        shape = RoundedCornerShape(20.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (selected) Brown else Color.White,
-            contentColor = if (selected) Color.White else Color.Black,
-        ),
-        modifier = Modifier
-            .padding(8.dp)
-            .wrapContentWidth()
-            .height(50.dp)
-    ) {
-        Text(text = ingredient)
+                selected = !selected
+            },
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (selected) Brown else Color.White,
+                contentColor = if (selected) Color.White else Color.Black,
+            ),
+            modifier = Modifier
+                .padding(8.dp)
+                .wrapContentWidth()
+                .height(50.dp)
+        ) {
+            Text(text = ingredient)
+        }
     }
 }
 
