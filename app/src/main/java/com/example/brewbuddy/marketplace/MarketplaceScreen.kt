@@ -57,7 +57,7 @@ sealed class MarketplaceNavigationScreens(val route: String) {
     object IndividualItem : MarketplaceNavigationScreens("items/")
 }
 
-private fun navigateToItem(itemId: String, navController: NavHostController) {
+fun navigateToItem(itemId: String, navController: NavHostController) {
     navController.navigate(route = MarketplaceNavigationScreens.IndividualItem.route + itemId)
 }
 

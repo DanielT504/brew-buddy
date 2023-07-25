@@ -105,6 +105,7 @@ import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.PostMetadata
 import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.model.RecipeMetadata
+import com.example.brewbuddy.navigateToItem
 import com.example.brewbuddy.navigateToRecipe
 import com.example.brewbuddy.recipes.IndividualIngredient
 import com.example.brewbuddy.recipes.IndividualRecipeScreenViewModel
@@ -236,7 +237,6 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
 
 @Composable
 fun ImageGrid(
-    navController: NavHostController,
     navFunction: (id: String) -> Unit,
     columns: Int,
     modifier: Modifier = Modifier,
@@ -829,6 +829,32 @@ private fun retrieveSavedStores() {
     }
 }
 
+@Composable
+private fun <T>UserPostsGrid(state: UserScreenState<T>, title: String, content: @Composable () -> Unit) {
+    Box(modifier = Modifier.padding(top = 35.dp)) {
+        TitleLarge(text =  title)
+    }
+    if(state.error.isNotBlank()) {
+        Text(
+            text = state.error,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+    } else if(state.isLoading){
+        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+            Box() {
+                CircularProgressIndicator(modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(34.dp))
+            }
+        }
+    } else {
+        content()
+    }
+}
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserScreen(
@@ -836,7 +862,8 @@ fun UserScreen(
     navController: NavHostController,
     viewModel: UserScreenViewModel = hiltViewModel()
 ) {
-    var state = viewModel.state.value
+    var recipesState = viewModel.state.value
+    var listingState = viewModel.listingState.value
     val user = getUser()
     // todo: change to lazycolumn
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -845,31 +872,13 @@ fun UserScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             TitleLarge(text="Pinned Recipes")
             Carousel()
-
-            Box(modifier = Modifier.padding(top = 35.dp)) {
-                TitleLarge(text = "Your Recipes")
-            }
-
-            if(state.error.isNotBlank()) {
-                Text(
-                    text = state.error,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                )
-            } else if(state.isLoading){
-                Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-                    Box() {
-                        CircularProgressIndicator(modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(34.dp))
-                    }
-                }
-            } else {
-                if (state.data.isNotEmpty()) {
-                    ImageGrid(navController, columns = 3, modifier = Modifier.padding(start = 16.dp), state.data)
+            UserPostsGrid(state=recipesState, title="Your Recipes") {
+                if (recipesState.data.isNotEmpty()) {
+                    ImageGrid(
+                        navFunction = {id: String -> navigateToRecipe(id, navController) },
+                        columns = 3,
+                        modifier = Modifier.padding(start = 16.dp),
+                        recipes = recipesState.data)
                 }
                 else {
                     Text(
@@ -878,12 +887,8 @@ fun UserScreen(
                     )
                 }
             }
-
-
-//            ImageGrid(3, modifier = Modifier.padding(16.dp))
-
-
             var showDialog = remember { mutableStateOf(false) }
+
             Button(
                 modifier = Modifier.padding(16.dp),
                 onClick = {
@@ -891,6 +896,22 @@ fun UserScreen(
                 }
             ) {
                 Text(text = "Upload Recipe")
+            }
+
+            UserPostsGrid(state=listingState, title="Your Listings") {
+                if (listingState.data.isNotEmpty()) {
+                    ImageGrid(
+                        navFunction = {id: String -> navigateToItem(id, navController) },
+                        columns = 3,
+                        modifier = Modifier.padding(start = 16.dp),
+                        recipes = listingState.data)
+                }
+                else {
+                    Text(
+                        text="You haven't uploaded any listings yet!",
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
             RecipeModal(showDialog,  onClose = { showDialog.value = false })
             Box() {

@@ -67,7 +67,7 @@ class MarketplaceViewModel @Inject constructor(
         userId?.let {
             val ref = db.collection("marketplace").document()
             val itemInfo = hashMapOf(
-                "bannerUrl" to bannerUrl,
+                "imageUrl" to bannerUrl,
                 "city" to city,
                 "title" to title,
                 "description" to description,
