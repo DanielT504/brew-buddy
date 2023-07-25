@@ -45,6 +45,8 @@ import com.example.brewbuddy.common.Constants.DEFAULT_BANNER_URL
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.brewbuddy.recipes.UserScreenViewModel
 import com.example.brewbuddy.ui.theme.Brown
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -334,12 +336,10 @@ fun CoffeeIngredientsCluster() {
 @Composable
 fun SettingScreen(
     navController: NavController,
-    loginUserViewModel: LoginUserViewModel,
-    currentUserRepository: CurrentUserRepository,
+    activity: MainActivity,
     menuButton: @Composable () -> Unit
 ) {
     val currentUserRepository = CurrentUserRepository()
-    val loginUserViewModel: LoginUserViewModel = viewModel()
     retrieveSettings()
 
     // Get the coroutine scope
@@ -698,13 +698,14 @@ fun SettingScreen(
                             // currentUserViewModel.setUser(null)
 
                             // Start the MainActivity to simulate a restart
-                            val intent = Intent(navController.context, MainActivity::class.java)
-                            intent.flags =
-                                Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                            navController.context.startActivity(intent)
-
-                            // Finish the current activity to clear it from the back stack
-                            (navController.context as? ComponentActivity)?.finish()
+//                            val intent = Intent(navController.context, MainActivity::class.java)
+//                            intent.flags =
+//                                Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+//                            navController.context.startActivity(intent)
+//
+//                            // Finish the current activity to clear it from the back stack
+//                            (navController.context as? ComponentActivity)?.finish()
+                            activity.setLogin(false)
                         },
                         shape = RoundedCornerShape(50.dp),
                         modifier = Modifier
@@ -721,7 +722,7 @@ fun SettingScreen(
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                handleAccountDeletion(currentUserRepository, loginUserViewModel, navController)
+                                handleAccountDeletion(currentUserRepository, activity, navController)
                             }
                         },
                         shape = RoundedCornerShape(50.dp),
@@ -739,7 +740,7 @@ fun SettingScreen(
 
 private suspend fun handleAccountDeletion(
     currentUserRepository: CurrentUserRepository,
-    loginUserViewModel: LoginUserViewModel,
+    activity: MainActivity,
     navController: NavController
 ) {
     val currentUser = currentUserRepository.getCurrentUser()
@@ -747,7 +748,7 @@ private suspend fun handleAccountDeletion(
         val deleteResult = currentUserRepository.deleteAccount(currentUser.uid)
 
         if (deleteResult) {
-            loginUserViewModel.setUser(null)
+            activity.setLogin(false)
 
             val intent = Intent(navController.context, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK

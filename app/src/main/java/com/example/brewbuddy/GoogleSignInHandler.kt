@@ -18,10 +18,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.example.brewbuddy.MainActivity
 import com.example.brewbuddy.profile.CurrentUserRepository
-import com.example.brewbuddy.profile.LoginUserViewModel
+import com.example.brewbuddy.profile.AccountViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -45,9 +47,10 @@ private val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_I
 
 @Composable
 fun GoogleSignInButton(
+    activity: MainActivity,
     onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit,
     currentUserRepository: CurrentUserRepository,
-    loginUserViewModel: LoginUserViewModel,
+    viewModel: AccountViewModel = hiltViewModel(),
     navController: NavController
 ) {
     val context = LocalContext.current
@@ -69,8 +72,8 @@ fun GoogleSignInButton(
     LaunchedEffect(signInResult.value) {
         signInResult.value?.let { account ->
             handleSignInResult(account, onGoogleSignInSuccess, currentUserRepository, navController)            // Now that we successfully signed in with Google, we can call the suspend function here.
-            loginUserViewModel.viewModelScope.launch {
-                val success = loginUserViewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!)
+            viewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!) {
+                activity.setLogin(true)
             }
         }
     }
@@ -115,9 +118,6 @@ fun GoogleSignInButton(
 @Composable
 fun GoogleRegisterButton(
     onGoogleSignInSuccess: suspend (GoogleSignInAccount) -> Unit,
-    currentUserRepository: CurrentUserRepository,
-    loginUserViewModel: LoginUserViewModel,
-    navController: NavController
 ) {
     val context = LocalContext.current
     val googleRegisterClient = remember { GoogleSignIn.getClient(context, gso) }

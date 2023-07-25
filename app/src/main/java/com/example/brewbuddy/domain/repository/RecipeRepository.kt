@@ -1,9 +1,11 @@
 package com.example.brewbuddy.domain.repository
 
+import android.content.Context
 import com.example.brewbuddy.data.remote.dto.MarketplaceItemDto
 import com.example.brewbuddy.data.remote.dto.MarketplaceItemMetadataDto
 import com.example.brewbuddy.data.remote.dto.RecipeDto
 import com.example.brewbuddy.data.remote.dto.RecipeMetadataDto
+import com.example.brewbuddy.data.remote.dto.UserDto
 
 interface RecipeRepository {
 
@@ -22,5 +24,9 @@ interface RecipeRepository {
 
     suspend fun getMarketplaceItemsByUserId(userId: String): List<MarketplaceItemMetadataDto>
 
+    suspend fun signIn(username: String, password: String): Boolean
 
+    suspend fun registerUserWithGoogle(context: Context, username: String, email: String): Boolean
+
+    suspend fun getUserById(userId: String): UserDto
 }

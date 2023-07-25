@@ -279,6 +279,18 @@ private fun <T>FilterTag(filter: Filter, viewModel: SearchViewModel<T>) {
     }
 }
 
+@Composable
+fun LoadingScreen() {
+    Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+        Box(modifier=Modifier.fillMaxSize()) {
+            CircularProgressIndicator(modifier = Modifier
+                .align(Alignment.Center)
+                .size(34.dp))
+        }
+    }
+
+}
+
 
 @Composable
 fun <T>SearchResults(
@@ -296,13 +308,7 @@ fun <T>SearchResults(
                 .padding(horizontal = 20.dp)
         )
     } else if(state.isLoading){
-        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-            Box(modifier=Modifier.fillMaxSize()) {
-                CircularProgressIndicator(modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(34.dp))
-            }
-        }
+        LoadingScreen()
     } else {
         Surface(
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),

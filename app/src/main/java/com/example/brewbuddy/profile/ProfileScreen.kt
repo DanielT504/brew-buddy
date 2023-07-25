@@ -39,7 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.brewbuddy.profile.LoginUserViewModel
+import com.example.brewbuddy.profile.AccountViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.material3.Card
 import androidx.compose.material3.DrawerState
@@ -65,16 +65,20 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.brewbuddy.domain.model.Recipe
 //import com.example.brewbuddy.profile.SettingsScreen
-import com.example.brewbuddy.profile.User
 import com.example.brewbuddy.profile.UserScreen
 import kotlinx.coroutines.CoroutineScope
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.*
+import androidx.compose.ui.text.style.TextAlign
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.example.brewbuddy.domain.model.User
 import com.example.brewbuddy.profile.CurrentUserRepository
 import com.example.brewbuddy.profile.SettingScreen
+import com.example.brewbuddy.recipes.UserScreenViewModel
+import com.example.brewbuddy.ui.theme.LoadingScreen
 
 val LocalNavController = compositionLocalOf<NavController> { error("No NavController provided") }
 
@@ -85,22 +89,25 @@ sealed class ProfileScreens(val route: String, val label: String) {
 
 }
 
-@Composable
-fun getUser(): User {
-    val loginUserViewModel: LoginUserViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
-    return loginUserViewModel.getUser()
-}
+//@Composable
+//fun getUser(): User {
+//    val loginUserViewModel: AccountViewModel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
+//    return loginUserViewModel.getUser()
+//}
 @Composable
 fun PinnedCard(modifier: Modifier, recipe: Recipe) {
     Card(modifier) {
-        Box(modifier = Modifier.fillMaxSize().zIndex(2f).background(
-            brush = Brush.verticalGradient(
-                colors = listOf(
-                    Color.Black,
-                    Color.Transparent
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .zIndex(2f)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Black,
+                        Color.Transparent
+                    )
                 )
-            )
-        )) {
+            )) {
             AsyncImage(
                 model = recipe.bannerUrl,
                 contentDescription = "Recipe Thumbnail",
@@ -109,8 +116,12 @@ fun PinnedCard(modifier: Modifier, recipe: Recipe) {
                 alpha = 0.6F
             )
 
-            Row(modifier = Modifier.padding(16.dp).background(Color.Transparent), verticalAlignment = Alignment.Bottom) {
-                Column(modifier = Modifier.weight(1f).background(Color.Transparent)){
+            Row(modifier = Modifier
+                .padding(16.dp)
+                .background(Color.Transparent), verticalAlignment = Alignment.Bottom) {
+                Column(modifier = Modifier
+                    .weight(1f)
+                    .background(Color.Transparent)){
                     Text(
                         text = recipe.title,
                         color= Color.White,
@@ -118,7 +129,9 @@ fun PinnedCard(modifier: Modifier, recipe: Recipe) {
                     )
                 }
 
-                Column(modifier = Modifier.weight(1f).background(Color.Transparent)){
+                Column(modifier = Modifier
+                    .weight(1f)
+                    .background(Color.Transparent)){
                     Icon(
                         Icons.Filled.LocationOn,
                         contentDescription = "Localized description",
@@ -146,10 +159,13 @@ fun ProfilePicture(avatarUrl: String, size: Dp) {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavController) {
-    val loginUserViewModel = viewModel<LoginUserViewModel>() // Get the view model instance
+fun ProfileScreen(
+    activity: MainActivity,
+    navController: NavController,
+    viewModel: UserScreenViewModel = hiltViewModel()
+) {
+    val userState = viewModel.userState.value
     val currentUserRepository = CurrentUserRepository()
     val coroutineScope = rememberCoroutineScope()
     var menuDrawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -159,46 +175,57 @@ fun ProfileScreen(navController: NavController) {
         ProfileScreens.User,
         ProfileScreens.Settings
     )
-    Log.d("PROFILESCREEN", "rpofilescreen")
-    val user = getUser()
-    ModalNavigationDrawer(
-        drawerContent = {
-            ProfileMenu(
-                localNavController,
-                menuItems,
-                coroutineScope,
-                menuDrawerState
-            )
-        },
-        drawerState = menuDrawerState
-    ) {
-        Surface() {
-            CompositionLocalProvider(
-                LocalNavGraphViewModelStoreOwner provides vmStoreOwner,
-                LocalNavController provides localNavController
-            ) {
-                NavHost(localNavController, startDestination = ProfileScreens.User.route + "/{userId}") {
-                    composable(route=ProfileScreens.User.route + "/{userId}",
-                        arguments = listOf(
-                            navArgument("userId") {
-                                type = NavType.StringType;
-//                                defaultValue = user.getUserId()
-                                defaultValue = "O5YFvrugNU7niEGiy0smfi"
-                            }
-                        )
-                    ) {
-                        UserScreen(navController = navController as NavHostController, menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.Black, top = 200.dp) })
-                    }
-//                    composable(ProfileScreens.User.route) {
-//                        UserScreen(menuButton = { MenuButton(coroutineScope, menuDrawerState, Color.White) })
-//                    }
-                    composable(ProfileScreens.Settings.route) {
-                        SettingScreen(
-                            navController = navController,
-                            loginUserViewModel = loginUserViewModel,
-                            currentUserRepository = currentUserRepository,
-                            menuButton = { MenuButton(coroutineScope, menuDrawerState) }
-                        )
+    if(userState.error.isNotBlank()) {
+        Text(
+            text = userState.error,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+    } else if(userState.isLoading){
+        LoadingScreen()
+    } else {
+//    val user = getUser()
+        ModalNavigationDrawer(
+            drawerContent = {
+                ProfileMenu(
+                    localNavController,
+                    menuItems,
+                    coroutineScope,
+                    menuDrawerState,
+                    userState.data ?: User()
+                )
+            },
+            drawerState = menuDrawerState
+        ) {
+            Surface() {
+                CompositionLocalProvider(
+                    LocalNavGraphViewModelStoreOwner provides vmStoreOwner,
+                    LocalNavController provides localNavController
+                ) {
+                    NavHost(localNavController, startDestination = ProfileScreens.User.route) {
+                        composable(route = ProfileScreens.User.route) {
+                            UserScreen(
+                                viewModel = viewModel,
+                                navController = navController as NavHostController,
+                                menuButton = {
+                                    MenuButton(
+                                        coroutineScope,
+                                        menuDrawerState,
+                                        Color.Black,
+                                        top = 200.dp
+                                    )
+                                })
+                        }
+                        composable(ProfileScreens.Settings.route) {
+                            SettingScreen(
+                                activity = activity,
+                                navController = navController,
+                                menuButton = { MenuButton(coroutineScope, menuDrawerState) }
+                            )
+                        }
                     }
                 }
             }
@@ -244,10 +271,9 @@ private fun ProfileMenu(
     navController: NavHostController,
     items: List<ProfileScreens>,
     coroutineScope: CoroutineScope,
-    menuDrawerState: DrawerState
+    menuDrawerState: DrawerState,
+    user: User
 ){
-    val user = getUser()
-    val username = user.getUsername()
 
     ModalDrawerSheet(modifier= Modifier
         .width(280.dp)
@@ -273,12 +299,14 @@ private fun ProfileMenu(
             shape = RectangleShape
         ) {
             Row(
-                modifier = Modifier.padding(top=20.dp, bottom=20.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(top = 20.dp, bottom = 20.dp)
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start
             ) {
-                ProfilePicture(user.getAvatarUrl(), 64.dp)
+                ProfilePicture(user.avatarUrl, 64.dp)
                 Text(
-                    text=username,
+                    text=user.username,
                     style=MaterialTheme.typography.titleSmall,
                     modifier = Modifier
                         .align(Alignment.CenterVertically)

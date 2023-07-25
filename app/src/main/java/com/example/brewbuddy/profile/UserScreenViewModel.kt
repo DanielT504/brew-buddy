@@ -10,6 +10,8 @@ import com.example.brewbuddy.common.Constants
 import com.example.brewbuddy.common.Resource
 import com.example.brewbuddy.domain.model.MarketplaceItemMetadata
 import com.example.brewbuddy.domain.model.RecipeMetadata
+import com.example.brewbuddy.domain.model.User
+import com.example.brewbuddy.domain.use_case.get_account.GetUserByIdUseCase
 import com.example.brewbuddy.domain.use_case.get_marketplace.GetMarketplaceItemsByUserIdUseCase
 import com.example.brewbuddy.domain.use_case.get_recipes.GetUserRecipesUseCase
 import com.example.brewbuddy.profile.UserScreenState
@@ -22,22 +24,45 @@ import javax.inject.Inject
 @HiltViewModel
 class UserScreenViewModel  @Inject constructor(
     private val getUserRecipesUseCase: GetUserRecipesUseCase,
+    private val getUserByIdUseCase: GetUserByIdUseCase,
     private val getMarketplaceItemsByUserIdUseCase: GetMarketplaceItemsByUserIdUseCase,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
-    private val _state = mutableStateOf(UserScreenState<RecipeMetadata>())
-    val state: State<UserScreenState<RecipeMetadata>> = _state
+    private val _recipesState = mutableStateOf(UserScreenState<List<RecipeMetadata>>())
+    val recipesState: State<UserScreenState<List<RecipeMetadata>>> = _recipesState
 
-    private val _listingState = mutableStateOf(UserScreenState<MarketplaceItemMetadata>())
-    val listingState: State<UserScreenState<MarketplaceItemMetadata>> = _listingState
+    private val _listingState = mutableStateOf(UserScreenState<List<MarketplaceItemMetadata>>())
+    val listingState: State<UserScreenState<List<MarketplaceItemMetadata>>> = _listingState
+
+    private val _userState = mutableStateOf(UserScreenState<User>())
+    val userState: State<UserScreenState<User>> = _userState
 
     private val userId = FirebaseAuth.getInstance().currentUser!!.uid
 
     init {
+        getUserById(userId)
         getRecipesByUserId(userId)
         getMarketplaceItemsByUserId(userId)
     }
+    private fun getUserById(userId: String) {
+        getUserByIdUseCase(userId).onEach { result ->
+            when(result) {
+                is Resource.Success -> {
+                    if (result.data != null){
+                        _userState.value = UserScreenState(data = result.data)
+                    }
+                }
 
+                is Resource.Error -> {
+                    _userState.value = UserScreenState(error = result.message ?: "An unexpected error occurred.")
+                }
+
+                is Resource.Loading -> {
+                    _userState.value = UserScreenState(isLoading = true)
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
     private fun getMarketplaceItemsByUserId(userId: String) {
         getMarketplaceItemsByUserIdUseCase(userId).onEach { result ->
             when(result) {
@@ -56,23 +81,22 @@ class UserScreenViewModel  @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
-
     }
     private fun getRecipesByUserId(userId: String) {
         getUserRecipesUseCase(userId).onEach { result ->
             when(result) {
                 is Resource.Success -> {
                     if (result.data != null){
-                        _state.value = UserScreenState(data = result.data)
+                        _recipesState.value = UserScreenState(data = result.data)
                     }
                 }
 
                 is Resource.Error -> {
-                    _state.value = UserScreenState(error = result.message ?: "An unexpected error occurred.")
+                    _recipesState.value = UserScreenState(error = result.message ?: "An unexpected error occurred.")
                 }
 
                 is Resource.Loading -> {
-                    _state.value = UserScreenState(isLoading = true)
+                    _recipesState.value = UserScreenState(isLoading = true)
                 }
             }
         }.launchIn(viewModelScope)

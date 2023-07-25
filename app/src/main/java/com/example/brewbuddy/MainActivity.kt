@@ -8,14 +8,11 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import androidx.navigation.compose.rememberNavController
 import com.example.brewbuddy.profile.CurrentUserRepository
-import com.example.brewbuddy.profile.LoginUserViewModel
+import com.example.brewbuddy.profile.AccountViewModel
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -27,7 +24,6 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val loginUserViewModel: LoginUserViewModel by viewModels()
     private val currentUserRepository = CurrentUserRepository()
     private lateinit var auth: FirebaseAuth
     private var isLoggedIn = MutableLiveData(false)
@@ -53,22 +49,13 @@ class MainActivity : ComponentActivity() {
             )
             return
         }
-//        setContent {
-//            BrewBuddyTheme {
-//                val navController = rememberNavController()
-//                AccessScreen(navController, currentUserRepository, currentUserViewModel, this, ::handleLogout)
-//            }
-//        }
-//        currentUserViewModel.setUser(null)
-//
-        // observe changes in the current user. if the current user is null (logged out)
-        // change screen to login
+
         isLoggedIn.observe(this, Observer {
             Log.d("MainActivity", "Log In: ${it}")
             if (it) {
                 setContent {
                     BrewBuddyTheme {
-                        MainScreen()
+                        MainScreen(this)
                     }
                 }
             } else {
@@ -82,32 +69,5 @@ class MainActivity : ComponentActivity() {
                 }
             }
         })
-    }
-//    public override fun onStart() {
-//        super.onStart()
-//        // Check if user is signed in (non-null) and update UI accordingly.
-//        val currentUser = auth.currentUser
-//        if (currentUser != null) {
-//            isLoggedIn = true;
-//            setContent {
-//                BrewBuddyTheme {
-//                    MainScreen()
-//                }
-//            }
-//        } else {
-//            setContent {
-//                BrewBuddyTheme {
-//                    val navController = rememberNavController()
-//                    AccessScreen(navController, currentUserRepository, loginUserViewModel, this, ::handleLogout)                    }
-//            }
-//        }
-//    }
-    // Function to handle logout and app restart
-    private fun handleLogout() {
-        // Clear the back stack and start the MainActivity again to simulate a restart
-        val intent = Intent(this, MainActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(intent)
-        finish()
     }
 }

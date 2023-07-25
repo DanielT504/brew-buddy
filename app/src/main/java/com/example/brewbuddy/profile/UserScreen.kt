@@ -90,7 +90,6 @@ import com.example.brewbuddy.AccessScreens
 import com.example.brewbuddy.PinnedCard
 import com.example.brewbuddy.ProfilePicture
 import com.example.brewbuddy.R
-import com.example.brewbuddy.getUser
 import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
@@ -111,6 +110,7 @@ import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.PostMetadata
 import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.model.RecipeMetadata
+import com.example.brewbuddy.domain.model.User
 import com.example.brewbuddy.marketplace.MarketplaceItemModal
 import com.example.brewbuddy.marketplace.MarketplaceViewModel
 import com.example.brewbuddy.navigateToItem
@@ -527,7 +527,7 @@ fun convertToIngredientDto(ingredient: IndividualIngredient) : Ingredient{
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
+fun RecipeModal(user: User, openDialog: MutableState<Boolean>, onClose: () -> Unit) {
     val ingredients = remember { mutableStateListOf<Ingredient>(convertToIngredientDto(IndividualIngredient(0, "", ""))) }
     val instructions = remember { mutableStateListOf<Step>(Step(0, "")) }
     var title by remember { mutableStateOf("") }
@@ -535,8 +535,6 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
     var servings by remember { mutableStateOf("") }
     var prepMinutes by remember { mutableStateOf("") }
     var uri by remember { mutableStateOf<Uri?>(null) }
-
-    val currentUser = getUser()
 
     if (openDialog.value) {
         AlertDialog(
@@ -599,9 +597,9 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                     instructions = listOf(Instructions(name = title, steps = instructions)),
                                     ingredientLists = listOf(IngredientList("title", ingredients)),
                                     author = Author(
-                                        id = currentUser.getUserId(),
-                                        username = currentUser.getUsername(),
-                                        avatarUrl = currentUser.getAvatarUrl()
+                                        id = user.id,
+                                        username = user.username,
+                                        avatarUrl = user.avatarUrl
                                     )
                                 )
                                 uploadImageToFirebaseStorage(
@@ -902,16 +900,16 @@ fun UserScreen(
     viewModel: UserScreenViewModel = hiltViewModel(),
     marketplaceViewModel: MarketplaceViewModel = hiltViewModel()
 ) {
-    var recipesState = viewModel.state.value
-    var listingState = viewModel.listingState.value
-    val user = getUser()
+    val userState = viewModel.userState.value
+    val recipesState = viewModel.recipesState.value
+    val listingState = viewModel.listingState.value
     // todo: change to lazycolumn
 
     var showDialog = remember { mutableStateOf(false) }
     var showMarketplaceDialog = remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        ProfileHeader(user, menuButton)
+        ProfileHeader(userState.data ?: User(), menuButton)
 
         Column(modifier = Modifier.fillMaxSize()) {
             TitleLarge(text="Pinned Recipes")
@@ -922,7 +920,7 @@ fun UserScreen(
                         navFunction = {id: String -> navigateToRecipe(id, navController) },
                         columns = 3,
                         modifier = Modifier.padding(8.dp),
-                        recipes = recipesState.data,
+                        recipes = recipesState.data ?: emptyList(),
                         uploadButton={UploadButton("Upload Recipe", onClick={showDialog.value = true})}
 
                     )
@@ -937,12 +935,12 @@ fun UserScreen(
                         navFunction = { id: String -> navigateToItem(id, navController) },
                         columns = 3,
                         modifier = Modifier.padding(8.dp),
-                        recipes = listingState.data,
+                        recipes = listingState.data ?: emptyList(),
                         uploadButton = { UploadButton("Upload Listing", onClick = {showMarketplaceDialog.value = true}) }
                     )
                 }
             }
-            RecipeModal(showDialog,  onClose = { showDialog.value = false })
+            RecipeModal(userState.data ?: User(), showDialog,  onClose = { showDialog.value = false })
             MarketplaceItemModal(marketplaceViewModel, showMarketplaceDialog,  onClose = { showMarketplaceDialog.value = false })
 
             Box() {
@@ -952,17 +950,17 @@ fun UserScreen(
                 .fillMaxWidth()
                 .background(Color.White, shape = RoundedCornerShape(32.dp))
                 .padding(16.dp, 0.dp, 16.dp, 100.dp)) {
-                retrieveSavedStores()
-                if (!storesOnProfile.isNullOrEmpty()) {
-                    MapWrapper(stores = storesOnProfile)
-                }
-                else {
-                    Text(
-                        text="You haven't saved any shops near you yet!",
-                        style=MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 12.dp)
-                    )
-                }
+                    retrieveSavedStores()
+                    if (!storesOnProfile.isNullOrEmpty()) {
+                        MapWrapper(stores = storesOnProfile)
+                    }
+                    else {
+                        Text(
+                            text="You haven't saved any shops near you yet!",
+                            style=MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 12.dp)
+                        )
+                    }
                 }
             }
 
@@ -995,10 +993,10 @@ fun MapWrapper(stores: List<Store>) {
 @Composable
 fun ProfileHeader(user: User, menuButton: @Composable () -> Unit) {
     val profilePictureSize = 126.dp
-    val username = user.getUsername()
+    val username = user.username
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(){
-            ProfileBanner(user.getBannerUrl())
+            ProfileBanner(user.bannerUrl)
             menuButton()
         }
         Box(
@@ -1022,7 +1020,7 @@ fun ProfileHeader(user: User, menuButton: @Composable () -> Unit) {
 
             }
             Box(modifier=Modifier.align(Alignment.TopCenter)) {
-                ProfilePicture(user.getAvatarUrl(), profilePictureSize)
+                ProfilePicture(user.avatarUrl, profilePictureSize)
             }
         }
     }

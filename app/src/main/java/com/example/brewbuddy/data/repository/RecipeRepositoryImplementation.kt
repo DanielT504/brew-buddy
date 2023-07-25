@@ -1,15 +1,25 @@
 package com.example.brewbuddy.data.repository
+import android.app.Activity
+import android.content.Context
 import android.util.Log
+import com.example.brewbuddy.common.Constants
 import com.example.brewbuddy.data.remote.dto.Instructions
 import com.example.brewbuddy.data.remote.dto.MarketplaceItemDto
 import com.example.brewbuddy.data.remote.dto.MarketplaceItemMetadataDto
 import com.example.brewbuddy.data.remote.dto.RecipeDto
 import com.example.brewbuddy.data.remote.dto.RecipeMetadataDto
+import com.example.brewbuddy.data.remote.dto.UserDto
 import com.example.brewbuddy.domain.repository.RecipeRepository
 import com.example.brewbuddy.requests.getFunctions
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.model.User
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.tasks.await
@@ -149,5 +159,69 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             val data = task.data as List<HashMap<String, Object>>
             return@withContext data.map{MarketplaceItemMetadataDto.from(it)}
         }
+    }
+
+    override suspend fun signIn(username: String, password: String): Boolean {
+        val auth = Firebase.auth
+        val db = FirebaseFirestore.getInstance()
+
+        val usersCollection = db.collection("users")
+
+        return withContext(Dispatchers.IO) {
+            val querySnapshotDeferred = async { usersCollection.whereEqualTo("username", username).get().await() }
+            val querySnapshot = querySnapshotDeferred.await()
+
+            if (!querySnapshot.isEmpty) {
+                val document = querySnapshot.documents[0]
+                val email = document.getString("email")
+
+                if (email != null) {
+                    val authResultDeferred = async { auth.signInWithEmailAndPassword(email, password).await() }
+                    val authResult = authResultDeferred.await()
+
+                    if (authResult != null) {
+                        val user = auth.currentUser
+                        return@withContext true
+                    }
+                }
+            }
+
+            return@withContext false
+        }
+    }
+    override suspend fun registerUserWithGoogle(context: Context, username: String, email: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val account = GoogleSignIn.getLastSignedInAccount(context)
+                if (account == null) {
+                    return@withContext false
+                }
+
+                val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+                val authResult = FirebaseAuth.getInstance().signInWithCredential(credential).await()
+                val currentUser = authResult.user
+
+                return@withContext currentUser != null
+
+            } catch(e: Exception) {
+                return@withContext false
+            }
+
+        }
+    }
+    override suspend fun getUserById(userId: String) : UserDto {
+        Log.d("GET_USER_BY_ID", userId)
+
+        return withContext(Dispatchers.IO) {
+            val dataDeferred = async {
+                getFunctions()
+                    .getHttpsCallable("getUserById")
+                    .call(hashMapOf("userId" to userId)).await()
+            }
+            val task = dataDeferred.await()
+            val data = task.data as HashMap<String, Object>
+            return@withContext UserDto.from(data)
+        }
+
     }
 }
