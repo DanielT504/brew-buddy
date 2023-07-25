@@ -102,6 +102,7 @@ import com.example.brewbuddy.data.remote.dto.Measures
 import com.example.brewbuddy.data.remote.dto.Metric
 import com.example.brewbuddy.data.remote.dto.Step
 import com.example.brewbuddy.domain.model.Author
+import com.example.brewbuddy.domain.model.PostMetadata
 import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.navigateToRecipe
@@ -236,9 +237,10 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
 @Composable
 fun ImageGrid(
     navController: NavHostController,
+    navFunction: (id: String) -> Unit,
     columns: Int,
     modifier: Modifier = Modifier,
-    recipes: List<RecipeMetadata> = emptyList(),
+    recipes: List<PostMetadata> = emptyList(),
 ) {
     var itemCount = recipes.size
     Log.d("ITEMCOUNT", itemCount.toString())
@@ -267,15 +269,16 @@ fun ImageGrid(
                                     .aspectRatio(1f)
                                     .padding(4.dp)
                                     .clickable(onClick = {
-                                        navigateToRecipe(
-                                            recipes[index].id,
-                                            navController
-                                        )
+                                        navFunction(recipes[index].id)
+//                                        navigateToRecipe(
+//                                            recipes[index].id,
+//                                            navController
+//                                        )
                                     })
                             ) {
-                                val imageUrl = recipes[index].bannerUrl
+                                val bannerUrl = recipes[index].bannerUrl
                                 AsyncImage(
-                                    model = imageUrl,
+                                    model = bannerUrl,
                                     contentDescription = "Recipe Image",
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier

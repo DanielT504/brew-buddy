@@ -43,11 +43,11 @@ class MarketplaceViewModel @Inject constructor(
         province: String,
         title: String,
         description: String,
-        imageUrl: String,
+        bannerUrl: String,
         price: Number
     ) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
-        Log.d("Upload Image Success2", imageUrl)
+        Log.d("Upload Image Success2", bannerUrl)
         var tagArr = ArrayList<String>()
 
         if(isEquipment) {
@@ -67,7 +67,7 @@ class MarketplaceViewModel @Inject constructor(
         userId?.let {
             val ref = db.collection("marketplace").document()
             val itemInfo = hashMapOf(
-                "imageUrl" to imageUrl,
+                "bannerUrl" to bannerUrl,
                 "city" to city,
                 "title" to title,
                 "description" to description,
@@ -83,7 +83,7 @@ class MarketplaceViewModel @Inject constructor(
             )
             ref.set(itemInfo)
                 .addOnSuccessListener {
-                    Log.d("Upload Image Success", imageUrl)
+                    Log.d("Upload Image Success", bannerUrl)
                     search()
                 }
                 .addOnFailureListener { exception ->

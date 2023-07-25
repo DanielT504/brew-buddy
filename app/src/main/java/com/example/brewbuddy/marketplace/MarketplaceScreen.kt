@@ -93,7 +93,7 @@ private fun MarketplaceSearchResults(navController: NavHostController, viewModel
             city = it.city,
             province = it.province,
             author = it.author,
-            imageUrl = it.imageUrl,
+            bannerUrl = it.bannerUrl,
             navController = navController
         )
     }
@@ -247,12 +247,12 @@ private fun MarketplaceCard(
     price: Number,
     city: String,
     province: String,
-    imageUrl: String,
+    bannerUrl: String,
     author: Author,
     navController: NavHostController
 ) {
     SearchResultCard(
-        image= imageUrl,
+        image= bannerUrl,
         onClick = { navigateToItem(id, navController) }
     ) {
         Column() {
