@@ -3,6 +3,7 @@ package com.example.brewbuddy
 import createAccount
 import GoogleRegisterButton
 import GoogleSignInButton
+import addGoogleUserToFirestore
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
@@ -210,15 +211,12 @@ fun LoginScreen(
                         Text(text = "Sign up")
                     }
                     GoogleSignInButton(
-                        activity,
                         onGoogleSignInSuccess = { account ->
                             Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
                             viewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!) {
                                 activity.setLogin(true)
                             }
                         },
-                        currentUserRepository = currentUserRepository,
-                        navController = navController
                     )
                 }
             }

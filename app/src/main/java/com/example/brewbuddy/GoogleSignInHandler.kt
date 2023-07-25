@@ -41,17 +41,36 @@ import kotlinx.coroutines.launch
 private val auth = Firebase.auth
 
 private val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-    .requestIdToken("936295543644-ovaailsfjpdibr169fqkqufb2kpf8ian.apps.googleusercontent.com")
+    .requestIdToken("915144908139-9s8ul1u37vis1scf257tkob8bf233a88.apps.googleusercontent.com")
     .requestEmail()
     .build()
 
+fun addGoogleUserToFirestore(account: GoogleSignInAccount) {
+    val authUser = auth.currentUser
+    Log.d("FIRESTORE", "User data stored in Firestore: ${account.displayName}")
+    val user = hashMapOf(
+        "email" to account.email,
+        "username" to account.displayName,
+        "uid" to authUser!!.uid,
+        "avatarUrl" to account.photoUrl.toString(),
+    )
+
+    val documentRef = db.collection("users").document(authUser!!.uid)
+    documentRef.get().addOnSuccessListener{
+        if(!it.exists()) {
+            documentRef.set(user)
+                .addOnSuccessListener {
+                    Log.d("addGoogleUserToFirestore", "User ${authUser!!.uid} added to Firestore successfully")
+                }
+                .addOnFailureListener { exception ->
+                    Log.d("addGoogleUserToFirestore", "Error adding user to Firestore: $exception")
+                }
+        }
+    }
+}
 @Composable
 fun GoogleSignInButton(
-    activity: MainActivity,
     onGoogleSignInSuccess: (GoogleSignInAccount) -> Unit,
-    currentUserRepository: CurrentUserRepository,
-    viewModel: AccountViewModel = hiltViewModel(),
-    navController: NavController
 ) {
     val context = LocalContext.current
     val googleSignInClient = remember { GoogleSignIn.getClient(context, gso) }
@@ -68,13 +87,11 @@ fun GoogleSignInButton(
         }
     }
 
+    signInResult.value?.let { account ->
+        signInResult.value = null
 
-    LaunchedEffect(signInResult.value) {
-        signInResult.value?.let { account ->
-            handleSignInResult(account, onGoogleSignInSuccess, currentUserRepository, navController)            // Now that we successfully signed in with Google, we can call the suspend function here.
-            viewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!) {
-                activity.setLogin(true)
-            }
+        CoroutineScope(Dispatchers.Main).launch {
+            onGoogleSignInSuccess(account)
         }
     }
 
@@ -103,14 +120,6 @@ fun GoogleSignInButton(
                 .padding(vertical = 0.dp)
         ) {
             Text(text = "Sign in with a different account")
-        }
-    }
-
-    signInResult.value?.let { account ->
-        signInResult.value = null
-
-        CoroutineScope(Dispatchers.Main).launch {
-            onGoogleSignInSuccess(account)
         }
     }
 }

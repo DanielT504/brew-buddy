@@ -14,6 +14,7 @@ import com.example.brewbuddy.requests.getFunctions
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.model.User
+import com.example.brewbuddy.profile.db
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
@@ -201,6 +202,21 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
                 val authResult = FirebaseAuth.getInstance().signInWithCredential(credential).await()
                 val currentUser = authResult.user
 
+                if(currentUser == null) {
+                    return@withContext false;
+                }
+                val documentRef = db.collection("users").document(currentUser!!.uid)
+                val firestoreUser = documentRef.get().await()
+                if(!firestoreUser.exists()) {
+                    val user = hashMapOf(
+                        "email" to account.email,
+                        "username" to account.displayName,
+                        "uid" to currentUser!!.uid,
+                        "avatarUrl" to account.photoUrl.toString(),
+                    )
+                    documentRef.set(user).await()
+                    return@withContext true
+                }
                 return@withContext currentUser != null
 
             } catch(e: Exception) {

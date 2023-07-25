@@ -15,7 +15,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "915144908139-dpf9mrea1vvm3hbibc3f5jf4ekgmtjsn.apps.googleusercontent.com",
+          "client_id": "915144908139-pnlsogeao2u6ve6ria2cdpd4lsun3d46.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.brewbuddy",
+            "certificate_hash": "d095d4c2fd3c72513f6c2ad7125d286bcf563b07"
+          }
+        },
+        {
+          "client_id": "915144908139-9s8ul1u37vis1scf257tkob8bf233a88.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
