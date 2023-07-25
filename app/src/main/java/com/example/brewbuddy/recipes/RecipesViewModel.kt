@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.brewbuddy.common.Resource
 import com.example.brewbuddy.common.createQueryString
+import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.domain.model.SearchResultState
 import com.example.brewbuddy.domain.use_case.get_recipes.GetRecipeResultsUseCase
@@ -31,9 +32,6 @@ class RecipesViewModel  @Inject constructor(
     savedStateHandle: SavedStateHandle
 ): SearchViewModel<RecipeMetadata>(savedStateHandle) {
 
-    private fun hashToFilterList(map: HashMap<String, Boolean>) {
-
-    }
     init {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         userId?.let {
@@ -54,7 +52,6 @@ class RecipesViewModel  @Inject constructor(
                 .addOnFailureListener { exception ->
                     Log.d("MarketplaceViewModel", "Error getting user preferences: $exception")
                 }
-            getResults()
 
         }
 
@@ -65,6 +62,19 @@ class RecipesViewModel  @Inject constructor(
         getResults(_query.value)
     }
 
+
+
+    fun sort(order: String) {
+        if(order === "likesAsce") {
+            val res = _state.value.results.toMutableList()
+            _state.value = SearchResultState(results = res.sortedBy{ it.likes })
+        }
+
+        if(order === "likesDesc") {
+            val res = _state.value.results.toMutableList()
+            _state.value = SearchResultState(results = res.sortedByDescending{ it.likes })
+        }
+    }
     private fun getResults(query: String = "") {
         getRecipeResultsUseCase(query).onEach { result ->
             when(result) {

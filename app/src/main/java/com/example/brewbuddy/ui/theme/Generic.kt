@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Badge
@@ -49,6 +50,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -105,7 +107,7 @@ fun <T>SearchBar(viewModel: SearchViewModel<T>, filtersExpanded: MutableState<Bo
     Column() {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().height(52.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -124,24 +126,28 @@ fun <T>SearchBar(viewModel: SearchViewModel<T>, filtersExpanded: MutableState<Bo
                     )
                 }
             }
-            TextField(
+            BasicTextField(
+                modifier = Modifier.fillMaxWidth().weight(1f).fillMaxHeight().padding(top = 16.dp),
                 value = searchQuery,
-                onValueChange = {
-                    viewModel.setKeywords(it);
-                },
-                placeholder = { Text("Search") },
-                colors = TextFieldDefaults
-                    .textFieldColors(
-                        containerColor = Color.White,
-                        textColor = Color.DarkGray,
-                        unfocusedIndicatorColor = Color.LightGray,
-                        focusedIndicatorColor = Color.Gray,
-                        disabledLeadingIconColor = Color.DarkGray,
-                        disabledIndicatorColor = Color.DarkGray
-                    ),
+                onValueChange = {viewModel.setKeywords(it)},
+                textStyle = TextStyle(
+                    color = Color.DarkGray
+                ),
+                decorationBox = { innerTextField ->
+                    Row(modifier = Modifier.fillMaxSize().padding(0.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (searchQuery.isEmpty()) {
+                            Text(
+                                text = "Search",
+                                color = Color.DarkGray,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                    Row(modifier = Modifier.fillMaxSize().padding(0.dp), verticalAlignment = Alignment.CenterVertically) {
+                        innerTextField()
+                    }
 
-                modifier = Modifier
-                    .weight(1f),
+                },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
                     /*onSearch(text)*/
@@ -152,6 +158,33 @@ fun <T>SearchBar(viewModel: SearchViewModel<T>, filtersExpanded: MutableState<Bo
 
                 })
             )
+
+//            TextField(
+//                value = searchQuery,
+//                onValueChange = {viewModel.setKeywords(it)},
+//                placeholder = { Text("Search") },
+//                colors = TextFieldDefaults
+//                    .textFieldColors(
+//                        containerColor = Color.White,
+//                        textColor = Color.DarkGray,
+//                        unfocusedIndicatorColor = Color.LightGray,
+//                        focusedIndicatorColor = Color.Gray,
+//                        disabledLeadingIconColor = Color.DarkGray,
+//                        disabledIndicatorColor = Color.DarkGray
+//                    ),
+//                modifier = Modifier
+//                    .weight(1f)
+//                    .padding(bottom=0.dp),
+//                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+//                keyboardActions = KeyboardActions(onSearch = {
+//                    /*onSearch(text)*/
+//                    // Hide the keyboard after submitting the search
+//                    keyboardController?.hide()
+//                    //or hide keyboard
+//                    focusManager.clearFocus()
+//
+//                })
+//            )
             Row(
                 modifier = Modifier.padding(top = 4.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(1.dp)

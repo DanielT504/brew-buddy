@@ -42,9 +42,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.core.net.toUri
 import com.example.brewbuddy.common.Constants.DEFAULT_BANNER_URL
-import com.example.brewbuddy.domain.model.Recipe
-import com.example.brewbuddy.getUser
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Color
+import com.example.brewbuddy.ui.theme.Brown
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
@@ -116,6 +119,7 @@ fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, dairyF
     }
 }
 
+
 fun updateBanner(bannerUrl: String) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     userId?.let {
@@ -173,6 +177,156 @@ fun uploadSettingsImageToFirebaseStorage(imageUri: Uri, onUrlReady: (String) -> 
         }
     } else {
         onUrlReady(DEFAULT_BANNER_URL)
+    }
+}
+
+val coffeeIngredients = listOf(
+    "Coffee beans",
+    "Water",
+    "Milk",
+    "Cream",
+    "Sugar",
+    "Sweetener",
+    "Honey",
+    "Cocoa powder",
+    "Cinnamon",
+    "Nutmeg",
+    "Whipped cream",
+    "Ground cinnamon",
+    "Ground nutmeg",
+    "Ice cubes",
+    "Espresso",
+    "Condensed milk",
+    "Evaporated milk",
+    "Coconut milk",
+    "Almond milk",
+    "Soy milk",
+    "Oat milk",
+    "Cardamom",
+    "Agave syrup",
+    "Maple syrup",
+    "Lemon zest",
+    "Ginger",
+    "Lavender",
+    "Mint leaves",
+    "Turmeric",
+    "Coconut oil",
+    "Brown sugar",
+    "Vanilla extract",
+    "Almond extract"
+)
+
+private fun retrieveIngredients(onIngredientsLoaded: (List<String>) -> Unit) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val preferencesRef = db.collection("user_preferences").document(userId)
+        preferencesRef.get()
+            .addOnSuccessListener { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    val ingredients = documentSnapshot.get("ingredients") as? List<String> ?: emptyList()
+                    onIngredientsLoaded(ingredients)
+                } else {
+                    onIngredientsLoaded(emptyList())
+                }
+            }
+            .addOnFailureListener { e ->
+                // Handle failure
+            }
+    }
+    }
+
+
+
+fun updateIngredients(ingredient: String, add: Boolean) {
+    //add ingredient to ingredients array in db
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val preferencesRef = db.collection("user_preferences").document(userId)
+        if (add) {
+            preferencesRef.update("ingredients", FieldValue.arrayUnion(ingredient))
+                .addOnSuccessListener {
+                    // Handle success
+                }
+                .addOnFailureListener { e ->
+                    // Handle failure
+                }
+        }
+        else {
+            preferencesRef.update("ingredients", FieldValue.arrayRemove(ingredient))
+                .addOnSuccessListener {
+                    // Handle success
+                }
+                .addOnFailureListener { e ->
+                    // Handle failure
+                }
+        }
+        }
+}
+
+@Composable
+fun IngredientButton(ingredient: String) {
+    var selectedIngredientsList by remember { mutableStateOf(emptyList<String>()) }
+    var ingredientsFetched by remember {
+        mutableStateOf(false)
+    }
+    // Fetch ingredients from Firestore when the composable is first recomposed
+    LaunchedEffect(Unit) {
+        retrieveIngredients() { ingredients ->
+            selectedIngredientsList = ingredients
+            ingredientsFetched = true
+
+        }
+    }
+    if (ingredientsFetched) {
+        var isSelected = selectedIngredientsList.contains(ingredient)
+        var selected by remember { mutableStateOf(isSelected) }
+
+        Button(
+            onClick = {
+                updateIngredients(ingredient, !selected)
+
+                selected = !selected
+            },
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (selected) Brown else Color.White,
+                contentColor = if (selected) Color.White else Color.Black,
+            ),
+            modifier = Modifier
+                .padding(8.dp)
+                .wrapContentWidth()
+                .height(50.dp)
+        ) {
+            Text(text = ingredient)
+        }
+    }
+}
+
+@Composable
+fun CoffeeIngredientsRow(ingredientList: List<String>) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        for (ingredient in ingredientList) {
+            IngredientButton(ingredient = ingredient)
+        }
+    }
+}
+
+@Composable
+fun CoffeeIngredientsCluster() {
+    val rows = 4 // Number of rows in the cluster
+    val columns = 3 // Number of ingredients per row
+
+    Column {
+        repeat(rows) { rowIndex ->
+            val startIndex = rowIndex * columns
+            val endIndex = minOf(startIndex + columns, coffeeIngredients.size)
+            val rowIngredients = coffeeIngredients.subList(startIndex, endIndex)
+            CoffeeIngredientsRow(ingredientList = rowIngredients)
+        }
     }
 }
 
@@ -469,7 +623,20 @@ fun SettingScreen(
                     }
                 }
             }
-
+            item {
+                Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
+                    Text(
+                        text = "What ingredients do you have?",
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
+            }
+            item {
+                Box{
+                    CoffeeIngredientsCluster()
+                }
+            }
             item {
 //              update profile picture
                 ImageUpload("Select New Profile Picture", returnImageUri = {newUri -> profilePictureUri = newUri})

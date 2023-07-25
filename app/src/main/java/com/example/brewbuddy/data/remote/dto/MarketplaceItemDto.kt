@@ -9,7 +9,7 @@ import com.example.brewbuddy.domain.model.Recipe
 
 data class MarketplaceItemDto(
     val id: String,
-    val imageUrl: String,
+    val bannerUrl: String,
     val description: String,
     val title: String,
     val contact: String,
@@ -30,7 +30,7 @@ data class MarketplaceItemDto(
                 author=AuthorDto.from(map["author"] as? HashMap<String, Object> ?: hashMapOf()),
                 title=map["title"] as? String ?: "",
                 id=map["id"] as? String ?: "",
-                imageUrl=map["imageUrl"] as? String ?: Constants.DEFAULT_IMAGE_URL,
+                bannerUrl=map["imageUrl"] as? String ?: Constants.DEFAULT_IMAGE_URL,
                 description=map["description"] as? String ?: "",
                 tags=map["tags"] as? List<String> ?: emptyList(),
                 price=map["price"] as? Number ?: 0
@@ -46,7 +46,7 @@ fun MarketplaceItemDto.toMarketplaceItem(): MarketplaceItem {
         province = province,
         price = price,
         id = id,
-        imageUrl = imageUrl,
+        bannerUrl = bannerUrl,
         description = description,
         title = title,
         author=author.toAuthor(),

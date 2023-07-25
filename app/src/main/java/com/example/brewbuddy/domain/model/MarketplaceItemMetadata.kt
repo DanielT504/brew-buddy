@@ -4,12 +4,12 @@ import com.example.brewbuddy.common.Constants
 import com.example.brewbuddy.domain.model.Author
 
 data class MarketplaceItemMetadata (
-    val author: Author = Author(),
-    val id: String = "",
+    override val author: Author = Author(),
+    override val id: String = "",
     val city: String = "",
-    val title: String = "",
+    override val title: String = "",
     val price: Number = 0,
     val province: String = "",
     val tags: List<String> = emptyList(),
-    val imageUrl: String = Constants.DEFAULT_IMAGE_URL
-)
+    override val bannerUrl: String = Constants.DEFAULT_IMAGE_URL
+): PostMetadata()

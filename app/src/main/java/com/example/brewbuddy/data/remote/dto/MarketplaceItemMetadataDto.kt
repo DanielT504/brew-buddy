@@ -11,7 +11,7 @@ data class MarketplaceItemMetadataDto(
     val price: Number,
     val province: String,
     val tags: List<String>,
-    val imageUrl: String
+    val bannerUrl: String
 ) {
     companion object {
         fun from(map: HashMap<String, Object>) = object {
@@ -23,7 +23,7 @@ data class MarketplaceItemMetadataDto(
                 price=map["price"] as? Number ?: 0,
                 province=map["province"] as? String ?: "",
                 tags=map["tags"] as? List<String> ?: emptyList(),
-                imageUrl=map["imageUrl"] as? String ?: Constants.DEFAULT_IMAGE_URL
+                bannerUrl=map["imageUrl"] as? String ?: Constants.DEFAULT_IMAGE_URL
             )
         }.data
     }
@@ -38,6 +38,6 @@ fun MarketplaceItemMetadataDto.toMarketplaceItemMetadata(): MarketplaceItemMetad
         price=price,
         province=province,
         tags=tags,
-        imageUrl=imageUrl
+        bannerUrl=bannerUrl
     )
 }

@@ -25,6 +25,8 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollableDefaults
@@ -69,8 +71,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -102,8 +108,12 @@ import com.example.brewbuddy.data.remote.dto.Measures
 import com.example.brewbuddy.data.remote.dto.Metric
 import com.example.brewbuddy.data.remote.dto.Step
 import com.example.brewbuddy.domain.model.Author
+import com.example.brewbuddy.domain.model.PostMetadata
 import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.model.RecipeMetadata
+import com.example.brewbuddy.marketplace.MarketplaceItemModal
+import com.example.brewbuddy.marketplace.MarketplaceViewModel
+import com.example.brewbuddy.navigateToItem
 import com.example.brewbuddy.navigateToRecipe
 import com.example.brewbuddy.recipes.IndividualIngredient
 import com.example.brewbuddy.recipes.IndividualRecipeScreenViewModel
@@ -118,6 +128,7 @@ import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
+import com.example.brewbuddy.ui.theme.SlateDark
 import com.example.brewbuddy.ui.theme.SlateLight
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -235,12 +246,13 @@ fun Carousel(pagerState: PagerState = remember{ PagerState() },) {
 
 @Composable
 fun ImageGrid(
-    navController: NavHostController,
+    navFunction: (id: String) -> Unit,
     columns: Int,
     modifier: Modifier = Modifier,
-    recipes: List<RecipeMetadata> = emptyList(),
+    recipes: List<PostMetadata> = emptyList(),
+    uploadButton: @Composable () -> Unit
 ) {
-    var itemCount = recipes.size
+    var itemCount = recipes.size + 1 // +1 for the button
     Log.d("ITEMCOUNT", itemCount.toString())
     Column(modifier = modifier) {
         var rows = (itemCount / columns)
@@ -259,22 +271,19 @@ fun ImageGrid(
                             .fillMaxWidth()
                             .weight(1f)
                     ) {
-                        if (index < itemCount) {
+                        if (index < itemCount - 1) {
                             BoxWithConstraints(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .aspectRatio(1f)
                                     .padding(4.dp)
                                     .clickable(onClick = {
-                                        navigateToRecipe(
-                                            recipes[index].id,
-                                            navController
-                                        )
+                                        navFunction(recipes[index].id)
                                     })
                             ) {
-                                val imageUrl = recipes[index].bannerUrl
+                                val bannerUrl = recipes[index].bannerUrl
                                 AsyncImage(
-                                    model = imageUrl,
+                                    model = bannerUrl,
                                     contentDescription = "Recipe Image",
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
@@ -283,6 +292,8 @@ fun ImageGrid(
                                         .aspectRatio(1F),
                                 )
                             }
+                        } else if (index == itemCount - 1) {
+                            uploadButton()
                         }
                     }
                 }
@@ -291,6 +302,38 @@ fun ImageGrid(
     }
 }
 
+@Composable
+fun UploadButton(title: String, onClick: () -> Unit) {
+    //https://stackoverflow.com/questions/66427587/how-to-have-dashed-border-in-jetpack-compose
+    val stroke = Stroke(width = 4f,
+        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+    )
+    var colour =GreyMedium
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .padding(8.dp)
+            .drawBehind {
+                drawRoundRect(color = colour, style = stroke)
+            }
+            .clickable(onClick = {
+                onClick()
+            })
+    ) {
+        Column(modifier=Modifier.fillMaxSize()
+            , verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                painter = painterResource(id = R.drawable.icon_add_outline),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint= colour
+            )
+            Text(textAlign = TextAlign.Center, modifier=Modifier.fillMaxWidth(), text=title, color= colour)
+        }
+    }
+
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StepInput(stepNumber: Number, inputStep: String? = null, onStepChange: (Step) -> Unit) {
@@ -825,70 +868,83 @@ private fun retrieveSavedStores() {
     }
 }
 
+@Composable
+private fun <T>UserPostsGrid(state: UserScreenState<T>, title: String, content: @Composable () -> Unit) {
+    Box(modifier = Modifier.padding(top = 35.dp)) {
+        TitleLarge(text =  title)
+    }
+    if(state.error.isNotBlank()) {
+        Text(
+            text = state.error,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+    } else if(state.isLoading){
+        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+            Box() {
+                CircularProgressIndicator(modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(34.dp))
+            }
+        }
+    } else {
+        content()
+    }
+}
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserScreen(
     menuButton: @Composable () -> Unit,
     navController: NavHostController,
-    viewModel: UserScreenViewModel = hiltViewModel()
+    viewModel: UserScreenViewModel = hiltViewModel(),
+    marketplaceViewModel: MarketplaceViewModel = hiltViewModel()
 ) {
-    var state = viewModel.state.value
+    var recipesState = viewModel.state.value
+    var listingState = viewModel.listingState.value
     val user = getUser()
     // todo: change to lazycolumn
+
+    var showDialog = remember { mutableStateOf(false) }
+    var showMarketplaceDialog = remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         ProfileHeader(user, menuButton)
 
         Column(modifier = Modifier.fillMaxSize()) {
             TitleLarge(text="Pinned Recipes")
             Carousel()
+            UserPostsGrid(state=recipesState, title="Your Recipes") {
+                Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    ImageGrid(
+                        navFunction = {id: String -> navigateToRecipe(id, navController) },
+                        columns = 3,
+                        modifier = Modifier.padding(8.dp),
+                        recipes = recipesState.data,
+                        uploadButton={UploadButton("Upload Recipe", onClick={showDialog.value = true})}
 
-            Box(modifier = Modifier.padding(top = 35.dp)) {
-                TitleLarge(text = "Your Recipes")
+                    )
+
+                }
             }
 
-            if(state.error.isNotBlank()) {
-                Text(
-                    text = state.error,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                )
-            } else if(state.isLoading){
-                Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-                    Box() {
-                        CircularProgressIndicator(modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(34.dp))
-                    }
-                }
-            } else {
-                if (state.data.isNotEmpty()) {
-                    ImageGrid(navController, columns = 3, modifier = Modifier.padding(start = 16.dp), state.data)
-                }
-                else {
-                    Text(
-                        text="You haven't uploaded any recipes yet!",
-                        modifier = Modifier.padding(16.dp)
+
+            UserPostsGrid(state=listingState, title="Your Listings") {
+                Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    ImageGrid(
+                        navFunction = { id: String -> navigateToItem(id, navController) },
+                        columns = 3,
+                        modifier = Modifier.padding(8.dp),
+                        recipes = listingState.data,
+                        uploadButton = { UploadButton("Upload Listing", onClick = {showMarketplaceDialog.value = true}) }
                     )
                 }
             }
-
-
-//            ImageGrid(3, modifier = Modifier.padding(16.dp))
-
-
-            var showDialog = remember { mutableStateOf(false) }
-            Button(
-                modifier = Modifier.padding(16.dp),
-                onClick = {
-                    showDialog.value = true
-                }
-            ) {
-                Text(text = "Upload Recipe")
-            }
             RecipeModal(showDialog,  onClose = { showDialog.value = false })
+            MarketplaceItemModal(marketplaceViewModel, showMarketplaceDialog,  onClose = { showMarketplaceDialog.value = false })
+
             Box() {
                 TitleLarge(text = "Saved Shops near you")
             }
