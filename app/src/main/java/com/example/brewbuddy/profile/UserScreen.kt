@@ -254,7 +254,6 @@ fun ImageGrid(
 ) {
     var itemCount = recipes.size + 1 // +1 for the button
     Log.d("ITEMCOUNT", itemCount.toString())
-
     Column(modifier = modifier) {
         var rows = (itemCount / columns)
         if (itemCount.mod(columns) > 0) {
@@ -453,7 +452,7 @@ fun uploadImageToFirebaseStorage(inputRecipe: Recipe, imageUri: Uri?, onUrlReady
 }
 
 @Composable
-fun ImageUpload(returnImageUri: (Uri?) -> Unit) {
+fun ImageUpload(buttonText: String, returnImageUri: (Uri?) -> Unit) {
     // credit to Kiran Bahalaskar for image upload demo code used for most of this function
     // https://www.youtube.com/watch?v=ec8YymnjQSE&ab_channel=KBCODER
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -503,7 +502,7 @@ fun ImageUpload(returnImageUri: (Uri?) -> Unit) {
                 launcher.launch("image/*")
                 }
             ) {
-                Text(text = "Select Image")
+                Text(text = buttonText)
             }
         } else {
             Button(
@@ -593,18 +592,18 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                 val ingredientList = IngredientList(name = title, ingredients = ingredients )
                                 var uriAsString = ""
                                 var completedRecipe = Recipe(
-                                preparationMinutes = prepMinutes.toInt(),
-                                title = title,
-                                servings = servings.toInt(),
-                                summary = description,
-                                instructions = listOf(Instructions(name = title, steps = instructions)),
-                                ingredientLists = listOf(IngredientList("title", ingredients)),
-                                author = Author(
-                                    id = currentUser.getUserId(),
-                                    username = currentUser.getUsername(),
-                                    avatarUrl = currentUser.getAvatarUrl()
+                                    preparationMinutes = prepMinutes.toInt(),
+                                    title = title,
+                                    servings = servings.toInt(),
+                                    summary = description,
+                                    instructions = listOf(Instructions(name = title, steps = instructions)),
+                                    ingredientLists = listOf(IngredientList("title", ingredients)),
+                                    author = Author(
+                                        id = currentUser.getUserId(),
+                                        username = currentUser.getUsername(),
+                                        avatarUrl = currentUser.getAvatarUrl()
+                                    )
                                 )
-                            )
                                 uploadImageToFirebaseStorage(
                                     completedRecipe,
                                     uri
@@ -788,7 +787,7 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                             )
                         }
                         Row() {
-                            ImageUpload(returnImageUri = {newUri -> uri = newUri})
+                            ImageUpload("Select Image", returnImageUri = {newUri -> uri = newUri})
                         }
                     }
                 }
