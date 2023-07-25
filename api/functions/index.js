@@ -42,6 +42,7 @@ const {
   getMarketplaceItemsMetadataByQuery,
   getMarketplaceItemsMetadata,
   getMarketplaceItemById,
+  getListingsByAuthorId,
 } = require("./utils/marketplace.js");
 
 const {
@@ -58,30 +59,14 @@ const DEFAULT_BANNER_URL =
 const DEFAULT_AVATAR_URL =
   "https://firebasestorage.googleapis.com/v0/b/brew-buddy-ece452.appspot.com/o/placeholder_avatar.jpg?alt=media&token=38f93e98-58d1-4076-8262-1dc5c340cac7";
 
-exports.getRecipesByAuthor = onCall(async ({ data }, context) => {
+exports.getMarketplaceItemsByUserId = onCall(async ({ data }, context) => {
   // Get all recipes from specified author ID.
-  var recipes = [];
-  const { authorId } = data;
+  const { userId } = data;
+  const user = await getUserById(userId, db);
 
-  if (!authorId) {
-    // Throwing an HttpsError so that the client gets the error details.
-    throw new HttpsError("failed-precondition", "No author ID provided");
-  }
-  await db
-    .collection("recipes")
-    .where("authorId", "==", authorId)
-    .get()
-    .then((snapshot) => {
-      snapshot.forEach((doc) => {
-        const data = {
-          id: doc.id,
-          author: doc.data().author,
-          ingredients: doc.data().ingredients,
-        };
-        recipes.push(data);
-      });
-    });
-  return recipes;
+  const listings = await getListingsByAuthorId(user, userId, db);
+  console.log(listings);
+  return listings;
 });
 
 exports.getRecipeById = onCall(async ({ data }, context) => {

@@ -126,4 +126,11 @@
 | 2023/07/24 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync                                                                                                     |
 | 2023/07/24 |2        |         |      |        |         |        | refactor maps/add grocery stores to complete FPs                                                                                                     |
 | 2023/07/24 |3        |         |      |        |         |        | Add ingredients list ui and functionality.                                                                                                     |
+| 2023/07/24 |        |         |      |        | 2       |        | Add sorting ability for both marketplace items and recipes |
+| 2023/07/24 |        |         |      |        | 1       |        | Auto-populate user preferences when searching for recipes |
+| 2023/07/24 |        |         |      |        | 3       |        | Add more generic class inheritence, add "your listings" section under user. Refactor button look for creating more recipes/listings |
+| 2023/07/24 |        |         | 2    |        |         |        | Expand on author data in recipe uploads |
+| 2023/07/24 |        |         | 1    |        |         |        | Bug fixes in main, user profile updates |
+| 2023/07/24 |        |         | 2    |        |         |        | Add profile picture + banner uploads |
+| 2023/07/24 |        |3        |      |        |         |        | Add pinned/liked recipes to profiles page + debugging |
 

@@ -1,6 +1,7 @@
 package com.example.brewbuddy.profile
 
 import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,8 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.core.net.toUri
+import com.example.brewbuddy.common.Constants.DEFAULT_BANNER_URL
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
@@ -46,9 +49,12 @@ import com.example.brewbuddy.ui.theme.Brown
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 
 val db = FirebaseFirestore.getInstance()
 
@@ -110,6 +116,67 @@ fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, dairyF
             .addOnFailureListener { exception ->
                 Log.d("EDIT_PREFS", "Error changing user prefs: $exception")
             }
+    }
+}
+
+
+fun updateBanner(bannerUrl: String) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val userRef = db.collection("users").document(userId)
+        val prefs = hashMapOf<String, Any>(
+            "bannerUrl" to bannerUrl
+        )
+        userRef.update(prefs)
+            .addOnSuccessListener {
+                Log.d("EDIT_PROFILE_BANNER", "User banner updated")
+            }
+            .addOnFailureListener { exception ->
+                Log.d("EDIT_PROFILE_BANNER", "Error changing banner: $exception")
+            }
+    }
+}
+
+fun updateAvatar(avatarUrl: String) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val userRef = db.collection("users").document(userId)
+        val prefs = hashMapOf<String, Any>(
+            "avatarUrl" to avatarUrl
+        )
+        userRef.update(prefs)
+            .addOnSuccessListener {
+                Log.d("EDIT_PROFILE_AVATAR", "User avatar updated")
+            }
+            .addOnFailureListener { exception ->
+                Log.d("EDIT_PROFILE_AVATAR", "Error changing avatar: $exception")
+            }
+    }
+}
+
+fun uploadSettingsImageToFirebaseStorage(imageUri: Uri, onUrlReady: (String) -> Unit) {
+    if (imageUri != DEFAULT_BANNER_URL.toUri()) {
+        val filename = "recipe_image_${UUID.randomUUID()}"
+        val storage = Firebase.storage
+        val storageRef = storage.reference
+
+        val imageRef = storageRef.child("images/$filename")
+        val uploadTask = imageRef.putFile(imageUri)
+        uploadTask.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                task.exception?.let { throw it }
+            }
+            imageRef.downloadUrl
+        }.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val downloadUrl = task.result.toString()
+                onUrlReady(downloadUrl)
+            } else {
+                onUrlReady(DEFAULT_BANNER_URL)
+            }
+        }
+    } else {
+        onUrlReady(DEFAULT_BANNER_URL)
     }
 }
 
@@ -288,6 +355,9 @@ fun SettingScreen(
     val (halalState, onHalalChange) = remember { mutableStateOf(currHalal) }
     val (glutenState, onGlutenChange) = remember { mutableStateOf(currGlutenFree) }
     val (nutState, onNutChange) = remember { mutableStateOf(currNutFree) }
+
+    var profilePictureUri by remember { mutableStateOf<Uri?>(DEFAULT_BANNER_URL.toUri()) }
+    var bannerPictureUri by remember { mutableStateOf<Uri?>(DEFAULT_BANNER_URL.toUri()) }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -568,10 +638,47 @@ fun SettingScreen(
                 }
             }
             item {
+//              update profile picture
+                ImageUpload("Select New Profile Picture", returnImageUri = {newUri -> profilePictureUri = newUri})
+            }
+
+            item {
+                ImageUpload("Select New Banner Picture", returnImageUri = {newUri -> bannerPictureUri = newUri})
+            }
+
+
+            item {
                 Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 32.dp)) {
                     Button(
                         onClick = {
-                            updateSettings(sliderPosition, veganState, vegetarianState, dairyState, ketoState, kosherState, halalState, glutenState, nutState );
+                            profilePictureUri?.let {
+                                uploadSettingsImageToFirebaseStorage(
+                                    it
+                                ) { newValue: String ->
+                                    Log.d("NEWAVATARVALUE", newValue)
+                                    updateAvatar(newValue)
+                                }
+                            }
+
+                            bannerPictureUri?.let {
+                                uploadSettingsImageToFirebaseStorage(
+                                    it
+                                ) { newValue: String ->
+                                    updateBanner(newValue)
+                                }
+                            }
+
+                            updateSettings(
+                                sliderPosition,
+                                veganState,
+                                vegetarianState,
+                                dairyState,
+                                ketoState,
+                                kosherState,
+                                halalState,
+                                glutenState,
+                                nutState,
+                            );
                         },
                         shape = RoundedCornerShape(50.dp),
                         modifier = Modifier

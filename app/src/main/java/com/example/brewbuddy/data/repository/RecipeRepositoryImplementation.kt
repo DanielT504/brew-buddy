@@ -147,4 +147,19 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             return@withContext MarketplaceItemDto.from(data)
         }
     }
+
+    override suspend fun getMarketplaceItemsByUserId(userId: String): List<MarketplaceItemMetadataDto> {
+        Log.d("GET_MARKETPLACE_ITEM_BY_USER_ID", userId)
+
+        return withContext(Dispatchers.IO) {
+            val dataDeferred = async {
+                getFunctions()
+                    .getHttpsCallable("getMarketplaceItemsByUserId")
+                    .call(hashMapOf("userId" to userId)).await()
+            }
+            val task = dataDeferred.await()
+            val data = task.data as List<HashMap<String, Object>>
+            return@withContext data.map{MarketplaceItemMetadataDto.from(it)}
+        }
+    }
 }

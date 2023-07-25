@@ -21,6 +21,8 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.offset
@@ -31,6 +33,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -40,6 +43,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TextField
@@ -53,10 +57,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -78,8 +88,12 @@ import com.example.brewbuddy.data.remote.dto.Measures
 import com.example.brewbuddy.data.remote.dto.Metric
 import com.example.brewbuddy.data.remote.dto.Step
 import com.example.brewbuddy.domain.model.Author
+import com.example.brewbuddy.domain.model.PostMetadata
 import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.model.RecipeMetadata
+import com.example.brewbuddy.marketplace.MarketplaceItemModal
+import com.example.brewbuddy.marketplace.MarketplaceViewModel
+import com.example.brewbuddy.navigateToItem
 import com.example.brewbuddy.navigateToRecipe
 import com.example.brewbuddy.recipes.IndividualIngredient
 import com.example.brewbuddy.recipes.UserScreenViewModel
@@ -88,6 +102,8 @@ import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
+import com.example.brewbuddy.ui.theme.SlateDark
+import com.example.brewbuddy.ui.theme.SlateLight
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
@@ -113,8 +129,56 @@ private fun getIndex(currentIndex: Int, startIndex: Int, pageCount: Int): Int {
     }
     return diff % pageCount
 }
+fun mapTags(recipe: Recipe): List<String> {
+    var tags = mutableListOf<String>()
+    if(recipe.vegan){
+        tags.add("vegan")
+    }
+    if (recipe.vegetarian){
+        tags.add("vegetarian")
+    }
+    if(recipe.glutenFree){
+        tags.add("glutenFree")
+    }
+    if(recipe.dairyFree){
+        tags.add("dairyFree")
+    }
+    if(recipe.sustainable){
+        tags.add("sustainable")
+    }
+    return tags
+}
+
+fun generateKeywords(recipe: Recipe): List<String> {
+    val allWords = recipe.title.split(" ")
+    val normalizedWords = allWords.map { word ->
+        word.toLowerCase().replace(Regex("[^a-zA-Z0-9]"), "")
+    }
+    val blackListWords = listOf(
+        "as",
+        "the",
+        "is",
+        "at",
+        "in",
+        "with",
+        "a",
+        "&",
+        "and",
+        "to",
+        "how",
+        "you",
+        "all"
+    )
+    val keywords = normalizedWords.filter { word ->
+        word !in blackListWords
+    }
+    return keywords
+}
+
 fun postRecipe(recipe: Recipe) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val tags = mapTags(recipe)
+    val keywords = generateKeywords(recipe)
     userId?.let {
         val recipesRef = db.collection("recipes").document()
         val recipeInfo = hashMapOf(
@@ -127,14 +191,13 @@ fun postRecipe(recipe: Recipe) {
             "servings" to recipe.servings,
             "summary" to recipe.summary,
             "title" to recipe.title,
-//        todo: stop using defaults for these fields
             "dairyFree" to recipe.dairyFree,
             "glutenFree" to recipe.glutenFree,
             "sustainable" to recipe.sustainable,
             "vegan" to recipe.vegan,
             "vegetarian" to recipe.vegetarian,
-            "tags" to recipe.tags,
-//         todo: write keyword function, map keywords
+            "tags" to tags,
+            "keywords" to keywords
         )
         recipesRef.set(recipeInfo)
         .addOnSuccessListener {
@@ -204,12 +267,14 @@ fun Carousel(
 
 @Composable
 fun ImageGrid(
-    navController: NavHostController,
+    navFunction: (id: String) -> Unit,
     columns: Int,
     modifier: Modifier = Modifier,
-    recipes: List<RecipeMetadata> = emptyList(),
+    recipes: List<PostMetadata> = emptyList(),
+    uploadButton: @Composable () -> Unit
 ) {
-    var itemCount = recipes.size
+    var itemCount = recipes.size + 1 // +1 for the button
+    Log.d("ITEMCOUNT", itemCount.toString())
     Column(modifier = modifier) {
         var rows = (itemCount / columns)
         if (itemCount.mod(columns) > 0) {
@@ -227,22 +292,19 @@ fun ImageGrid(
                             .fillMaxWidth()
                             .weight(1f)
                     ) {
-                        if (index < itemCount) {
+                        if (index < itemCount - 1) {
                             BoxWithConstraints(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .aspectRatio(1f)
                                     .padding(4.dp)
                                     .clickable(onClick = {
-                                        navigateToRecipe(
-                                            recipes[index].id,
-                                            navController
-                                        )
+                                        navFunction(recipes[index].id)
                                     })
                             ) {
-                                val imageUrl = recipes[index].bannerUrl
+                                val bannerUrl = recipes[index].bannerUrl
                                 AsyncImage(
-                                    model = imageUrl,
+                                    model = bannerUrl,
                                     contentDescription = "Recipe Image",
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
@@ -251,6 +313,8 @@ fun ImageGrid(
                                         .aspectRatio(1F),
                                 )
                             }
+                        } else if (index == itemCount - 1) {
+                            uploadButton()
                         }
                     }
                 }
@@ -259,6 +323,38 @@ fun ImageGrid(
     }
 }
 
+@Composable
+fun UploadButton(title: String, onClick: () -> Unit) {
+    //https://stackoverflow.com/questions/66427587/how-to-have-dashed-border-in-jetpack-compose
+    val stroke = Stroke(width = 4f,
+        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+    )
+    var colour =GreyMedium
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .padding(8.dp)
+            .drawBehind {
+                drawRoundRect(color = colour, style = stroke)
+            }
+            .clickable(onClick = {
+                onClick()
+            })
+    ) {
+        Column(modifier=Modifier.fillMaxSize()
+            , verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                painter = painterResource(id = R.drawable.icon_add_outline),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint= colour
+            )
+            Text(textAlign = TextAlign.Center, modifier=Modifier.fillMaxWidth(), text=title, color= colour)
+        }
+    }
+
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StepInput(stepNumber: Number, inputStep: String? = null, onStepChange: (Step) -> Unit) {
@@ -377,7 +473,7 @@ fun uploadImageToFirebaseStorage(inputRecipe: Recipe, imageUri: Uri?, onUrlReady
 }
 
 @Composable
-fun ImageUpload(returnImageUri: (Uri?) -> Unit) {
+fun ImageUpload(buttonText: String, returnImageUri: (Uri?) -> Unit) {
     // credit to Kiran Bahalaskar for image upload demo code used for most of this function
     // https://www.youtube.com/watch?v=ec8YymnjQSE&ab_channel=KBCODER
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -427,7 +523,7 @@ fun ImageUpload(returnImageUri: (Uri?) -> Unit) {
                 launcher.launch("image/*")
                 }
             ) {
-                Text(text = "Select Image")
+                Text(text = buttonText)
             }
         } else {
             Button(
@@ -450,6 +546,8 @@ fun convertToIngredientDto(ingredient: IndividualIngredient) : Ingredient{
     return Ingredient(name = ingredient.label, quantity = measures)
 }
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
@@ -460,6 +558,19 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
     var servings by remember { mutableStateOf("") }
     var prepMinutes by remember { mutableStateOf("") }
     var uri by remember { mutableStateOf<Uri?>(null) }
+
+    var isVegan: Boolean = false;
+    var isVegetarian: Boolean = false;
+    var isDairyFree: Boolean = false;
+    var isGlutenFree: Boolean = false;
+    var isKeto: Boolean = false;
+    var isSustainable: Boolean = false;
+    val (veganState, onVeganChange) = remember { mutableStateOf(isVegan) }
+    val (vegetarianState, onVegetarianChange) = remember { mutableStateOf(isVegetarian) }
+    val (dairyState, onDairyChange) = remember { mutableStateOf(isDairyFree) }
+    val (ketoState, onKetoChange) = remember { mutableStateOf(isKeto) }
+    val (glutenState, onGlutenChange) = remember { mutableStateOf(isGlutenFree) }
+    val (sustainableState, onSustainableChange) = remember { mutableStateOf(isSustainable) }
 
     val currentUser = getUser()
 
@@ -514,21 +625,25 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(containerColor = GreenDark),
                             onClick = {
-                                val ingredientList = IngredientList(name = title, ingredients = ingredients )
-                                var uriAsString = ""
                                 var completedRecipe = Recipe(
-                                preparationMinutes = prepMinutes.toInt(),
-                                title = title,
-                                servings = servings.toInt(),
-                                summary = description,
-                                instructions = listOf(Instructions(name = title, steps = instructions)),
-                                ingredientLists = listOf(IngredientList("title", ingredients)),
-                                author = Author(
-                                    id = currentUser.getUserId(),
-                                    username = currentUser.getUsername(),
-                                    avatarUrl = currentUser.getAvatarUrl()
+                                    likes = 0,
+                                    vegetarian = vegetarianState,
+                                    vegan = veganState,
+                                    glutenFree = glutenState,
+                                    dairyFree = dairyState,
+                                    sustainable = sustainableState,
+                                    preparationMinutes = prepMinutes.toInt(),
+                                    title = title,
+                                    servings = servings.toInt(),
+                                    summary = description,
+                                    instructions = listOf(Instructions(name = title, steps = instructions)),
+                                    ingredientLists = listOf(IngredientList("title", ingredients)),
+                                    author = Author(
+                                        id = currentUser.getUserId(),
+                                        username = currentUser.getUsername(),
+                                        avatarUrl = currentUser.getAvatarUrl()
+                                    )
                                 )
-                            )
                                 uploadImageToFirebaseStorage(
                                     completedRecipe,
                                     uri
@@ -711,8 +826,147 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                 label = { Text(text = "Description") },
                             )
                         }
+
+                        Row(Modifier.fillMaxWidth().padding(4.dp)) {
+                            Text(
+                                text = "Select all tags that apply",
+                                style = TextStyle(fontSize = 20.sp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = veganState,
+                                    onValueChange = { onVeganChange(!veganState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = veganState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Vegan",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = vegetarianState,
+                                    onValueChange = { onVegetarianChange(!vegetarianState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = vegetarianState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Vegetarian",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = dairyState,
+                                    onValueChange = { onDairyChange(!dairyState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = dairyState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Dairy-free",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = ketoState,
+                                    onValueChange = { onKetoChange(!ketoState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = ketoState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Keto",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = glutenState,
+                                    onValueChange = { onGlutenChange(!glutenState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = glutenState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Gluten-free",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .toggleable(
+                                    value = sustainableState,
+                                    onValueChange = { onSustainableChange(!sustainableState) },
+                                    role = Role.Checkbox
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = sustainableState,
+                                onCheckedChange = null // null recommended for accessibility with screenreaders
+                            )
+                            Text(
+                                text = "Sustainable",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
                         Row() {
-                            ImageUpload(returnImageUri = {newUri -> uri = newUri})
+                            ImageUpload("Select Image", returnImageUri = {newUri -> uri = newUri})
                         }
                     }
                 }
@@ -793,16 +1047,48 @@ private fun retrieveSavedStores() {
     }
 }
 
+@Composable
+private fun <T>UserPostsGrid(state: UserScreenState<T>, title: String, content: @Composable () -> Unit) {
+    Box(modifier = Modifier.padding(top = 35.dp)) {
+        TitleLarge(text =  title)
+    }
+    if(state.error.isNotBlank()) {
+        Text(
+            text = state.error,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+    } else if(state.isLoading){
+        Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+            Box() {
+                CircularProgressIndicator(modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(34.dp))
+            }
+        }
+    } else {
+        content()
+    }
+}
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserScreen(
     menuButton: @Composable () -> Unit,
     navController: NavHostController,
-    viewModel: UserScreenViewModel = hiltViewModel()
+    viewModel: UserScreenViewModel = hiltViewModel(),
+    marketplaceViewModel: MarketplaceViewModel = hiltViewModel()
 ) {
-    var state = viewModel.state.value
+    var recipesState = viewModel.state.value
+    var listingState = viewModel.listingState.value
     val user = getUser()
     // todo: change to lazycolumn
+
+    var showDialog = remember { mutableStateOf(false) }
+    var showMarketplaceDialog = remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         ProfileHeader(user, menuButton)
 
@@ -816,54 +1102,35 @@ fun UserScreen(
                     modifier = Modifier.padding(16.dp)
                 )
             }
+            UserPostsGrid(state=recipesState, title="Your Recipes") {
+                Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    ImageGrid(
+                        navFunction = {id: String -> navigateToRecipe(id, navController) },
+                        columns = 3,
+                        modifier = Modifier.padding(8.dp),
+                        recipes = recipesState.data,
+                        uploadButton={UploadButton("Upload Recipe", onClick={showDialog.value = true})}
 
-            Box(modifier = Modifier.padding(top = 35.dp)) {
-                TitleLarge(text = "Your Recipes")
+                    )
+
+                }
             }
 
-            if(state.error.isNotBlank()) {
-                Text(
-                    text = state.error,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                )
-            } else if(state.isLoading){
-                Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
-                    Box() {
-                        CircularProgressIndicator(modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(34.dp))
-                    }
-                }
-            } else {
-                if (state.data.isNotEmpty()) {
-                    ImageGrid(navController, columns = 3, modifier = Modifier.padding(start = 16.dp), state.data)
-                }
-                else {
-                    Text(
-                        text="You haven't uploaded any recipes yet!",
-                        modifier = Modifier.padding(16.dp)
+
+            UserPostsGrid(state=listingState, title="Your Listings") {
+                Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    ImageGrid(
+                        navFunction = { id: String -> navigateToItem(id, navController) },
+                        columns = 3,
+                        modifier = Modifier.padding(8.dp),
+                        recipes = listingState.data,
+                        uploadButton = { UploadButton("Upload Listing", onClick = {showMarketplaceDialog.value = true}) }
                     )
                 }
             }
-
-
-//            ImageGrid(3, modifier = Modifier.padding(16.dp))
-
-
-            var showDialog = remember { mutableStateOf(false) }
-            Button(
-                modifier = Modifier.padding(16.dp),
-                onClick = {
-                    showDialog.value = true
-                }
-            ) {
-                Text(text = "Upload Recipe")
-            }
             RecipeModal(showDialog,  onClose = { showDialog.value = false })
+            MarketplaceItemModal(marketplaceViewModel, showMarketplaceDialog,  onClose = { showMarketplaceDialog.value = false })
+
             Box() {
                 TitleLarge(text = "Saved Shops near you")
             }

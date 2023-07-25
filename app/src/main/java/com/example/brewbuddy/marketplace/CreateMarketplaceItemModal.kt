@@ -142,7 +142,7 @@ fun MarketplaceItemModal(viewModel: MarketplaceViewModel, openDialog: MutableSta
                                         contact=contact,
                                         city=city,
                                         province=province,
-                                        imageUrl=if(newValue.isNotEmpty()) {newValue} else Constants.DEFAULT_IMAGE_URL,
+                                        bannerUrl=if(newValue.isNotEmpty()) {newValue} else Constants.DEFAULT_IMAGE_URL,
                                         title=title,
                                         description = description,
                                         price=price.toFloat()
@@ -236,7 +236,7 @@ fun MarketplaceItemModal(viewModel: MarketplaceViewModel, openDialog: MutableSta
                             )
                         }
                         Row() {
-                            ImageUpload(returnImageUri = {newUri -> uri = newUri})
+                            ImageUpload("Select Image", returnImageUri = {newUri -> uri = newUri})
                         }
                     }
                 }

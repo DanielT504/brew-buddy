@@ -5,7 +5,7 @@ import com.example.brewbuddy.common.Constants
 
 data class MarketplaceItem (
     val id: String = "",
-    val imageUrl: String = Constants.DEFAULT_IMAGE_URL,
+    val bannerUrl: String = Constants.DEFAULT_IMAGE_URL,
     val description: String = "",
     val title: String = "Unnamed Listing",
     val contact: String = "",

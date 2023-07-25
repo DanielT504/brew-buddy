@@ -76,7 +76,7 @@ fun MarketplaceItemScreen(
             ) {
                 Row() {
                     Box() {
-                        AsyncImage(model = state.post!!.imageUrl, contentDescription = null, modifier=Modifier.fillMaxWidth(), contentScale = ContentScale.FillWidth)
+                        AsyncImage(model = state.post!!.bannerUrl, contentDescription = null, modifier=Modifier.fillMaxWidth(), contentScale = ContentScale.FillWidth)
                         IconButton(onClick = { if (navController.previousBackStackEntry != null) navController.popBackStack() else null }) {
                             Icon(
                                 tint = Cream,
