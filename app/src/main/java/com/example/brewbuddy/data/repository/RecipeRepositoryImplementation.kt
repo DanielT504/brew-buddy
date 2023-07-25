@@ -74,14 +74,25 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
                     .getHttpsCallable("getUserRecipes")
                     .call(hashMapOf("authorId" to user_id)).await()
             }
-            Log.d("GET_RECIPES_BY_USER_ID2", user_id)
             val task = dataDeferred.await()
-            Log.d("GET_RECIPES_BY_USER_ID3", user_id)
             val data = task.data as List<HashMap<String, Object>>
-            Log.d("GET_RECIPES_BY_USER_ID4", user_id)
-            Log.d("RecipeRepository", data[0].toString())
             return@withContext data.map{RecipeMetadataDto.from(it)}
 
+        }
+    }
+
+    override suspend fun getUserLikedRecipes(userId: String): List<RecipeMetadataDto> {
+        Log.d("GET_USER_LIKED_RECIPES", "Running")
+
+        return withContext(Dispatchers.IO) {
+            val dataDeferred = async {
+                getFunctions()
+                    .getHttpsCallable("getUserLikedRecipes")
+                    .call(hashMapOf("userId" to userId)).await()
+            }
+            val task = dataDeferred.await()
+            val data = task.data as List<HashMap<String, Object>>
+            return@withContext data.map{RecipeMetadataDto.from(it)}
         }
     }
     override suspend fun getRecommended(userId: String): List<RecipeMetadataDto> {

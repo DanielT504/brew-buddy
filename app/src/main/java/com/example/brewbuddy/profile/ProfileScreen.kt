@@ -97,6 +97,7 @@ import androidx.compose.runtime.*
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.profile.CurrentUserRepository
 import com.example.brewbuddy.profile.SettingScreen
 import com.example.brewbuddy.recipes.IndividualRecipeScreen
@@ -117,7 +118,7 @@ fun getUser(): User {
     return currentUserViewModel.getUser()
 }
 @Composable
-fun PinnedCard(modifier: Modifier, recipe: Recipe) {
+fun PinnedCard(modifier: Modifier, recipe: RecipeMetadata) {
     Card(modifier) {
         Box(modifier = Modifier.fillMaxSize().zIndex(2f).background(
             brush = Brush.verticalGradient(
