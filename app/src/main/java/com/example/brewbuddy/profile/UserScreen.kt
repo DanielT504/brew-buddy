@@ -217,7 +217,7 @@ fun Carousel(
     pagerState: PagerState = remember{ PagerState() },
     viewModel: UserScreenViewModel = hiltViewModel()
 ) {
-    val pageCount = 5
+    val pageCount = viewModel.userLikedRecipes.value.size
     val bounds = 100 // arbitrarily large # to give the illusion of infinite scroll
     val startIndex = bounds / 2
 
