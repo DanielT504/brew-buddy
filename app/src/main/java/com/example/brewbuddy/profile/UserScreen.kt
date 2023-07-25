@@ -175,7 +175,7 @@ fun Carousel(
                    PinnedCard(modifier = Modifier
                        .width(210.dp)
                        .height(150.dp),
-                       viewModel.state.value.data[index]
+                       viewModel.userLikedRecipes.value[index]
                    )
                 }
             },
@@ -808,7 +808,7 @@ fun UserScreen(
 
         Column(modifier = Modifier.fillMaxSize()) {
             TitleLarge(text="Pinned Recipes")
-            if(viewModel.userLikedRecipes.value.data.isNotEmpty()) {
+            if(viewModel.userLikedRecipes.value.isNotEmpty()) {
                 Carousel()
             } else {
                 Text(

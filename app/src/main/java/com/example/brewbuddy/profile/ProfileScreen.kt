@@ -118,7 +118,7 @@ fun getUser(): User {
     return currentUserViewModel.getUser()
 }
 @Composable
-fun PinnedCard(modifier: Modifier, recipe: RecipeMetadata) {
+fun PinnedCard(modifier: Modifier, recipe: Recipe) {
     Card(modifier) {
         Box(modifier = Modifier.fillMaxSize().zIndex(2f).background(
             brush = Brush.verticalGradient(
