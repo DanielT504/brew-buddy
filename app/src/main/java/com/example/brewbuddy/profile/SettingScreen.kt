@@ -39,7 +39,12 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Color
+import com.example.brewbuddy.ui.theme.Brown
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +55,7 @@ val db = FirebaseFirestore.getInstance()
 var currRadius: Float = 10f;
 var currVegan: Boolean = false;
 var currVegetarian: Boolean = false;
-var currLactoseFree: Boolean = false;
+var currDairyFree: Boolean = false;
 var currKosher: Boolean = false;
 var currHalal: Boolean = false;
 var currGlutenFree: Boolean = false;
@@ -69,7 +74,7 @@ private fun retrieveSettings() {
                 currRadius = snapshot.getDouble("radius")?.toFloat() ?: 0f;
                 currVegan= snapshot.getBoolean("vegan")?: false;
                 currVegetarian = snapshot.getBoolean("vegetarian")?: false;
-                currLactoseFree = snapshot.getBoolean("lactoseFree")?: false;
+                currDairyFree = snapshot.getBoolean("dairyFree")?: false;
                 currKeto = snapshot.getBoolean("keto")?: false;
                 currKosher = snapshot.getBoolean("kosher")?: false;
                 currHalal = snapshot.getBoolean("halal")?: false;
@@ -82,7 +87,7 @@ private fun retrieveSettings() {
         }
     }
 }
-fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, lactoseFree: Boolean?, keto: Boolean?, kosher: Boolean?, halal: Boolean?, glutenFree: Boolean?, nutFree: Boolean?) {
+fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, dairyFree: Boolean?, keto: Boolean?, kosher: Boolean?, halal: Boolean?, glutenFree: Boolean?, nutFree: Boolean?) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     userId?.let {
         val preferencesRef = db.collection("user_preferences").document(userId)
@@ -90,7 +95,7 @@ fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, lactos
             "radius" to radius,
             "vegan" to vegan,
             "vegetarian" to vegetarian,
-            "lactoseFree" to lactoseFree,
+            "dairyFree" to dairyFree,
             "keto" to keto,
             "kosher" to kosher,
             "halal" to halal,
@@ -107,6 +112,157 @@ fun updateSettings(radius: Float?, vegan: Boolean?, vegetarian: Boolean?, lactos
             }
     }
 }
+
+val coffeeIngredients = listOf(
+    "Coffee beans",
+    "Water",
+    "Milk",
+    "Cream",
+    "Sugar",
+    "Sweetener",
+    "Honey",
+    "Cocoa powder",
+    "Cinnamon",
+    "Nutmeg",
+    "Whipped cream",
+    "Ground cinnamon",
+    "Ground nutmeg",
+    "Ice cubes",
+    "Espresso",
+    "Condensed milk",
+    "Evaporated milk",
+    "Coconut milk",
+    "Almond milk",
+    "Soy milk",
+    "Oat milk",
+    "Cardamom",
+    "Agave syrup",
+    "Maple syrup",
+    "Lemon zest",
+    "Ginger",
+    "Lavender",
+    "Mint leaves",
+    "Turmeric",
+    "Coconut oil",
+    "Brown sugar",
+    "Vanilla extract",
+    "Almond extract"
+)
+
+private fun retrieveIngredients(onIngredientsLoaded: (List<String>) -> Unit) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val preferencesRef = db.collection("user_preferences").document(userId)
+        preferencesRef.get()
+            .addOnSuccessListener { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    val ingredients = documentSnapshot.get("ingredients") as? List<String> ?: emptyList()
+                    onIngredientsLoaded(ingredients)
+                } else {
+                    onIngredientsLoaded(emptyList())
+                }
+            }
+            .addOnFailureListener { e ->
+                // Handle failure
+            }
+    }
+    }
+
+
+
+fun updateIngredients(ingredient: String, add: Boolean) {
+    //add ingredient to ingredients array in db
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    userId?.let {
+        val preferencesRef = db.collection("user_preferences").document(userId)
+        if (add) {
+            preferencesRef.update("ingredients", FieldValue.arrayUnion(ingredient))
+                .addOnSuccessListener {
+                    // Handle success
+                }
+                .addOnFailureListener { e ->
+                    // Handle failure
+                }
+        }
+        else {
+            preferencesRef.update("ingredients", FieldValue.arrayRemove(ingredient))
+                .addOnSuccessListener {
+                    // Handle success
+                }
+                .addOnFailureListener { e ->
+                    // Handle failure
+                }
+        }
+        }
+}
+
+@Composable
+fun IngredientButton(ingredient: String) {
+    var selectedIngredientsList by remember { mutableStateOf(emptyList<String>()) }
+    var ingredientsFetched by remember {
+        mutableStateOf(false)
+    }
+    // Fetch ingredients from Firestore when the composable is first recomposed
+    LaunchedEffect(Unit) {
+        retrieveIngredients() { ingredients ->
+            selectedIngredientsList = ingredients
+            ingredientsFetched = true
+
+        }
+    }
+    if (ingredientsFetched) {
+        var isSelected = selectedIngredientsList.contains(ingredient)
+        var selected by remember { mutableStateOf(isSelected) }
+
+        Button(
+            onClick = {
+                updateIngredients(ingredient, !selected)
+
+                selected = !selected
+            },
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (selected) Brown else Color.White,
+                contentColor = if (selected) Color.White else Color.Black,
+            ),
+            modifier = Modifier
+                .padding(8.dp)
+                .wrapContentWidth()
+                .height(50.dp)
+        ) {
+            Text(text = ingredient)
+        }
+    }
+}
+
+@Composable
+fun CoffeeIngredientsRow(ingredientList: List<String>) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        for (ingredient in ingredientList) {
+            IngredientButton(ingredient = ingredient)
+        }
+    }
+}
+
+@Composable
+fun CoffeeIngredientsCluster() {
+    val rows = 4 // Number of rows in the cluster
+    val columns = 3 // Number of ingredients per row
+
+    Column {
+        repeat(rows) { rowIndex ->
+            val startIndex = rowIndex * columns
+            val endIndex = minOf(startIndex + columns, coffeeIngredients.size)
+            val rowIngredients = coffeeIngredients.subList(startIndex, endIndex)
+            CoffeeIngredientsRow(ingredientList = rowIngredients)
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
@@ -126,7 +282,7 @@ fun SettingScreen(
     var sliderPosition by remember { mutableStateOf(currRadius) }
     val (veganState, onVeganChange) = remember { mutableStateOf(currVegan) }
     val (vegetarianState, onVegetarianChange) = remember { mutableStateOf(currVegetarian) }
-    val (lactoseState, onLactoseChange) = remember { mutableStateOf(currLactoseFree) }
+    val (dairyState, onDairyChange) = remember { mutableStateOf(currDairyFree) }
     val (ketoState, onKetoChange) = remember { mutableStateOf(currKeto) }
     val (kosherState, onKosherChange) = remember { mutableStateOf(currKosher) }
     val (halalState, onHalalChange) = remember { mutableStateOf(currHalal) }
@@ -247,19 +403,19 @@ fun SettingScreen(
                             .fillMaxWidth()
                             .height(56.dp)
                             .toggleable(
-                                value = lactoseState,
-                                onValueChange = { onLactoseChange(!lactoseState) },
+                                value = dairyState,
+                                onValueChange = { onDairyChange(!dairyState) },
                                 role = Role.Checkbox
                             )
                             .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
-                            checked = lactoseState,
+                            checked = dairyState,
                             onCheckedChange = null // null recommended for accessibility with screenreaders
                         )
                         Text(
-                            text = "Lactose-free",
+                            text = "Dairy-free",
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(start = 16.dp)
                         )
@@ -397,12 +553,25 @@ fun SettingScreen(
                     }
                 }
             }
-
+            item {
+                Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
+                    Text(
+                        text = "What ingredients do you have?",
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
+            }
+            item {
+                Box{
+                    CoffeeIngredientsCluster()
+                }
+            }
             item {
                 Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 32.dp)) {
                     Button(
                         onClick = {
-                            updateSettings(sliderPosition, veganState, vegetarianState, lactoseState, ketoState, kosherState, halalState, glutenState, nutState );
+                            updateSettings(sliderPosition, veganState, vegetarianState, dairyState, ketoState, kosherState, halalState, glutenState, nutState );
                         },
                         shape = RoundedCornerShape(50.dp),
                         modifier = Modifier

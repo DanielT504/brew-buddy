@@ -7,5 +7,7 @@ data class RecipeMetadata(
     val title: String = "Untitled",
     val bannerUrl: String = Constants.DEFAULT_BANNER_URL,
     val author: Author = Author(),
-    val tags: List<String> = emptyList()
+    val tags: List<String> = emptyList(),
+    val keywords: List<String> = emptyList(),
+    val likes: Int = 0
 )

@@ -10,7 +10,9 @@ data class RecipeMetadataDto(
     val title: String,
     val bannerUrl: String,
     val author: AuthorDto,
-    val tags: List<String>
+    val tags: List<String>,
+    val keywords: List<String>,
+    val likes: Int,
 ) {
     companion object {
         fun from(map: HashMap<String, Object>) = object {
@@ -19,7 +21,9 @@ data class RecipeMetadataDto(
                 title=map["title"] as? String ?: "Untitled",
                 bannerUrl=map["bannerUrl"] as? String ?: Constants.DEFAULT_BANNER_URL,
                 author=AuthorDto.from(map["author"] as? HashMap<String, Object> ?: hashMapOf()),
-                tags=map["tags"] as? List<String> ?: emptyList()
+                tags=map["tags"] as? List<String> ?: emptyList(),
+                keywords=map["keywords"] as? List<String> ?: emptyList(),
+                likes=map["likes"] as? Int ?: 0
             )
         }.data
     }
@@ -31,6 +35,8 @@ fun RecipeMetadataDto.toRecipeMetadata(): RecipeMetadata {
         bannerUrl = bannerUrl,
         title = title,
         author=author.toAuthor(),
-        tags=tags
+        tags=tags,
+        keywords=keywords,
+        likes=likes
     )
 }

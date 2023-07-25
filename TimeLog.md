@@ -120,4 +120,10 @@
 | 2023/07/23 |         | 1      | 1    |        | 1       |        | Knowledge transfer session |
 | 2023/07/23 |         |        | 5    |        |         |        | Update API calls, add uploads to firebase storage, finish "Your Recipes" component|
 | 2023/07/23 |        |         |      |        | 2       |        | Redeploy firebase functions, set up permissions, add safety accessors to the data classes. Refactor author to have author dto |
+| 2023/07/23 |        |         | 3    |        |         |        | Add navigation to image grid, update data strucutres and recipe upload|
+| 2023/07/23 |        |         |      |        | 2       |        | Generalize search and post view models for reusability |
+| 2023/07/24 |        |         |      |        | 4       |        | Add filtering functionality of marketplace, allow users to create their own listings |
+| 2023/07/24 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync                                                                                                     |
+| 2023/07/24 |2        |         |      |        |         |        | refactor maps/add grocery stores to complete FPs                                                                                                     |
+| 2023/07/24 |3        |         |      |        |         |        | Add ingredients list ui and functionality.                                                                                                     |
 

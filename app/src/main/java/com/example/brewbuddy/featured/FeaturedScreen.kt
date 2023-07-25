@@ -186,7 +186,7 @@ private fun GridLayout(navController: NavHostController, viewModel: FeaturedView
         }
     }
 
-    if(state.error.isNotBlank()) {
+    if(recommended.error.isNotBlank()) {
         Text(
             text = state.error,
             color = MaterialTheme.colorScheme.error,
@@ -196,7 +196,7 @@ private fun GridLayout(navController: NavHostController, viewModel: FeaturedView
                 .padding(horizontal = 20.dp)
         )
     }
-    if(state.isLoading){
+    if(recommended.isLoading){
         Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
             Box() {
                 CircularProgressIndicator(modifier = Modifier

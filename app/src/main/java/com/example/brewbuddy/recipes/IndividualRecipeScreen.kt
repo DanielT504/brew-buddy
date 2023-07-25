@@ -112,11 +112,11 @@ fun IndividualRecipeScreen(
             ) {
                 Box() {
                     RecipeBanner(
-                        state.recipe!!.id!!,
-                        state.recipe!!.bannerUrl!!,
-                        state.recipe!!.title!!,
+                        state.post!!.id!!,
+                        state.post!!.bannerUrl!!,
+                        state.post!!.title!!,
                         navController,
-                        state.recipe!!.author!!,
+                        state.post!!.author!!,
                     )
                 }
                 Box(
@@ -125,7 +125,7 @@ fun IndividualRecipeScreen(
                         .padding(bottom = 60.dp)
                         .fillMaxSize()
                 ) {
-                    RecipeSection(state.recipe, viewModel)
+                    RecipeSection(state.post, viewModel)
                 }
             }
         }
@@ -277,7 +277,7 @@ private fun MoreInfoDialog(
     if(moreInfoDialogState) {
         AlertDialog(onDismissRequest = { onDialogDismissed() },) {
             Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
-                viewModel.state.value.recipe?.summary?.let {
+                viewModel.state.value.post?.summary?.let {
                     Column(
                         modifier = Modifier.padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -330,7 +330,7 @@ private fun FeedbackDialog(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    viewModel.state.value.recipe?.summary?.let {
+                    viewModel.state.value.post?.summary?.let {
                         Column(
                             modifier = Modifier.padding(24.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -399,7 +399,7 @@ private fun FeedbackDialog(
                             ) {
                                 Button(
                                     onClick = {
-                                        viewModel.state.value.recipe!!.id?.let { it1 ->
+                                        viewModel.state.value.post!!.id?.let { it1 ->
                                             viewModel.postRecipeFeedback(
                                                 it1,
                                                 contextForToast
@@ -502,14 +502,14 @@ private fun LabelledIcon(@DrawableRes img: Int, label: String) {
     }
 }
 
-private fun generateTags(recipe: Recipe?): List<TagDto> {
-    var recipeTags = mutableListOf<TagDto>()
+private fun generateTags(recipe: Recipe?): List<RecipeTagDto> {
+    var recipeTags = mutableListOf<RecipeTagDto>()
     var isDairyFree = recipe?.dairyFree
     var isGlutenFree = recipe?.glutenFree
     var isVegan = recipe?.vegan
     var isVegetarian = recipe?.vegetarian
 
-    TagList.forEach { tagInfo ->
+    RecipeTagList.forEach { tagInfo ->
         if(recipe!!.tags.contains(tagInfo.name)) {
             val tag = createTag(tagInfo)
             recipeTags.add(tag);
