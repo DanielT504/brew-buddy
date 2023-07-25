@@ -126,4 +126,6 @@
 | 2023/07/24 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync                                                                                                     |
 | 2023/07/24 |2        |         |      |        |         |        | refactor maps/add grocery stores to complete FPs                                                                                                     |
 | 2023/07/24 |3        |         |      |        |         |        | Add ingredients list ui and functionality.                                                                                                     |
+| 2023/07/24 |        |         |      |        | 2       |        | Add sorting ability for both marketplace items and recipes |
+| 2023/07/24 |        |         |      |        | 3       |        | Add more generic class inheritence, add "your listings" section under user. Refactor button look for creating more recipes/listings |
 
