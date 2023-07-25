@@ -46,6 +46,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -80,6 +81,7 @@ import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.brewbuddy.R
 import com.example.brewbuddy.data.remote.dto.Imperial
 import com.example.brewbuddy.data.remote.dto.Ingredient
 import com.example.brewbuddy.data.remote.dto.IngredientList
