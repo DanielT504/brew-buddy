@@ -549,6 +549,15 @@ fun SettingScreen(
                 }
             }
             item {
+                Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 0.dp)) {
+                    Text(
+                        text = "What ingredients do you have?",
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
+            }
+            item {
                 Box{
                     CoffeeIngredientsCluster()
                 }
