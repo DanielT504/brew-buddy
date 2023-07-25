@@ -34,6 +34,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.brewbuddy.common.Constants
+import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.profile.ImageUpload
 import com.example.brewbuddy.profile.IngredientInput
 import com.example.brewbuddy.profile.StepInput
@@ -42,11 +43,13 @@ import com.example.brewbuddy.profile.uploadImageToFirebaseStorage
 import com.example.brewbuddy.recipes.IngredientsList
 import com.example.brewbuddy.ui.theme.GreenDark
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
-
+import java.util.UUID
 
 
 @Composable
@@ -57,6 +60,33 @@ private fun Label(text: String) {
     )
 
 }
+
+fun uploadListingImageToFirebaseStorage(imageUri: Uri?, onUrlReady: (String) -> Unit) {
+    if (imageUri != null) {
+        val filename = "recipe_image_${UUID.randomUUID()}"
+        val storage = Firebase.storage
+        val storageRef = storage.reference
+
+        val imageRef = storageRef.child("images/$filename")
+        val uploadTask = imageRef.putFile(imageUri)
+        uploadTask.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                task.exception?.let { throw it }
+            }
+            imageRef.downloadUrl
+        }.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val downloadUrl = task.result.toString()
+                onUrlReady(downloadUrl)
+            } else {
+                onUrlReady(Constants.DEFAULT_IMAGE_URL)
+            }
+        }
+    } else {
+        onUrlReady(Constants.DEFAULT_IMAGE_URL)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarketplaceItemModal(viewModel: MarketplaceViewModel, openDialog: MutableState<Boolean>, onClose: () -> Unit) {
@@ -99,7 +129,7 @@ fun MarketplaceItemModal(viewModel: MarketplaceViewModel, openDialog: MutableSta
                             colors = ButtonDefaults.buttonColors(containerColor = GreenDark),
                             onClick = {
                                 var uriAsString = ""
-                                uploadImageToFirebaseStorage(
+                                uploadListingImageToFirebaseStorage(
                                     uri
                                 ) { newValue: String ->
                                     uriAsString = newValue
