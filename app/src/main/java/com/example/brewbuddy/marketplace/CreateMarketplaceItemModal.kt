@@ -231,7 +231,7 @@ fun MarketplaceItemModal(viewModel: MarketplaceViewModel, openDialog: MutableSta
                             )
                         }
                         Row() {
-                            ImageUpload(returnImageUri = {newUri -> uri = newUri})
+                            ImageUpload("Select Image", returnImageUri = {newUri -> uri = newUri})
                         }
                     }
                 }
