@@ -45,7 +45,7 @@ import kotlinx.coroutines.launch
 private val auth = Firebase.auth
 
 private val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-    .requestIdToken("936295543644-ovaailsfjpdibr169fqkqufb2kpf8ian.apps.googleusercontent.com")
+    .requestIdToken("915144908139-9s8ul1u37vis1scf257tkob8bf233a88.apps.googleusercontent.com")
     .requestEmail()
     .build()
 

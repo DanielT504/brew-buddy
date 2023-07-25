@@ -62,7 +62,7 @@ class CurrentUserViewModel : ViewModel() {
                     username = username,
                     email = email,
                     bannerUrl = Constants.DEFAULT_BANNER_URL,
-                    avatarUrl = Constants.DEFAULT_AVATAR_URL,
+                    avatarUrl = currentUser.photoUrl.toString(),
                     userId = currentUser.uid
                 )
                 setUser(user)
