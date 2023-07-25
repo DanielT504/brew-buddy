@@ -51,7 +51,7 @@
 | 2023/07/07 |        |         |      |        |         | 1      | Suspended functions to allow database response time                                                                       |
 | 2023/07/08 |        | 3       |      |        |         |        | Marketplace Screen frontend filters - dropdown and UI setup                                                               |
 | 2023/07/11 |        | 2       |      |        |         |        | Deliverable 4 Doc Work                                                                                                    |
-| 2023/07/11 | 2      |         |      |        |         |        | Deliverable 4 Doc Work                                                                                                    |
+| 2023/07/11 | 2      |         |      |  2     |         |        | Deliverable 4 Doc Work                                                                                                    |
 | 2023/07/11 | 2      |         |      |        |         |        | Deliverable 5 Doc Work                                                                                                    |
 | 2023/07/11 | 4      |         |      |        |         |        | Get current location, debug Places API                                                                                    |
 | 2023/07/12 |        |         |      |        | 4       |        | Initial firebase integration + d4 doc work                                                                                |
@@ -60,7 +60,7 @@
 | 2023/07/13 |        |         |      |        | 1       |        | Slight refactor of recipe/ingredient classes                                                                              |
 | 2023/07/13 |        | 5       |      |        |         |        | Add recipe data source API endpoints & MVVM changes                                                                       |
 | 2023/07/13 |        |         |      |        |         | 4      | Fixed authentication blocker bug                                                                                          |
-| 2023/07/14 |        | 2       |      |        |         |        | Deliverable 5 Doc Work                                                                                                    |
+| 2023/07/14 |        | 2       |      |   2    |         |        | Deliverable 5 Doc Work                                                                                                    |
 | 2023/07/14 |        |         |      |        | 4       |        | Connect endpoints to user + add ability to locally test api                                                               |
 | 2023/07/15 | 3      |         |      |        |         |        | Get cafes within x radius                                                                                                 |
 | 2023/07/17 |        |         |      |        | 4       |        | Refactor endpoints and models to accept new api                                                                           |
@@ -115,7 +115,8 @@
 | 2023/07/23 |        |         |      |        |         | 1      | .env bug patch                                                                                                            |
 | 2023/07/23 |        | 1       |      |        |         |        | Update likes field on recipe doc + real time update in UI                                                                 |
 | 2023/07/23 |        |         |      |        |         | 4      | Email verification                                                                                                        |
-| 2023/07/23 |4        |         |      |        |         |        | debug + refactor maps/settings                                                                                                     |
+| 2023/07/23 |4        |         |      |        |         |        | debug + refactor maps/settings      
+| 2023/07/23 |         |         |      |  5     |         |        | debugging + working on notifications |
 | 2023/07/23 |         |2        |      |        |         |        | Added ability for user to provide feedback on a recipe                                                                                                
 | 2023/07/23 |         | 1      | 1    |        | 1       |        | Knowledge transfer session |
 | 2023/07/23 |         |        | 5    |        |         |        | Update API calls, add uploads to firebase storage, finish "Your Recipes" component|
@@ -124,6 +125,7 @@
 | 2023/07/23 |        |         |      |        | 2       |        | Generalize search and post view models for reusability |
 | 2023/07/24 |        |         |      |        | 4       |        | Add filtering functionality of marketplace, allow users to create their own listings |
 | 2023/07/24 | 1      | 1       | 1    | 1      | 1       | 1      | Project sync                                                                                                     |
+| 2023/07/24 |         |         |      | 8     |         |        | debugging + working on notifications |
 | 2023/07/24 |2        |         |      |        |         |        | refactor maps/add grocery stores to complete FPs                                                                                                     |
 | 2023/07/24 |3        |         |      |        |         |        | Add ingredients list ui and functionality.                                                                                                     |
 | 2023/07/24 |        |         |      |        | 2       |        | Add sorting ability for both marketplace items and recipes |
