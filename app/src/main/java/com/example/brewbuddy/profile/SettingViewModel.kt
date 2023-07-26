@@ -109,7 +109,7 @@ class SettingViewModel @Inject constructor(
     }
 
 
-    fun uploadImageById(uri: Uri, type: String, onSuccess: () -> Unit) {
+    fun uploadImageById(uri: Uri, type: String) {
         setImageUploadByTypeUseCase(userId, uri, type).onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -120,7 +120,6 @@ class SettingViewModel @Inject constructor(
                         } else {
                             _bannerState.value = UploadState()
                         }
-                        onSuccess()
                     }
                 }
 

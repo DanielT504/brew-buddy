@@ -95,7 +95,7 @@ import com.example.brewbuddy.marketplace.MarketplaceViewModel
 import com.example.brewbuddy.navigateToItem
 import com.example.brewbuddy.navigateToRecipe
 import com.example.brewbuddy.recipes.IndividualIngredient
-import com.example.brewbuddy.recipes.ProfileViewModel
+import com.example.brewbuddy.recipes.UserViewModel
 import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
@@ -210,7 +210,7 @@ fun postRecipe(recipe: Recipe) {
 @Composable
 fun Carousel(
     pagerState: PagerState = remember{ PagerState() },
-    viewModel: ProfileViewModel = hiltViewModel()
+    viewModel: UserViewModel = hiltViewModel()
 ) {
     val pageCount = viewModel.userLikedRecipes.value.size
     val bounds = 100 // arbitrarily large # to give the illusion of infinite scroll
@@ -1076,7 +1076,7 @@ private fun <T>UserPostsGrid(state: UserState<T>, title: String, content: @Compo
 fun UserScreen(
     menuButton: @Composable () -> Unit,
     navController: NavHostController,
-    viewModel: ProfileViewModel = hiltViewModel(),
+    viewModel: UserViewModel = hiltViewModel(),
     marketplaceViewModel: MarketplaceViewModel = hiltViewModel()
 ) {
     val userState = viewModel.userState.value

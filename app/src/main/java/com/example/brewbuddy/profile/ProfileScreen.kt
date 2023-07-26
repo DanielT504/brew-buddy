@@ -69,7 +69,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.brewbuddy.components.Content
 import com.example.brewbuddy.domain.model.User
 import com.example.brewbuddy.profile.SettingScreen
-import com.example.brewbuddy.recipes.ProfileViewModel
+import com.example.brewbuddy.recipes.UserViewModel
 import com.example.brewbuddy.ui.theme.LoadingScreen
 
 val LocalNavController = compositionLocalOf<NavController> { error("No NavController provided") }
@@ -149,7 +149,7 @@ fun ProfilePicture(avatarUrl: String, size: Dp) {
 fun ProfileScreen(
     activity: MainActivity,
     navController: NavController,
-    viewModel: ProfileViewModel = hiltViewModel()
+    viewModel: UserViewModel = hiltViewModel()
 ) {
     val userState = viewModel.userState.value
     val coroutineScope = rememberCoroutineScope()

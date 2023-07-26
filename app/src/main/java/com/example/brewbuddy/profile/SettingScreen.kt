@@ -50,7 +50,7 @@ import com.example.brewbuddy.components.Content
 import com.example.brewbuddy.components.ErrorModal
 import com.example.brewbuddy.components.LoadingModal
 import com.example.brewbuddy.marketplace.Filter
-import com.example.brewbuddy.recipes.ProfileViewModel
+import com.example.brewbuddy.recipes.UserViewModel
 import com.example.brewbuddy.recipes.SettingViewModel
 import com.example.brewbuddy.ui.theme.Brown
 import com.google.firebase.auth.FirebaseAuth
@@ -183,7 +183,7 @@ fun SettingScreen(
     navController: NavController,
     activity: MainActivity,
     menuButton: @Composable () -> Unit,
-    profileViewModel: ProfileViewModel = hiltViewModel(),
+    profileViewModel: UserViewModel = hiltViewModel(),
     viewModel: SettingViewModel = hiltViewModel()
 ) {
     val currentUserRepository = CurrentUserRepository()
@@ -524,15 +524,11 @@ fun SettingScreen(
                         Button(
                             onClick = {
                                 profilePictureUri?.let {
-                                    viewModel.uploadImageById(it, "AVATAR") {
-                                        profileViewModel.refreshCurrentUser()
-                                    }
+                                    viewModel.uploadImageById(it, "AVATAR")
                                 }
 
                                 bannerPictureUri?.let {
-                                    viewModel.uploadImageById(it, "BANNER") {
-                                        profileViewModel.refreshCurrentUser()
-                                    }
+                                    viewModel.uploadImageById(it, "BANNER")
                                 }
 
                                 viewModel.updatePreferencesById(

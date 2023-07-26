@@ -29,30 +29,17 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel  @Inject constructor(
-    private val getUserRecipesUseCase: GetUserRecipesUseCase,
     private val getUserByIdUseCase: GetUserByIdUseCase,
-    private val getMarketplaceItemsByUserIdUseCase: GetMarketplaceItemsByUserIdUseCase,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
-    private val _recipesState = mutableStateOf(UserState<List<RecipeMetadata>>())
-    val recipesState: State<UserState<List<RecipeMetadata>>> = _recipesState
 
-    private val _listingState = mutableStateOf(UserState<List<MarketplaceItemMetadata>>())
-    val listingState: State<UserState<List<MarketplaceItemMetadata>>> = _listingState
-
-    private val _userState = mutableStateOf(UserState<User>())
-    val userState: State<UserState<User>> = _userState
-
-    var _userLikedRecipes = mutableStateOf<List<Recipe>>(emptyList())
-    val userLikedRecipes: State<List<Recipe>> get() = _userLikedRecipes
+    private val _state = mutableStateOf(UserState<User>())
+    val state: State<UserState<User>> = _state
 
     private val userId = FirebaseAuth.getInstance().currentUser!!.uid
 
     init {
         getUserById(userId)
-        getRecipesByUserId(userId)
-        getUserLikedRecipes()
-        getMarketplaceItemsByUserId(userId)
     }
 
     fun refreshCurrentUser() {
@@ -63,91 +50,19 @@ class ProfileViewModel  @Inject constructor(
             when(result) {
                 is Resource.Success -> {
                     if (result.data != null){
-                        _userState.value = UserState(data = result.data)
+                        _state.value = UserState(data = result.data)
                     }
                 }
 
                 is Resource.Error -> {
-                    _userState.value = UserState(error = result.message ?: "An unexpected error occurred.")
+                    _state.value = UserState(error = result.message ?: "An unexpected error occurred.")
                 }
 
                 is Resource.Loading -> {
-                    _userState.value = UserState(isLoading = true)
-                }
-            }
-        }.launchIn(viewModelScope)
-    }
-    private fun getMarketplaceItemsByUserId(userId: String) {
-        getMarketplaceItemsByUserIdUseCase(userId).onEach { result ->
-            when(result) {
-                is Resource.Success -> {
-                    if (result.data != null){
-                        _listingState.value = UserState(data = result.data)
-                    }
-                }
-
-                is Resource.Error -> {
-                    _listingState.value = UserState(error = result.message ?: "An unexpected error occurred.")
-                }
-
-                is Resource.Loading -> {
-                    _listingState.value = UserState(isLoading = true)
-                }
-            }
-        }.launchIn(viewModelScope)
-    }
-    private fun getRecipesByUserId(userId: String) {
-        getUserRecipesUseCase(userId).onEach { result ->
-            when(result) {
-                is Resource.Success -> {
-                    if (result.data != null){
-                        _recipesState.value = UserState(data = result.data)
-                    }
-                }
-
-                is Resource.Error -> {
-                    _recipesState.value = UserState(error = result.message ?: "An unexpected error occurred.")
-                }
-
-                is Resource.Loading -> {
-                    _recipesState.value = UserState(isLoading = true)
+                    _state.value = UserState(isLoading = true)
                 }
             }
         }.launchIn(viewModelScope)
     }
 
-    private fun getUserLikedRecipes() {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-        val userRef = userId?.let { db.collection("users").document(userId) }
-        viewModelScope.launch {
-            try {
-                val userSnapshot = userRef?.get()?.await()
-                val likedRecipeIds = userSnapshot?.let { snapshot ->
-                    snapshot["likedRecipeIds"] as? List<String> ?: emptyList()
-                } ?: emptyList()
-                val recipeDataList = mutableListOf<HashMap<String, Object>>()
-                for (recipeId in likedRecipeIds) {
-                    val recipeRef = db.collection("recipes").document(recipeId)
-                    try {
-                        val recipeSnapshot = recipeRef.get().await()
-                        if (recipeSnapshot.exists()) {
-                            val recipeData = recipeSnapshot.data
-                            recipeData?.let { recipeDataList.add(it as HashMap<String, Object>) }
-                        }
-                    } catch (e: Exception) {
-                        Log.d("FETCH_RECIPE", "Error fetching recipe with ID: $recipeId")
-                    }
-                }
-                val recipeDtoList = recipeDataList.map { RecipeDto.from(it) }
-                val recipes = mutableListOf<Recipe>()
-                for (recipeDto in recipeDtoList) {
-                    val recipe = recipeDto.toRecipe()
-                    recipes.add(recipe)
-                }
-                _userLikedRecipes.value = recipes.toMutableList()
-            } catch (e: Exception) {
-                Log.d("GET_USER_LIKED_RECIPES", "Error retrieving user's liked recipes: ${e.message}")
-            }
-        }
-    }
 }
