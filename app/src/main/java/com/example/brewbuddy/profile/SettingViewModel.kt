@@ -1,5 +1,6 @@
 package com.example.brewbuddy.recipes
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -7,39 +8,34 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brewbuddy.common.Resource
-import com.example.brewbuddy.data.remote.dto.RecipeDto
-import com.example.brewbuddy.data.remote.dto.toRecipe
-import com.example.brewbuddy.domain.model.Recipe
-import com.example.brewbuddy.domain.model.MarketplaceItemMetadata
 import com.example.brewbuddy.domain.model.Preferences
-import com.example.brewbuddy.domain.model.RecipeMetadata
-import com.example.brewbuddy.domain.model.User
-import com.example.brewbuddy.domain.use_case.get_account.GetUserByIdUseCase
 import com.example.brewbuddy.domain.use_case.get_account.GetUserPreferenceUseCase
+import com.example.brewbuddy.domain.use_case.get_account.SetImageUploadByTypeUseCase
 import com.example.brewbuddy.domain.use_case.get_account.SetUserPreferenceUseCase
-import com.example.brewbuddy.domain.use_case.get_marketplace.GetMarketplaceItemsByUserIdUseCase
-import com.example.brewbuddy.domain.use_case.get_recipes.GetUserRecipesUseCase
-import com.example.brewbuddy.domain.use_case.get_user_liked_recipes.GetUserLikedRecipesUseCase
 import com.example.brewbuddy.profile.PreferenceState
-import com.example.brewbuddy.profile.UserState
-import com.example.brewbuddy.profile.db
+import com.example.brewbuddy.profile.UploadState
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingViewModel @Inject constructor(
     private val getUserPreferenceUseCase: GetUserPreferenceUseCase,
     private val setUserPreferenceUseCase: SetUserPreferenceUseCase,
+    private val setImageUploadByTypeUseCase: SetImageUploadByTypeUseCase,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
     private val _preferenceState = mutableStateOf(PreferenceState())
     val preferenceState: State<PreferenceState> = _preferenceState
 
+    private val _avatarState = mutableStateOf(UploadState())
+    val avatarState: State<UploadState> = _avatarState
+
+
+    private val _bannerState = mutableStateOf(UploadState())
+    val bannerState: State<UploadState> = _bannerState
 
     private val userId = FirebaseAuth.getInstance().currentUser!!.uid
 
@@ -111,58 +107,41 @@ class SettingViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
-    /*    private fun getUserLikedRecipesDepreciated(userId: String) {
-            getUserLikedRecipesUseCase(userId).onEach { result ->
-                when(result) {
-                    is Resource.Success -> {
-                        if (result.data != null){
-                            _userLikedRecipes.value = UserScreenState(data = result.data)
+
+
+    fun uploadImageById(uri: Uri, type: String, onSuccess: () -> Unit) {
+        setImageUploadByTypeUseCase(userId, uri, type).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    if (result.data != null) {
+                        Log.d("uploadImageById", "Uploading ${type} success")
+                        if(type === "AVATAR") {
+                            _avatarState.value = UploadState()
+                        } else {
+                            _bannerState.value = UploadState()
                         }
-                    }
-
-                    is Resource.Error -> {
-                        _userLikedRecipes.value = UserScreenState(error = result.message ?: "An unexpected error occurred.")
-                    }
-
-                    is Resource.Loading -> {
-                        _userLikedRecipes.value = UserScreenState(isLoading = true)
+                        onSuccess()
                     }
                 }
-            }.launchIn(viewModelScope)
-        }*/
 
-//    private fun getUserLikedRecipes() {
-//        val userId = FirebaseAuth.getInstance().currentUser?.uid
-//        val userRef = userId?.let { db.collection("users").document(userId) }
-//        viewModelScope.launch {
-//            try {
-//                val userSnapshot = userRef?.get()?.await()
-//                val likedRecipeIds = userSnapshot?.let { snapshot ->
-//                    snapshot["likedRecipeIds"] as? List<String> ?: emptyList()
-//                } ?: emptyList()
-//                val recipeDataList = mutableListOf<HashMap<String, Object>>()
-//                for (recipeId in likedRecipeIds) {
-//                    val recipeRef = db.collection("recipes").document(recipeId)
-//                    try {
-//                        val recipeSnapshot = recipeRef.get().await()
-//                        if (recipeSnapshot.exists()) {
-//                            val recipeData = recipeSnapshot.data
-//                            recipeData?.let { recipeDataList.add(it as HashMap<String, Object>) }
-//                        }
-//                    } catch (e: Exception) {
-//                        Log.d("FETCH_RECIPE", "Error fetching recipe with ID: $recipeId")
-//                    }
-//                }
-//                val recipeDtoList = recipeDataList.map { RecipeDto.from(it) }
-//                val recipes = mutableListOf<Recipe>()
-//                for (recipeDto in recipeDtoList) {
-//                    val recipe = recipeDto.toRecipe()
-//                    recipes.add(recipe)
-//                }
-//                _userLikedRecipes.value = recipes.toMutableList()
-//            } catch (e: Exception) {
-//                Log.d("GET_USER_LIKED_RECIPES", "Error retrieving user's liked recipes: ${e.message}")
-//            }
-//        }
-//    }
+                is Resource.Error -> {
+                    if(type === "AVATAR") {
+                        _avatarState.value =
+                            UploadState(error = result.message ?: "An unexpected error occurred.")
+                    } else {
+                        _bannerState.value =
+                            UploadState(error = result.message ?: "An unexpected error occurred.")
+                    }
+                }
+
+                is Resource.Loading -> {
+                    if(type === "AVATAR") {
+                        _avatarState.value = UploadState(isLoading = true)
+                    } else {
+                        _bannerState.value = UploadState(isLoading = true)
+                    }
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
 }

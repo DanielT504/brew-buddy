@@ -31,7 +31,6 @@ import javax.inject.Inject
 class ProfileViewModel  @Inject constructor(
     private val getUserRecipesUseCase: GetUserRecipesUseCase,
     private val getUserByIdUseCase: GetUserByIdUseCase,
-    private val getUserLikedRecipesUseCase: GetUserLikedRecipesUseCase,
     private val getMarketplaceItemsByUserIdUseCase: GetMarketplaceItemsByUserIdUseCase,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
@@ -54,6 +53,10 @@ class ProfileViewModel  @Inject constructor(
         getRecipesByUserId(userId)
         getUserLikedRecipes()
         getMarketplaceItemsByUserId(userId)
+    }
+
+    fun refreshCurrentUser() {
+        getUserById(userId)
     }
     private fun getUserById(userId: String) {
         getUserByIdUseCase(userId).onEach { result ->
@@ -112,44 +115,6 @@ class ProfileViewModel  @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
-
-    fun updateBanner(bannerUrl: String) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-        userId?.let {
-            val userRef = db.collection("users").document(userId)
-            val prefs = hashMapOf<String, Any>(
-                "bannerUrl" to bannerUrl
-            )
-            userRef.update(prefs)
-                .addOnSuccessListener {
-                    getUserById(userId)
-                    Log.d("EDIT_PROFILE_BANNER", "User banner updated")
-                }
-                .addOnFailureListener { exception ->
-                    Log.d("EDIT_PROFILE_BANNER", "Error changing banner: $exception")
-                }
-        }
-    }
-
-/*    private fun getUserLikedRecipesDepreciated(userId: String) {
-        getUserLikedRecipesUseCase(userId).onEach { result ->
-            when(result) {
-                is Resource.Success -> {
-                    if (result.data != null){
-                        _userLikedRecipes.value = UserScreenState(data = result.data)
-                    }
-                }
-
-                is Resource.Error -> {
-                    _userLikedRecipes.value = UserScreenState(error = result.message ?: "An unexpected error occurred.")
-                }
-
-                is Resource.Loading -> {
-                    _userLikedRecipes.value = UserScreenState(isLoading = true)
-                }
-            }
-        }.launchIn(viewModelScope)
-    }*/
 
     private fun getUserLikedRecipes() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid

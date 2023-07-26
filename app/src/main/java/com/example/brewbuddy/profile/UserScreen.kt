@@ -78,6 +78,7 @@ import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.brewbuddy.components.Content
 import com.example.brewbuddy.data.remote.dto.Imperial
 import com.example.brewbuddy.data.remote.dto.Ingredient
 import com.example.brewbuddy.data.remote.dto.IngredientList
@@ -821,7 +822,10 @@ fun RecipeModal(user: User, openDialog: MutableState<Boolean>, onClose: () -> Un
                             )
                         }
 
-                        Row(Modifier.fillMaxWidth().padding(4.dp)) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)) {
                             Text(
                                 text = "Select all tags that apply",
                                 style = TextStyle(fontSize = 20.sp)
@@ -1083,55 +1087,56 @@ fun UserScreen(
     var showDialog = remember { mutableStateOf(false) }
     var showMarketplaceDialog = remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        ProfileHeader(userState.data ?: User(), menuButton)
+    Content(state = userState) {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            ProfileHeader(userState.data ?: User(), menuButton)
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            TitleLarge(text="Pinned Recipes")
-            if(viewModel.userLikedRecipes.value.isNotEmpty()) {
-                Carousel()
-            } else {
-                Text(
-                    text="You haven't liked any recipes yet!",
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-            UserPostsGrid(state=recipesState, title="Your Recipes") {
-                Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                    ImageGrid(
-                        navFunction = {id: String -> navigateToRecipe(id, navController) },
-                        columns = 3,
-                        modifier = Modifier.padding(8.dp),
-                        recipes = recipesState.data ?: emptyList(),
-                        uploadButton={UploadButton("Upload Recipe", onClick={showDialog.value = true})}
-
-                    )
-
-                }
-            }
-
-
-            UserPostsGrid(state=listingState, title="Your Listings") {
-                Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                    ImageGrid(
-                        navFunction = { id: String -> navigateToItem(id, navController) },
-                        columns = 3,
-                        modifier = Modifier.padding(8.dp),
-                        recipes = listingState.data ?: emptyList(),
-                        uploadButton = { UploadButton("Upload Listing", onClick = {showMarketplaceDialog.value = true}) }
+            Column(modifier = Modifier.fillMaxSize()) {
+                TitleLarge(text="Pinned Recipes")
+                if(viewModel.userLikedRecipes.value.isNotEmpty()) {
+                    Carousel()
+                } else {
+                    Text(
+                        text="You haven't liked any recipes yet!",
+                        modifier = Modifier.padding(16.dp)
                     )
                 }
-            }
-            RecipeModal(userState.data ?: User(), showDialog,  onClose = { showDialog.value = false })
-            MarketplaceItemModal(marketplaceViewModel, showMarketplaceDialog,  onClose = { showMarketplaceDialog.value = false })
+                UserPostsGrid(state=recipesState, title="Your Recipes") {
+                    Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        ImageGrid(
+                            navFunction = {id: String -> navigateToRecipe(id, navController) },
+                            columns = 3,
+                            modifier = Modifier.padding(8.dp),
+                            recipes = recipesState.data ?: emptyList(),
+                            uploadButton={UploadButton("Upload Recipe", onClick={showDialog.value = true})}
 
-            Box() {
-                TitleLarge(text = "Saved Shops near you")
-            }
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White, shape = RoundedCornerShape(32.dp))
-                .padding(16.dp, 0.dp, 16.dp, 100.dp)) {
+                        )
+
+                    }
+                }
+
+
+                UserPostsGrid(state=listingState, title="Your Listings") {
+                    Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        ImageGrid(
+                            navFunction = { id: String -> navigateToItem(id, navController) },
+                            columns = 3,
+                            modifier = Modifier.padding(8.dp),
+                            recipes = listingState.data ?: emptyList(),
+                            uploadButton = { UploadButton("Upload Listing", onClick = {showMarketplaceDialog.value = true}) }
+                        )
+                    }
+                }
+                RecipeModal(userState.data ?: User(), showDialog,  onClose = { showDialog.value = false })
+                MarketplaceItemModal(marketplaceViewModel, showMarketplaceDialog,  onClose = { showMarketplaceDialog.value = false })
+
+                Box() {
+                    TitleLarge(text = "Saved Shops near you")
+                }
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White, shape = RoundedCornerShape(32.dp))
+                    .padding(16.dp, 0.dp, 16.dp, 100.dp)) {
                     retrieveSavedStores()
                     if (!storesOnProfile.isNullOrEmpty()) {
                         MapWrapper(stores = storesOnProfile)
@@ -1147,8 +1152,9 @@ fun UserScreen(
             }
 
         }
-
     }
+
+}
 
 @Composable
 fun MapWrapper(stores: List<Store>) {

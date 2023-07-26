@@ -50,6 +50,7 @@ import com.example.brewbuddy.components.Content
 import com.example.brewbuddy.components.ErrorModal
 import com.example.brewbuddy.components.LoadingModal
 import com.example.brewbuddy.marketplace.Filter
+import com.example.brewbuddy.recipes.ProfileViewModel
 import com.example.brewbuddy.recipes.SettingViewModel
 import com.example.brewbuddy.ui.theme.Brown
 import com.google.firebase.auth.FirebaseAuth
@@ -63,23 +64,6 @@ import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
 val db = FirebaseFirestore.getInstance()
-
-fun updateAvatar(avatarUrl: String) {
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-    userId?.let {
-        val userRef = db.collection("users").document(userId)
-        val prefs = hashMapOf<String, Any>(
-            "avatarUrl" to avatarUrl
-        )
-        userRef.update(prefs)
-            .addOnSuccessListener {
-                Log.d("EDIT_PROFILE_AVATAR", "User avatar updated")
-            }
-            .addOnFailureListener { exception ->
-                Log.d("EDIT_PROFILE_AVATAR", "Error changing avatar: $exception")
-            }
-    }
-}
 
 fun uploadSettingsImageToFirebaseStorage(imageUri: Uri, onUrlReady: (String) -> Unit) {
     if (imageUri != DEFAULT_BANNER_URL.toUri()) {
@@ -143,53 +127,6 @@ val coffeeIngredients = listOf(
     "Almond extract"
 )
 
-//private fun retrieveIngredients(onIngredientsLoaded: (List<String>) -> Unit) {
-//    val userId = FirebaseAuth.getInstance().currentUser?.uid
-//    userId?.let {
-//        val preferencesRef = db.collection("user_preferences").document(userId)
-//        preferencesRef.get()
-//            .addOnSuccessListener { documentSnapshot ->
-//                if (documentSnapshot.exists()) {
-//                    val ingredients = documentSnapshot.get("ingredients") as? List<String> ?: emptyList()
-//                    onIngredientsLoaded(ingredients)
-//                } else {
-//                    onIngredientsLoaded(emptyList())
-//                }
-//            }
-//            .addOnFailureListener { e ->
-//                // Handle failure
-//            }
-//    }
-//    }
-
-
-
-fun updateIngredients(ingredient: String, add: Boolean) {
-    //add ingredient to ingredients array in db
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-    userId?.let {
-        val preferencesRef = db.collection("user_preferences").document(userId)
-        if (add) {
-            preferencesRef.update("ingredients", FieldValue.arrayUnion(ingredient))
-                .addOnSuccessListener {
-                    // Handle success
-                }
-                .addOnFailureListener { e ->
-                    // Handle failure
-                }
-        }
-        else {
-            preferencesRef.update("ingredients", FieldValue.arrayRemove(ingredient))
-                .addOnSuccessListener {
-                    // Handle success
-                }
-                .addOnFailureListener { e ->
-                    // Handle failure
-                }
-        }
-    }
-}
-
 @Composable
 fun IngredientButton(ingredient: String, selectedIngredients: List<String>, onSelect: (ingredient: String) -> Unit) {
     var selected by remember { mutableStateOf(selectedIngredients.contains(ingredient)) }
@@ -246,6 +183,7 @@ fun SettingScreen(
     navController: NavController,
     activity: MainActivity,
     menuButton: @Composable () -> Unit,
+    profileViewModel: ProfileViewModel = hiltViewModel(),
     viewModel: SettingViewModel = hiltViewModel()
 ) {
     val currentUserRepository = CurrentUserRepository()
@@ -284,8 +222,8 @@ fun SettingScreen(
             }
         }
 
-        var profilePictureUri by remember { mutableStateOf<Uri?>(DEFAULT_BANNER_URL.toUri()) }
-        var bannerPictureUri by remember { mutableStateOf<Uri?>(DEFAULT_BANNER_URL.toUri()) }
+        var profilePictureUri by remember { mutableStateOf<Uri?>(null) }
+        var bannerPictureUri by remember { mutableStateOf<Uri?>(null) }
 
         Surface(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
@@ -585,22 +523,17 @@ fun SettingScreen(
                     Box(modifier = Modifier.padding(40.dp, 24.dp, 40.dp, 32.dp)) {
                         Button(
                             onClick = {
-//                            profilePictureUri?.let {
-//                                uploadSettingsImageToFirebaseStorage(
-//                                    it
-//                                ) { newValue: String ->
-//                                    Log.d("NEWAVATARVALUE", newValue)
-//                                    updateAvatar(newValue)
-//                                }
-//                            }
-//
-//                            bannerPictureUri?.let {
-//                                uploadSettingsImageToFirebaseStorage(
-//                                    it
-//                                ) { newValue: String ->
-//                                    updateBanner(newValue)
-//                                }
-//                            }
+                                profilePictureUri?.let {
+                                    viewModel.uploadImageById(it, "AVATAR") {
+                                        profileViewModel.refreshCurrentUser()
+                                    }
+                                }
+
+                                bannerPictureUri?.let {
+                                    viewModel.uploadImageById(it, "BANNER") {
+                                        profileViewModel.refreshCurrentUser()
+                                    }
+                                }
 
                                 viewModel.updatePreferencesById(
                                     sliderPosition,

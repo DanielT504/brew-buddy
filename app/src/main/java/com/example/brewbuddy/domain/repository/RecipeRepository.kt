@@ -1,6 +1,7 @@
 package com.example.brewbuddy.domain.repository
 
 import android.content.Context
+import android.net.Uri
 import com.example.brewbuddy.data.remote.dto.MarketplaceItemDto
 import com.example.brewbuddy.data.remote.dto.MarketplaceItemMetadataDto
 import com.example.brewbuddy.data.remote.dto.PreferencesDto
@@ -38,5 +39,5 @@ interface RecipeRepository {
     suspend fun getUserPreferencesById(id: String): PreferencesDto
 
     suspend fun setUserPreferencesById(id: String, preferences: Preferences): Boolean
-
+    suspend fun setImageUploadByType(id: String, uri: Uri, type: String): Boolean
 }

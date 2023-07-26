@@ -181,7 +181,6 @@ fun ProfileScreen(
                     NavHost(localNavController, startDestination = ProfileScreens.User.route) {
                         composable(route = ProfileScreens.User.route) {
                             UserScreen(
-                                viewModel = viewModel,
                                 navController = navController as NavHostController,
                                 menuButton = {
                                     MenuButton(
@@ -196,6 +195,7 @@ fun ProfileScreen(
                             SettingScreen(
                                 activity = activity,
                                 navController = navController,
+                                profileViewModel = viewModel,
                                 menuButton = { MenuButton(coroutineScope, menuDrawerState) }
                             )
                         }

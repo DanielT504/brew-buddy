@@ -1,6 +1,9 @@
 package com.example.brewbuddy.data.repository
 import android.content.Context
+import android.net.Uri
 import android.util.Log
+import androidx.core.net.toUri
+import com.example.brewbuddy.common.Constants
 import com.example.brewbuddy.data.remote.dto.MarketplaceItemDto
 import com.example.brewbuddy.data.remote.dto.MarketplaceItemMetadataDto
 import com.example.brewbuddy.data.remote.dto.PreferencesDto
@@ -17,8 +20,14 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.StorageTask
+import com.google.firebase.storage.UploadTask
+import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -27,6 +36,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import okhttp3.internal.toImmutableMap
 import java.util.Collections
+import java.util.UUID
 import javax.inject.Inject
 
 class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
@@ -286,6 +296,49 @@ class RecipeRepositoryImplementation @Inject constructor () : RecipeRepository {
             )
             val task = preferencesRef.set(prefs).await()
             return@withContext true
+        }
+    }
+
+    private suspend fun uploadImage(collectionRef: DocumentReference, propertyName: String, filename: String, uri: Uri): Boolean {
+        val storage = Firebase.storage
+        val storageRef = storage.reference
+
+        val imageRef = storageRef.child("images/$filename")
+        val uploadTask = imageRef.putFile(uri).await()
+
+        if (uploadTask.task.isSuccessful) {
+            uploadTask.storage.downloadUrl.exception?.let { throw it }
+
+            val path = uploadTask.storage.downloadUrl.await()
+
+            val userId = FirebaseAuth.getInstance().currentUser?.uid
+            userId?.let {
+                val obj = hashMapOf<String, Any>(
+                    propertyName to path.toString()
+                )
+                collectionRef.update(obj).await()
+                return true
+            }
+        }
+
+        uploadTask.task.exception?.let { throw it }
+
+        return false
+    }
+
+    override suspend fun setImageUploadByType(id: String, uri: Uri, type: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            if(type === "AVATAR") {
+                val filename = "user_avatar_${UUID.randomUUID()}"
+                val collectionRef = db.collection("users").document(id);
+                return@withContext uploadImage(collectionRef, "avatarUrl", filename, uri)
+            } else if (type === "BANNER") {
+                val filename = "user_banner_${UUID.randomUUID()}"
+                val collectionRef = db.collection("users").document(id);
+                return@withContext uploadImage(collectionRef, "bannerUrl", filename, uri)
+
+            }
+            throw Exception("Invalid image upload.")
         }
     }
 

@@ -28,3 +28,10 @@ enum class TagType {
     ALLERGEN,
     DIET
 }
+
+enum class UploadType {
+    AVATAR,
+    BANNER,
+    RECIPE,
+    LISTING
+}
