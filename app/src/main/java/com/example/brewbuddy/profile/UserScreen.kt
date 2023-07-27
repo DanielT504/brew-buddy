@@ -1090,10 +1090,8 @@ fun UserScreen(
     var showMarketplaceDialog = remember { mutableStateOf(false) }
 
     Content(state = userState) {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             ProfileHeader(userState.data ?: User(), menuButton)
-        }
-        Column(modifier = Modifier.fillMaxSize()) {
             TitleLarge(text="Pinned Recipes")
             if(viewModel.userLikedRecipes.value.isNotEmpty()) {
                 Carousel()

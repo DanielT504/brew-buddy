@@ -10,6 +10,7 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.example.brewbuddy.access.AccessScreen
+import com.example.brewbuddy.profile.CurrentUserRepository
 import com.example.brewbuddy.ui.theme.BrewBuddyTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -23,7 +24,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var auth: FirebaseAuth
     private var isLoggedIn = MutableLiveData(false)
-
+    private var currentUserRepository=CurrentUserRepository()
     fun setLogin(bool: Boolean) {
         isLoggedIn.value = bool;
     }
@@ -57,7 +58,7 @@ class MainActivity : ComponentActivity() {
             } else {
                 setContent {
                     BrewBuddyTheme {
-                        AccessScreen(this)
+                        AccessScreen(currentUserRepository, this)
                     }
                 }
             }

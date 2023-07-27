@@ -64,6 +64,7 @@ import com.example.brewbuddy.LocalNavGraphViewModelStoreOwner
 import com.example.brewbuddy.MainActivity
 import com.example.brewbuddy.R
 import com.example.brewbuddy.components.LoadingModal
+import com.example.brewbuddy.profile.CurrentUserRepository
 import com.example.brewbuddy.rememberViewModelStoreOwner
 import com.example.brewbuddy.ui.theme.LoadingScreen
 import com.google.firebase.auth.FirebaseAuth
@@ -90,6 +91,7 @@ fun FormWrapper(content: @Composable ColumnScope.() -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
+    currentUserRepository: CurrentUserRepository,
     navController: NavController,
     activity: MainActivity,
     context: Context,
@@ -201,6 +203,9 @@ fun LoginScreen(
                     Text(text = "Sign up")
                 }
                 GoogleSignInButton(
+                    navController = navController,
+                    currentUserRepository = currentUserRepository,
+                    viewModel=viewModel,
                     onGoogleSignInSuccess = { account ->
                         Log.d("GOOGLE_SIGN_IN", "Successfully signed in with Google: $account")
                         viewModel.registerUserWithGoogle(context, account.displayName!!, account.email!!) {
@@ -459,6 +464,7 @@ fun Title(color: Color = OrangeBrownMedium) {
 }
 @Composable
 fun AccessScreen(
+    currentUserRepository: CurrentUserRepository,
     activity: MainActivity,
 ) {
     val navController = rememberNavController()
@@ -469,7 +475,7 @@ fun AccessScreen(
         ) {
             NavHost(navController, startDestination = AccessScreens.Login.route) {
                 composable(AccessScreens.Login.route) {
-                    LoginScreen(navController=navController, activity=activity, context = LocalContext.current)
+                    LoginScreen(currentUserRepository=currentUserRepository, navController=navController, activity=activity, context = LocalContext.current)
                 }
                 composable(AccessScreens.Register.route) {
                     RegisterScreen(navController=navController, context = LocalContext.current, activity=activity)
