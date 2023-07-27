@@ -139,5 +139,6 @@
 | 2023/07/24 |        | 3       |      |        |         |        | Add pinned/liked recipes to profiles page + debugging                                                                       |
 | 2023/07/24 |        |         | 1    |        |         |        | Debugging                                                                                                                   |
 | 2023/07/24 |        |         | 1    |        |         |        | Adding diets, tags, keywords to recipe upload                                                                               |
+| 2023/07/24 |        |         |      |        | 5       |        | Massive refactor of classes and view models to fit MVVM                                                                               |
 | 2023/07/24 | 1      | 1       | 1    | 1      | 1       | 1      | Presentation planning                                                                                                       |
 | 2023/07/25 | 2      | 2       | 2    | 2      | 2       | 2      | Presentation recording                                                                                                      |
