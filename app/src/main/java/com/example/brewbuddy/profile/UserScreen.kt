@@ -72,13 +72,21 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.brewbuddy.PinnedCard
 import com.example.brewbuddy.ProfilePicture
+<<<<<<< HEAD
 import com.example.brewbuddy.R
+=======
+import com.example.brewbuddy.getUser
+>>>>>>> main
 import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+<<<<<<< HEAD
 import com.example.brewbuddy.components.Content
+=======
+import com.example.brewbuddy.R
+>>>>>>> main
 import com.example.brewbuddy.data.remote.dto.Imperial
 import com.example.brewbuddy.data.remote.dto.Ingredient
 import com.example.brewbuddy.data.remote.dto.IngredientList
@@ -95,7 +103,11 @@ import com.example.brewbuddy.marketplace.MarketplaceViewModel
 import com.example.brewbuddy.navigateToItem
 import com.example.brewbuddy.navigateToRecipe
 import com.example.brewbuddy.recipes.IndividualIngredient
+<<<<<<< HEAD
 import com.example.brewbuddy.recipes.UserViewModel
+=======
+import com.example.brewbuddy.recipes.UserScreenViewModel
+>>>>>>> main
 import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
@@ -210,7 +222,11 @@ fun postRecipe(recipe: Recipe) {
 @Composable
 fun Carousel(
     pagerState: PagerState = remember{ PagerState() },
+<<<<<<< HEAD
     viewModel: UserViewModel = hiltViewModel()
+=======
+    viewModel: UserScreenViewModel = hiltViewModel()
+>>>>>>> main
 ) {
     val pageCount = viewModel.userLikedRecipes.value.size
     val bounds = 100 // arbitrarily large # to give the illusion of infinite scroll
@@ -1091,11 +1107,57 @@ fun UserScreen(
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             ProfileHeader(userState.data ?: User(), menuButton)
 
-            Column(modifier = Modifier.fillMaxSize()) {
-                TitleLarge(text="Pinned Recipes")
-                if(viewModel.userLikedRecipes.value.isNotEmpty()) {
-                    Carousel()
-                } else {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TitleLarge(text="Pinned Recipes")
+            if(viewModel.userLikedRecipes.value.isNotEmpty()) {
+                Carousel()
+            } else {
+                Text(
+                    text="You haven't liked any recipes yet!",
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+            UserPostsGrid(state=recipesState, title="Your Recipes") {
+                Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    ImageGrid(
+                        navFunction = {id: String -> navigateToRecipe(id, navController) },
+                        columns = 3,
+                        modifier = Modifier.padding(8.dp),
+                        recipes = recipesState.data,
+                        uploadButton={UploadButton("Upload Recipe", onClick={showDialog.value = true})}
+
+                    )
+
+                }
+            }
+
+
+            UserPostsGrid(state=listingState, title="Your Listings") {
+                Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    ImageGrid(
+                        navFunction = { id: String -> navigateToItem(id, navController) },
+                        columns = 3,
+                        modifier = Modifier.padding(8.dp),
+                        recipes = listingState.data,
+                        uploadButton = { UploadButton("Upload Listing", onClick = {showMarketplaceDialog.value = true}) }
+                    )
+                }
+            }
+            RecipeModal(showDialog,  onClose = { showDialog.value = false })
+            MarketplaceItemModal(marketplaceViewModel, showMarketplaceDialog,  onClose = { showMarketplaceDialog.value = false })
+
+            Box() {
+                TitleLarge(text = "Saved Shops near you")
+            }
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, shape = RoundedCornerShape(32.dp))
+                .padding(16.dp, 0.dp, 16.dp, 100.dp)) {
+                retrieveSavedStores()
+                if (!storesOnProfile.isNullOrEmpty()) {
+                    MapWrapper(stores = storesOnProfile)
+                }
+                else {
                     Text(
                         text="You haven't liked any recipes yet!",
                         modifier = Modifier.padding(16.dp)
