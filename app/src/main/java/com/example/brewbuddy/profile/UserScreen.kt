@@ -21,8 +21,6 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.offset
@@ -60,7 +58,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -75,13 +72,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.brewbuddy.PinnedCard
 import com.example.brewbuddy.ProfilePicture
-import com.example.brewbuddy.getUser
+import com.example.brewbuddy.R
 import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.example.brewbuddy.R
+import com.example.brewbuddy.MapWrapper
+import com.example.brewbuddy.components.Content
 import com.example.brewbuddy.data.remote.dto.Imperial
 import com.example.brewbuddy.data.remote.dto.Ingredient
 import com.example.brewbuddy.data.remote.dto.IngredientList
@@ -93,19 +91,18 @@ import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.PostMetadata
 import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.model.RecipeMetadata
+import com.example.brewbuddy.domain.model.User
 import com.example.brewbuddy.marketplace.MarketplaceItemModal
 import com.example.brewbuddy.marketplace.MarketplaceViewModel
 import com.example.brewbuddy.navigateToItem
 import com.example.brewbuddy.navigateToRecipe
 import com.example.brewbuddy.recipes.IndividualIngredient
-import com.example.brewbuddy.recipes.UserScreenViewModel
+import com.example.brewbuddy.recipes.UserViewModel
 import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
 import com.example.brewbuddy.ui.theme.GreenLight
 import com.example.brewbuddy.ui.theme.GreenMedium
-import com.example.brewbuddy.ui.theme.SlateDark
-import com.example.brewbuddy.ui.theme.SlateLight
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
@@ -215,7 +212,7 @@ fun postRecipe(recipe: Recipe) {
 @Composable
 fun Carousel(
     pagerState: PagerState = remember{ PagerState() },
-    viewModel: UserScreenViewModel = hiltViewModel()
+    viewModel: UserViewModel = hiltViewModel()
 ) {
     val pageCount = viewModel.userLikedRecipes.value.size
     val bounds = 100 // arbitrarily large # to give the illusion of infinite scroll
@@ -552,7 +549,7 @@ fun convertToIngredientDto(ingredient: IndividualIngredient) : Ingredient{
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
+fun RecipeModal(user: User, openDialog: MutableState<Boolean>, onClose: () -> Unit) {
     val ingredients = remember { mutableStateListOf<Ingredient>(convertToIngredientDto(IndividualIngredient(0, "", ""))) }
     val instructions = remember { mutableStateListOf<Step>(Step(0, "")) }
     var title by remember { mutableStateOf("") }
@@ -573,8 +570,6 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
     val (ketoState, onKetoChange) = remember { mutableStateOf(isKeto) }
     val (glutenState, onGlutenChange) = remember { mutableStateOf(isGlutenFree) }
     val (sustainableState, onSustainableChange) = remember { mutableStateOf(isSustainable) }
-
-    val currentUser = getUser()
 
     if (openDialog.value) {
         AlertDialog(
@@ -641,9 +636,9 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                                     instructions = listOf(Instructions(name = title, steps = instructions)),
                                     ingredientLists = listOf(IngredientList("title", ingredients)),
                                     author = Author(
-                                        id = currentUser.getUserId(),
-                                        username = currentUser.getUsername(),
-                                        avatarUrl = currentUser.getAvatarUrl()
+                                        id = user.id,
+                                        username = user.username,
+                                        avatarUrl = user.avatarUrl
                                     )
                                 )
                                 uploadImageToFirebaseStorage(
@@ -829,7 +824,10 @@ fun RecipeModal(openDialog: MutableState<Boolean>, onClose: () -> Unit) {
                             )
                         }
 
-                        Row(Modifier.fillMaxWidth().padding(4.dp)) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp)) {
                             Text(
                                 text = "Select all tags that apply",
                                 style = TextStyle(fontSize = 20.sp)
@@ -1050,7 +1048,7 @@ private fun retrieveSavedStores() {
 }
 
 @Composable
-private fun <T>UserPostsGrid(state: UserScreenState<T>, title: String, content: @Composable () -> Unit) {
+private fun <T>UserPostsGrid(state: UserState<T>, title: String, content: @Composable () -> Unit) {
     Box(modifier = Modifier.padding(top = 35.dp)) {
         TitleLarge(text =  title)
     }
@@ -1080,21 +1078,20 @@ private fun <T>UserPostsGrid(state: UserScreenState<T>, title: String, content: 
 fun UserScreen(
     menuButton: @Composable () -> Unit,
     navController: NavHostController,
-    viewModel: UserScreenViewModel = hiltViewModel(),
+    viewModel: UserViewModel = hiltViewModel(),
     marketplaceViewModel: MarketplaceViewModel = hiltViewModel()
 ) {
-    var recipesState = viewModel.state.value
-    var listingState = viewModel.listingState.value
-    val user = getUser()
+    val userState = viewModel.userState.value
+    val recipesState = viewModel.recipesState.value
+    val listingState = viewModel.listingState.value
     // todo: change to lazycolumn
 
     var showDialog = remember { mutableStateOf(false) }
     var showMarketplaceDialog = remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        ProfileHeader(user, menuButton)
-
-        Column(modifier = Modifier.fillMaxSize()) {
+    Content(state = userState) {
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            ProfileHeader(userState.data ?: User(), menuButton)
             TitleLarge(text="Pinned Recipes")
             if(viewModel.userLikedRecipes.value.isNotEmpty()) {
                 Carousel()
@@ -1110,7 +1107,7 @@ fun UserScreen(
                         navFunction = {id: String -> navigateToRecipe(id, navController) },
                         columns = 3,
                         modifier = Modifier.padding(8.dp),
-                        recipes = recipesState.data,
+                        recipes = recipesState.data ?: emptyList(),
                         uploadButton={UploadButton("Upload Recipe", onClick={showDialog.value = true})}
 
                     )
@@ -1125,12 +1122,12 @@ fun UserScreen(
                         navFunction = { id: String -> navigateToItem(id, navController) },
                         columns = 3,
                         modifier = Modifier.padding(8.dp),
-                        recipes = listingState.data,
+                        recipes = listingState.data ?: emptyList(),
                         uploadButton = { UploadButton("Upload Listing", onClick = {showMarketplaceDialog.value = true}) }
                     )
                 }
             }
-            RecipeModal(showDialog,  onClose = { showDialog.value = false })
+            RecipeModal(user=userState.data ?: User(), showDialog,  onClose = { showDialog.value = false })
             MarketplaceItemModal(marketplaceViewModel, showMarketplaceDialog,  onClose = { showMarketplaceDialog.value = false })
 
             Box() {
@@ -1146,17 +1143,63 @@ fun UserScreen(
                 }
                 else {
                     Text(
-                        text="You haven't saved any shops near you yet!",
-                        style=MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 12.dp)
+                        text="You haven't liked any recipes yet!",
+                        modifier = Modifier.padding(16.dp)
                     )
                 }
+                UserPostsGrid(state=recipesState, title="Your Recipes") {
+                    Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        ImageGrid(
+                            navFunction = {id: String -> navigateToRecipe(id, navController) },
+                            columns = 3,
+                            modifier = Modifier.padding(8.dp),
+                            recipes = recipesState.data ?: emptyList(),
+                            uploadButton={UploadButton("Upload Recipe", onClick={showDialog.value = true})}
+
+                        )
+
+                    }
+                }
+
+
+                UserPostsGrid(state=listingState, title="Your Listings") {
+                    Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        ImageGrid(
+                            navFunction = { id: String -> navigateToItem(id, navController) },
+                            columns = 3,
+                            modifier = Modifier.padding(8.dp),
+                            recipes = listingState.data ?: emptyList(),
+                            uploadButton = { UploadButton("Upload Listing", onClick = {showMarketplaceDialog.value = true}) }
+                        )
+                    }
+                }
+                RecipeModal(userState.data ?: User(), showDialog,  onClose = { showDialog.value = false })
+                MarketplaceItemModal(marketplaceViewModel, showMarketplaceDialog,  onClose = { showMarketplaceDialog.value = false })
+
+                Box() {
+                    TitleLarge(text = "Saved Shops near you")
+                }
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White, shape = RoundedCornerShape(32.dp))
+                    .padding(16.dp, 0.dp, 16.dp, 100.dp)) {
+                    retrieveSavedStores()
+                    if (!storesOnProfile.isNullOrEmpty()) {
+                        MapWrapper(stores = storesOnProfile)
+                    }
+                    else {
+                        Text(
+                            text="You haven't saved any shops near you yet!",
+                            style=MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 12.dp)
+                        )
+                    }
                 }
             }
 
         }
-
     }
+}
 
 @Composable
 fun MapWrapper(stores: List<Store>) {
@@ -1183,10 +1226,10 @@ fun MapWrapper(stores: List<Store>) {
 @Composable
 fun ProfileHeader(user: User, menuButton: @Composable () -> Unit) {
     val profilePictureSize = 126.dp
-    val username = user.getUsername()
+    val username = user.username
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(){
-            ProfileBanner(user.getBannerUrl())
+            ProfileBanner(user.bannerUrl)
             menuButton()
         }
         Box(
@@ -1210,7 +1253,7 @@ fun ProfileHeader(user: User, menuButton: @Composable () -> Unit) {
 
             }
             Box(modifier=Modifier.align(Alignment.TopCenter)) {
-                ProfilePicture(user.getAvatarUrl(), profilePictureSize)
+                ProfilePicture(user.avatarUrl, profilePictureSize)
             }
         }
     }

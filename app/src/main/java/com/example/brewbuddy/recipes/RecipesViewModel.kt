@@ -10,15 +10,6 @@ import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.domain.model.SearchResultState
 import com.example.brewbuddy.domain.use_case.get_recipes.GetRecipeResultsUseCase
 import com.example.brewbuddy.marketplace.Filter
-import com.example.brewbuddy.profile.currGlutenFree
-import com.example.brewbuddy.profile.currHalal
-import com.example.brewbuddy.profile.currKeto
-import com.example.brewbuddy.profile.currKosher
-import com.example.brewbuddy.profile.currDairyFree
-import com.example.brewbuddy.profile.currNutFree
-import com.example.brewbuddy.profile.currRadius
-import com.example.brewbuddy.profile.currVegan
-import com.example.brewbuddy.profile.currVegetarian
 import com.example.brewbuddy.profile.db
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel

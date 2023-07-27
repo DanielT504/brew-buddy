@@ -9,7 +9,6 @@ import com.example.brewbuddy.domain.use_case.get_recipes.GetPopularUseCase
 import com.example.brewbuddy.domain.use_case.get_recipes.GetRecipesUseCase
 import com.example.brewbuddy.domain.use_case.get_recipes.GetRecommendedUseCase
 import com.example.brewbuddy.featured.FeaturedState
-import com.example.brewbuddy.getUser
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn

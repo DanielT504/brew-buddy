@@ -2,7 +2,6 @@ package com.example.brewbuddy.recipes
 
 import android.util.Log
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -13,14 +12,15 @@ import com.example.brewbuddy.data.remote.dto.toRecipe
 import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.domain.model.MarketplaceItemMetadata
 import com.example.brewbuddy.domain.model.RecipeMetadata
+import com.example.brewbuddy.domain.model.User
+import com.example.brewbuddy.domain.use_case.get_account.GetUserByIdUseCase
 import com.example.brewbuddy.domain.use_case.get_marketplace.GetMarketplaceItemsByUserIdUseCase
 import com.example.brewbuddy.domain.use_case.get_recipes.GetUserRecipesUseCase
 import com.example.brewbuddy.domain.use_case.get_user_liked_recipes.GetUserLikedRecipesUseCase
-import com.example.brewbuddy.profile.UserScreenState
+import com.example.brewbuddy.profile.UserState
 import com.example.brewbuddy.profile.db
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -28,17 +28,20 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
-class UserScreenViewModel  @Inject constructor(
+class UserViewModel  @Inject constructor(
     private val getUserRecipesUseCase: GetUserRecipesUseCase,
-    private val getUserLikedRecipesUseCase: GetUserLikedRecipesUseCase,
+    private val getUserByIdUseCase: GetUserByIdUseCase,
     private val getMarketplaceItemsByUserIdUseCase: GetMarketplaceItemsByUserIdUseCase,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
-    private val _state = mutableStateOf(UserScreenState<RecipeMetadata>())
-    val state: State<UserScreenState<RecipeMetadata>> = _state
+    private val _recipesState = mutableStateOf(UserState<List<RecipeMetadata>>())
+    val recipesState: State<UserState<List<RecipeMetadata>>> = _recipesState
 
-    private val _listingState = mutableStateOf(UserScreenState<MarketplaceItemMetadata>())
-    val listingState: State<UserScreenState<MarketplaceItemMetadata>> = _listingState
+    private val _listingState = mutableStateOf(UserState<List<MarketplaceItemMetadata>>())
+    val listingState: State<UserState<List<MarketplaceItemMetadata>>> = _listingState
+
+    private val _userState = mutableStateOf(UserState<User>())
+    val userState: State<UserState<User>> = _userState
 
     var _userLikedRecipes = mutableStateOf<List<Recipe>>(emptyList())
     val userLikedRecipes: State<List<Recipe>> get() = _userLikedRecipes
@@ -46,70 +49,72 @@ class UserScreenViewModel  @Inject constructor(
     private val userId = FirebaseAuth.getInstance().currentUser!!.uid
 
     init {
+        getUserById(userId)
         getRecipesByUserId(userId)
         getUserLikedRecipes()
         getMarketplaceItemsByUserId(userId)
     }
 
+    fun refreshCurrentUser() {
+        getUserById(userId)
+    }
+    private fun getUserById(userId: String) {
+        getUserByIdUseCase(userId).onEach { result ->
+            when(result) {
+                is Resource.Success -> {
+                    if (result.data != null){
+                        _userState.value = UserState(data = result.data)
+                    }
+                }
+
+                is Resource.Error -> {
+                    _userState.value = UserState(error = result.message ?: "An unexpected error occurred.")
+                }
+
+                is Resource.Loading -> {
+                    _userState.value = UserState(isLoading = true)
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
     private fun getMarketplaceItemsByUserId(userId: String) {
         getMarketplaceItemsByUserIdUseCase(userId).onEach { result ->
             when(result) {
                 is Resource.Success -> {
                     if (result.data != null){
-                        _listingState.value = UserScreenState(data = result.data)
+                        _listingState.value = UserState(data = result.data)
                     }
                 }
 
                 is Resource.Error -> {
-                    _listingState.value = UserScreenState(error = result.message ?: "An unexpected error occurred.")
+                    _listingState.value = UserState(error = result.message ?: "An unexpected error occurred.")
                 }
 
                 is Resource.Loading -> {
-                    _listingState.value = UserScreenState(isLoading = true)
+                    _listingState.value = UserState(isLoading = true)
                 }
             }
         }.launchIn(viewModelScope)
-
     }
     private fun getRecipesByUserId(userId: String) {
         getUserRecipesUseCase(userId).onEach { result ->
             when(result) {
                 is Resource.Success -> {
                     if (result.data != null){
-                        _state.value = UserScreenState(data = result.data)
+                        _recipesState.value = UserState(data = result.data)
                     }
                 }
 
                 is Resource.Error -> {
-                    _state.value = UserScreenState(error = result.message ?: "An unexpected error occurred.")
+                    _recipesState.value = UserState(error = result.message ?: "An unexpected error occurred.")
                 }
 
                 is Resource.Loading -> {
-                    _state.value = UserScreenState(isLoading = true)
+                    _recipesState.value = UserState(isLoading = true)
                 }
             }
         }.launchIn(viewModelScope)
     }
-
-/*    private fun getUserLikedRecipesDepreciated(userId: String) {
-        getUserLikedRecipesUseCase(userId).onEach { result ->
-            when(result) {
-                is Resource.Success -> {
-                    if (result.data != null){
-                        _userLikedRecipes.value = UserScreenState(data = result.data)
-                    }
-                }
-
-                is Resource.Error -> {
-                    _userLikedRecipes.value = UserScreenState(error = result.message ?: "An unexpected error occurred.")
-                }
-
-                is Resource.Loading -> {
-                    _userLikedRecipes.value = UserScreenState(isLoading = true)
-                }
-            }
-        }.launchIn(viewModelScope)
-    }*/
 
     private fun getUserLikedRecipes() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
