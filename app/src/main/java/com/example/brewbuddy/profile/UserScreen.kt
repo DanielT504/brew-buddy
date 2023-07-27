@@ -72,21 +72,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.brewbuddy.PinnedCard
 import com.example.brewbuddy.ProfilePicture
-<<<<<<< HEAD
 import com.example.brewbuddy.R
-=======
-import com.example.brewbuddy.getUser
->>>>>>> main
 import com.example.brewbuddy.ui.theme.GreyLight
 import com.example.brewbuddy.ui.theme.GreyMedium
 import com.example.brewbuddy.ui.theme.TitleLarge
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-<<<<<<< HEAD
+import com.example.brewbuddy.MapWrapper
 import com.example.brewbuddy.components.Content
-=======
-import com.example.brewbuddy.R
->>>>>>> main
 import com.example.brewbuddy.data.remote.dto.Imperial
 import com.example.brewbuddy.data.remote.dto.Ingredient
 import com.example.brewbuddy.data.remote.dto.IngredientList
@@ -97,17 +90,14 @@ import com.example.brewbuddy.data.remote.dto.Step
 import com.example.brewbuddy.domain.model.Author
 import com.example.brewbuddy.domain.model.PostMetadata
 import com.example.brewbuddy.domain.model.Recipe
+import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.domain.model.User
 import com.example.brewbuddy.marketplace.MarketplaceItemModal
 import com.example.brewbuddy.marketplace.MarketplaceViewModel
 import com.example.brewbuddy.navigateToItem
 import com.example.brewbuddy.navigateToRecipe
 import com.example.brewbuddy.recipes.IndividualIngredient
-<<<<<<< HEAD
 import com.example.brewbuddy.recipes.UserViewModel
-=======
-import com.example.brewbuddy.recipes.UserScreenViewModel
->>>>>>> main
 import com.example.brewbuddy.shoplocator.Store
 import com.example.brewbuddy.ui.theme.Cream
 import com.example.brewbuddy.ui.theme.GreenDark
@@ -222,11 +212,7 @@ fun postRecipe(recipe: Recipe) {
 @Composable
 fun Carousel(
     pagerState: PagerState = remember{ PagerState() },
-<<<<<<< HEAD
     viewModel: UserViewModel = hiltViewModel()
-=======
-    viewModel: UserScreenViewModel = hiltViewModel()
->>>>>>> main
 ) {
     val pageCount = viewModel.userLikedRecipes.value.size
     val bounds = 100 // arbitrarily large # to give the illusion of infinite scroll
@@ -1106,7 +1092,7 @@ fun UserScreen(
     Content(state = userState) {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             ProfileHeader(userState.data ?: User(), menuButton)
-
+        }
         Column(modifier = Modifier.fillMaxSize()) {
             TitleLarge(text="Pinned Recipes")
             if(viewModel.userLikedRecipes.value.isNotEmpty()) {
@@ -1123,7 +1109,7 @@ fun UserScreen(
                         navFunction = {id: String -> navigateToRecipe(id, navController) },
                         columns = 3,
                         modifier = Modifier.padding(8.dp),
-                        recipes = recipesState.data,
+                        recipes = recipesState.data ?: emptyList(),
                         uploadButton={UploadButton("Upload Recipe", onClick={showDialog.value = true})}
 
                     )
@@ -1138,12 +1124,12 @@ fun UserScreen(
                         navFunction = { id: String -> navigateToItem(id, navController) },
                         columns = 3,
                         modifier = Modifier.padding(8.dp),
-                        recipes = listingState.data,
+                        recipes = listingState.data ?: emptyList(),
                         uploadButton = { UploadButton("Upload Listing", onClick = {showMarketplaceDialog.value = true}) }
                     )
                 }
             }
-            RecipeModal(showDialog,  onClose = { showDialog.value = false })
+            RecipeModal(user=userState.data ?: User(), showDialog,  onClose = { showDialog.value = false })
             MarketplaceItemModal(marketplaceViewModel, showMarketplaceDialog,  onClose = { showMarketplaceDialog.value = false })
 
             Box() {
@@ -1215,7 +1201,6 @@ fun UserScreen(
 
         }
     }
-
 }
 
 @Composable

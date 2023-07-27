@@ -64,19 +64,16 @@ import com.example.brewbuddy.domain.model.Recipe
 import com.example.brewbuddy.profile.UserScreen
 import kotlinx.coroutines.CoroutineScope
 import androidx.compose.runtime.compositionLocalOf
-<<<<<<< HEAD
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.brewbuddy.components.Content
 import com.example.brewbuddy.domain.model.User
-=======
 import androidx.compose.runtime.*
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.brewbuddy.domain.model.RecipeMetadata
 import com.example.brewbuddy.profile.CurrentUserRepository
->>>>>>> main
 import com.example.brewbuddy.profile.SettingScreen
 import com.example.brewbuddy.recipes.UserViewModel
 import com.example.brewbuddy.ui.theme.LoadingScreen
