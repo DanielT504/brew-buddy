@@ -139,13 +139,14 @@
 | 2023/07/24 |        | 3       |      |        |         |        | Add pinned/liked recipes to profiles page + debugging                                                                       |
 | 2023/07/24 |        |         | 1    |        |         |        | Debugging                                                                                                                   |
 | 2023/07/24 |        |         | 1    |        |         |        | Adding diets, tags, keywords to recipe upload                                                                               |
-| 2023/07/24 |        |         |      |        | 5       |        | Massive refactor of classes and view models to fit MVVM                                                                               |
+| 2023/07/24 |        |         |      |        | 5       |        | Massive refactor of classes and view models to fit MVVM                                                                     |
 | 2023/07/24 | 1      | 1       | 1    | 1      | 1       | 1      | Presentation planning                                                                                                       |
 | 2023/07/25 | 2      | 2       | 2    | 2      | 2       | 2      | Presentation recording                                                                                                      |
-| 2023/07/25 | 1      |         |      |        |         |        | Demo edit+upload                                                                                  |
-| 2023/07/26 | 2      |         |      |        |         |        | D6 work                                                                                 |
-| 2023/07/28 | 3      |         |      |        |         |        | D6 work                                                                                 |
-| 2023/07/28 | 2      |         |      |        |         |        | D7 work                                                                                 |
-| 2023/07/28 |        |6        |      |        |         |        | D6 work                                                                                 |
-| 2023/07/24 |        |         |      |        | 3       |        | D6 work                                                                               |
+| 2023/07/25 | 1      |         |      |        |         |        | Demo edit+upload                                                                                                            |
+| 2023/07/26 | 2      |         |      |        |         |        | D6 work                                                                                                                     |
+| 2023/07/27 |        |         |      |        |         | 1      | D6 work                                                                                                                     |
+| 2023/07/28 | 3      |         |      |        |         |        | D6 work                                                                                                                     |
+| 2023/07/28 | 2      |         |      |        |         |        | D7 work                                                                                                                     |
+| 2023/07/28 |        |6        |      |        |         |        | D6 work                                                                                                                     |
+| 2023/07/28 |        |         |      |        | 3       |        | D6 work                                                                                                                     |
 
